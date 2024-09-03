@@ -1,0 +1,84 @@
+Your server application is designed to manage user accounts, handle album management (including paginated access and searching), and interact with external APIs (like the Marvel API) to fetch detailed information about characters. Below is a complete summary of the application, covering its structure, functionalities, and APIs.
+
+1. Project Structure Overview
+plaintext
+Copia codice
+src/
+├── api/
+│   ├── v1/
+│   │   ├── users/
+│   │   │   ├── controller.js          # Handles incoming requests for user operations
+│   │   │   ├── route.js               # Defines routes related to user operations
+│   │   │   ├── service.js             # Contains business logic for user management
+│   │   │   ├── model.js               # Mongoose schema for the User model
+│   │   ├── album/
+│   │   │   ├── controller.js          # Handles incoming requests for album operations
+│   │   │   ├── route.js               # Defines routes related to album management
+│   │   │   ├── service.js             # Contains business logic for album management
+│   │   ├── shared/
+│   │   │   ├── utils/
+│   │   │   │   ├── md5.js             # Utility function for generating MD5 hashes
+├── config/
+│   ├── config.js                      # Configuration file (e.g., for DB connection)
+├── loaders/
+│   ├── expressLoader.js               # Loads and configures Express
+│   ├── mongooseLoader.js              # Connects to MongoDB
+├── middlewares/
+│   ├── auth.js                        # Middleware for JWT authentication
+├── app.js                             # Main application file, initializing loaders
+├── server.js                          # Entry point for starting the server
+2. Functional Modules
+A. User Management
+Register User (POST /users/register):
+Input: username, email, password, favorite_superhero
+Output: Creates a new user with initial credits set to 10 and an album initialized with all 1,564 card IDs, each with quantity and available_quantity set to 0.
+Login User (POST /users/login):
+Input: email, password
+Output: Returns a JWT token if the credentials are valid.
+Update User (PUT /users/update):
+Input: user_id, username, password, favorite_superhero
+Output: Updates the specified fields for the user, only modifying the fields provided in the request.
+Delete User (DELETE /users/delete):
+Input: user_id
+Output: Deletes the user account.
+Buy Credits (POST /users/buy-credits):
+Input: user_id, amount
+Output: Adds the specified number of credits to the user’s account.
+Buy Card Packet (POST /users/buy-packet):
+Input: user_id
+Output: Deducts the cost in credits and adds a packet of cards (based on a configurable packet size) to the user’s album.
+B. Album Management
+Get Album Page (GET /album):
+Input: user_id, page_number
+Output: Retrieves the cards on the specified page with quantity > 0, including detailed information fetched from the Marvel API.
+Search Cards by Name (GET /album/search):
+Input: user_id, name_starts_with
+Output: Searches the Marvel API for characters whose names start with the given string and returns the matching cards that the user owns with quantity > 0.
+3. Shared Utilities
+MD5 Hashing:
+The MD5 function is used to generate the necessary hash for authenticating requests to the Marvel API. This function is placed in a shared utility module and is used across multiple services.
+4. Middleware
+JWT Authentication:
+Middleware to protect routes, ensuring only authenticated users can access certain APIs. It verifies the JWT token provided in the Authorization header of each request.
+5. APIs Summary
+User Management APIs:
+
+POST /users/register: Register a new user.
+POST /users/login: Authenticate a user and return a JWT.
+PUT /users/update: Update user details (username, password, favorite superhero).
+DELETE /users/delete: Delete a user.
+POST /users/buy-credits: Buy credits for a user.
+POST /users/buy-packet: Buy a packet of cards.
+Album Management APIs:
+
+GET /album: Retrieve paginated album data (15 cards per page).
+GET /album/search: Search for cards by character name.
+Next Steps: Client-Side Development
+With this server-side structure and functionality in place, the next step is to develop the client side of your application. The client will need to:
+
+Handle User Authentication: Implement login functionality and manage the JWT token.
+Interact with the Server API: Make requests to the server for user management, album management, and display the data in the UI.
+Implement UI Components:
+User Registration and Login: Forms to register and log in users.
+Album Pagination: UI components to navigate through the album pages.
+Search Functionality: A search bar to find specific cards by character name.

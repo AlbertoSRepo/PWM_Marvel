@@ -1,0 +1,50 @@
+
+### Struttura dei Dati per l'Applicazione di Scambio di Carte Marvel
+
+#### 1. User (Utente)
+
+Rappresenta un utente registrato nell'applicazione.
+
+**Campi:**
+- `_id`: Identificativo univoco dell'utente (generato automaticamente).
+- `username`: Nome utente univoco.
+- `email`: Indirizzo email univoco dell'utente.
+- `password`: Password dell'utente, memorizzata in forma crittografata.
+- `favorite_superhero`: Supereroe preferito dell'utente.
+- `credits`: Crediti virtuali dell'utente, utilizzati per acquistare carte.
+- `album`: Una lista contenente tutti i 1564 ID delle carte Marvel, con informazioni sulla quantità posseduta.
+
+**Schema di `album`:**
+- `card_id`: Riferimento all'ID della carta.
+- `quantity`: Numero di copie della carta possedute. Se `quantity` è 0, significa che l'utente non possiede ancora quella carta.
+- `available_quantity`: Numero di copie disponibili per scambio. Se `quantity` è 0, `available_quantity` deve essere anche 0.
+
+#### 2. Card (Carta)
+
+Rappresenta una carta individuale nell'album.
+
+**Campi:**
+- `_id`: Identificativo univoco della carta (derivato dall'API Marvel).
+- `name`: Nome della carta (es. "Spider-Man").
+- `description`: Descrizione della carta.
+- `series_ids`: Elenco di ID delle serie a cui la carta appartiene (opzionale).
+- `stories_ids`: Elenco di ID delle storie a cui la carta appartiene (opzionale).
+- `events_ids`: Elenco di ID degli eventi a cui la carta appartiene (opzionale).
+
+#### 3. Trade (Scambio)
+
+Rappresenta una proposta di scambio tra due utenti.
+
+**Campi:**
+- `_id`: Identificativo univoco dello scambio.
+- `proposer_id`: ID dell'utente che propone lo scambio.
+- `receiver_id`: ID dell'utente che riceve la proposta di scambio.
+- `proposed_cards`: Elenco delle carte offerte dal proponente.
+- `requested_cards`: Elenco delle carte richieste al destinatario.
+- `status`: Stato dello scambio (`pending`, `accepted`, `rejected`).
+- `created_at`: Data di creazione della proposta di scambio.
+- `updated_at`: Data di ultimo aggiornamento della proposta di scambio.
+
+**Schema di `proposed_cards` e `requested_cards`:**
+- `card_id`: Riferimento all'ID della carta.
+- `quantity`: Numero di copie della carta offerte o richieste.
