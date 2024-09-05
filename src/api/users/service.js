@@ -3,8 +3,44 @@ import { User } from './model.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import jwt from 'jsonwebtoken'; 
 
 class UserService {
+  async loginUser(email, password) {
+      console.log('Starting login process for email:', email);
+      
+      const user = await User.findOne({ email });
+      if (!user) {
+          console.log('User not found');
+          throw new Error('Invalid credentials');
+      }
+
+      const isMatch = await user.comparePassword(password);
+      console.log('Password match:', isMatch);
+
+      if (!isMatch) {
+          throw new Error('Invalid credentials');
+      }
+
+      try {
+          const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+          console.log('Generated Token:', token);
+          return { userId: user._id, token };
+      } catch (error) {
+          console.error('Error generating token:', error);
+          throw new Error('Token generation failed');
+      }
+  }
+
+  async verifyToken(token) {
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        return decoded;
+    } catch (error) {
+        throw new Error('Invalid or expired token');
+    }
+  }
+
   async registerUser(userData) {
     // Load card IDs from the JSON file
     const cardIds = this.loadCardIdsFromFile();

@@ -1,6 +1,7 @@
 // src/api/v1/album/route.js
 import express from 'express';
 import albumController from './controller.js';
+import { authenticateJWT } from '../../middlewares/auth.js';
 
 const router = express.Router();
 
@@ -10,13 +11,9 @@ const router = express.Router();
  *   get:
  *     summary: Retrieve cards for a specific album page
  *     tags: [Album]
+ *     security:
+ *       - bearerAuth: []  # JWT token is required
  *     parameters:
- *       - in: query
- *         name: user_id
- *         schema:
- *           type: string
- *         required: true
- *         description: The ID of the user whose album is being accessed
  *       - in: query
  *         name: page_number
  *         schema:
@@ -59,7 +56,7 @@ const router = express.Router();
  *       404:
  *         description: User not found or no cards available on the specified page
  */
-router.get('/cards', albumController.getAlbumPage);
+router.get('/cards', authenticateJWT, albumController.getAlbumPage);
 
 /**
  * @swagger
@@ -67,13 +64,9 @@ router.get('/cards', albumController.getAlbumPage);
  *   get:
  *     summary: Search for cards by character name
  *     tags: [Album]
+ *     security:
+ *       - bearerAuth: []  # JWT token is required
  *     parameters:
- *       - in: query
- *         name: user_id
- *         schema:
- *           type: string
- *         required: true
- *         description: The ID of the user whose album is being searched
  *       - in: query
  *         name: name_starts_with
  *         schema:
@@ -110,6 +103,6 @@ router.get('/cards', albumController.getAlbumPage);
  *       404:
  *         description: User not found or no matching characters available
  */
-router.get('/search', albumController.searchCards);
+router.get('/search', authenticateJWT, albumController.searchCards);
 
 export default router;

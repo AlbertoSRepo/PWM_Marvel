@@ -1,7 +1,6 @@
-// src/api/v1/users/route.js
-
 import express from 'express';
 import userController from './controller.js';
+import { authenticateJWT } from '../../middlewares/auth.js';
 
 const router = express.Router();
 
@@ -54,6 +53,43 @@ const router = express.Router();
 
 /**
  * @swagger
+ * /users/login:
+ *   post:
+ *     summary: Login a user and get a JWT token
+ *     tags: [User]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 description: The user's email
+ *               password:
+ *                 type: string
+ *                 description: The user's password
+ *     responses:
+ *       200:
+ *         description: User logged in successfully and token generated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                   description: JWT token
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Invalid credentials
+ */
+router.post('/login', userController.login);
+
+/**
+ * @swagger
  * /users/register:
  *   post:
  *     summary: Register a new user
@@ -92,10 +128,34 @@ router.post('/register', userController.register);
 
 /**
  * @swagger
+ * /users/info:
+ *   get:
+ *     summary: Get current user's information
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved user information
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized (invalid or missing token)
+ *       404:
+ *         description: User not found
+ */
+router.get('/info', authenticateJWT, userController.getUserInfo);
+
+/**
+ * @swagger
  * /users/update:
  *   put:
  *     summary: Update user information
  *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -103,9 +163,6 @@ router.post('/register', userController.register);
  *           schema:
  *             type: object
  *             properties:
- *               user_id:
- *                 type: string
- *                 description: The ID of the user to update
  *               username:
  *                 type: string
  *               password:
@@ -125,7 +182,7 @@ router.post('/register', userController.register);
  *       400:
  *         description: Bad request
  */
-router.put('/update', userController.update);
+router.put('/update', authenticateJWT, userController.update);
 
 /**
  * @swagger
@@ -133,15 +190,8 @@ router.put('/update', userController.update);
  *   delete:
  *     summary: Delete a user account
  *     tags: [User]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               user_id:
- *                 type: string
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: User deleted successfully
@@ -155,7 +205,7 @@ router.put('/update', userController.update);
  *       400:
  *         description: Bad request
  */
-router.delete('/delete', userController.delete);
+router.delete('/delete', authenticateJWT, userController.delete);
 
 /**
  * @swagger
@@ -163,6 +213,8 @@ router.delete('/delete', userController.delete);
  *   post:
  *     summary: Buy credits for a user
  *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -170,9 +222,6 @@ router.delete('/delete', userController.delete);
  *           schema:
  *             type: object
  *             properties:
- *               user_id:
- *                 type: string
- *                 description: The ID of the user
  *               amount:
  *                 type: integer
  *                 description: The number of credits to buy
@@ -191,7 +240,7 @@ router.delete('/delete', userController.delete);
  *       400:
  *         description: Bad request
  */
-router.post('/buy-credits', userController.buyCredits);
+router.post('/buy-credits', authenticateJWT, userController.buyCredits);
 
 /**
  * @swagger
@@ -199,6 +248,8 @@ router.post('/buy-credits', userController.buyCredits);
  *   post:
  *     summary: Buy a card packet for a user
  *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -206,9 +257,9 @@ router.post('/buy-credits', userController.buyCredits);
  *           schema:
  *             type: object
  *             properties:
- *               user_id:
- *                 type: string
- *                 description: The ID of the user
+ *               packet_size:
+ *                 type: integer
+ *                 description: The size of the card packet to buy
  *     responses:
  *       200:
  *         description: Card packet purchased successfully
@@ -229,6 +280,6 @@ router.post('/buy-credits', userController.buyCredits);
  *       400:
  *         description: Bad request
  */
-router.post('/buy-packet', userController.buyCardPacket);
+router.post('/buy-packet', authenticateJWT, userController.buyCardPacket);
 
 export default router;
