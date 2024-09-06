@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert('Login avvenuto con successo!');
 
                     // Redirigi l'utente alla pagina di registrazione o un'altra pagina
-                    window.location.href = 'user.html'; // Sostituisci con l'URL della tua pagina
+                    window.location.href = 'album.html'; // Sostituisci con l'URL della tua pagina
                 } else {
                     // Se il login fallisce, mostra un messaggio di errore
                     alert('Login fallito: ' + (result.message || 'Credenziali non valide'));

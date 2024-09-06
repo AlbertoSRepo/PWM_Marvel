@@ -46,9 +46,15 @@
             width: 200px;
             margin-right: 10px;
         }
-        /* Ridurre il margine tra le carte */
         .marvel-card {
-            margin-bottom: 10px; /* Riduce lo spazio tra le carte */
+            margin-bottom: 10px;
+        }
+        /* Style for loading spinner */
+        #loading-spinner {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            display: none;
         }
     </style>
 </head>
@@ -66,139 +72,28 @@
     </nav>
 
     <div class="container card-container">
-        <!-- Forzatura di 3 righe con esattamente 5 colonne ciascuna -->
-        <div id="row-1" class="row justify-content-center mb-2">
-            <!-- Le prime 5 carte verranno generate qui tramite JavaScript -->
-        </div>
-        <div id="row-2" class="row justify-content-center mb-2">
-            <!-- Le seconde 5 carte verranno generate qui tramite JavaScript -->
-        </div>
-        <div id="row-3" class="row justify-content-center mb-2">
-            <!-- Le ultime 5 carte verranno generate qui tramite JavaScript -->
-        </div>
+        <div id="row-1" class="row justify-content-center mb-2"></div>
+        <div id="row-2" class="row justify-content-center mb-2"></div>
+        <div id="row-3" class="row justify-content-center mb-2"></div>
     </div>
 
-    <!-- Barra inferiore fissa con input per selezionare la pagina dell'album -->
+    <!-- Loading spinner -->
+    <!--div id="loading-spinner" class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div-->
+
+    <div id="loading-spinner" class="spinner-border text-primary" role="status">
+        <span class="sr-only">Loading...</span>
+    </div>
+
     <div class="fixed-bottom-bar">
         <form id="albumForm">
             <input type="number" id="albumPage" class="form-control" placeholder="Inserisci pagina album" min="1" required>
             <button type="submit" class="btn btn-primary">Vai alla Pagina</button>
         </form>
     </div>
-
-    <script>
-        // Funzione per creare una card HTML basata sui dati ricevuti dall'API
-        function createCard(card) {
-            return `
-                <div class="col-lg-2 col-md-4 col-12 marvel-card">
-                    <div class="card">
-                        <img src="${card.thumbnail.path}.${card.thumbnail.extension}" class="card-img-top" alt="${card.name}">
-                        <div class="card-body">
-                            <h5 class="card-title">${card.name}</h5>
-                            <a href="${card.urls[0].url}" target="_blank" class="btn btn-primary">Dettagli</a>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
     
-        // Funzione per aggiornare le carte nella pagina
-        function updateCards(cardsData) {
-            // Controlla se esiste l'array delle carte e se ha almeno 1 elemento
-            if (!cardsData || cardsData.length === 0) {
-                console.warn('Nessuna carta trovata per la pagina selezionata');
-                alert('Nessuna carta trovata per la pagina selezionata.');
-                return;
-            }
-    
-            const row1 = document.querySelector('#row-1');
-            const row2 = document.querySelector('#row-2');
-            const row3 = document.querySelector('#row-3');
-    
-            let cardsHTML1 = '';
-            let cardsHTML2 = '';
-            let cardsHTML3 = '';
-    
-            // Assicurati di avere almeno 5 carte per la prima riga
-            for (let i = 0; i < 5 && i < cardsData.length; i++) {
-                cardsHTML1 += createCard(cardsData[i]); // Prima riga
-            }
-    
-            // Assicurati di avere almeno 10 carte in totale per la seconda riga
-            for (let i = 5; i < 10 && i < cardsData.length; i++) {
-                cardsHTML2 += createCard(cardsData[i]); // Seconda riga
-            }
-    
-            // Assicurati di avere almeno 15 carte in totale per la terza riga
-            for (let i = 10; i < 15 && i < cardsData.length; i++) {
-                cardsHTML3 += createCard(cardsData[i]); // Terza riga
-            }
-    
-            // Inserisci le carte nel DOM
-            row1.innerHTML = cardsHTML1;
-            row2.innerHTML = cardsHTML2;
-            row3.innerHTML = cardsHTML3;
-        }
-    
-        // Funzione per fare una richiesta al server per ottenere le carte
-        function fetchCards(pageNumber) {
-            const jwtToken = localStorage.getItem('jwtTokenPWMMarvel'); // Ottieni il token JWT
-    
-            // Verifica che il token JWT esista
-            if (!jwtToken) {
-                console.error('Token JWT mancante');
-                alert('Token JWT non trovato. Devi autenticarti.');
-                return;
-            }
-    
-            // Effettua la richiesta al server
-            fetch(`http://localhost:3000/api/album/cards?page_number=${pageNumber}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${jwtToken}`,
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => {
-                console.log('Stato della risposta:', response.status); // Mostra il codice di stato
-                if (!response.ok) {
-                    throw new Error(`Errore nella richiesta al server. Status code: ${response.status}`);
-                }
-                // Leggi il corpo della risposta come JSON
-                return response.json();
-            })
-            .then(data => {
-                console.log('Dati ricevuti dal server:', data); // Aggiungi un log per vedere cosa contiene "data"
-                // Verifica se i dati contengono le carte
-                if (!data || data.length === 0) {
-                    console.warn('Nessuna carta trovata per la pagina selezionata');
-                    alert('Nessuna carta trovata per la pagina selezionata.');
-                    return;
-                }
-    
-                // Aggiorna le carte nella pagina
-                updateCards(data);
-            })
-            .catch(error => {
-                console.error('Errore durante il caricamento delle carte:', error);
-                alert('Si è verificato un errore durante il caricamento delle carte. Controlla la console per maggiori dettagli.');
-            });
-        }
-    
-        // Carica la pagina iniziale (pagina 1)
-        document.addEventListener('DOMContentLoaded', function() {
-            fetchCards(1); // Carica la prima pagina all'avvio
-    
-            // Gestisce la modifica della pagina con il form
-            document.getElementById('albumForm').addEventListener('submit', function(event) {
-                event.preventDefault();
-                const pageNumber = document.getElementById('albumPage').value;
-                fetchCards(pageNumber); // Carica la pagina specificata
-            });
-        });
-    </script>
-    
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="album.js"></script>
 </body>
 </html>
