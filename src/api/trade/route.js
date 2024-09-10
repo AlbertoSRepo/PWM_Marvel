@@ -7,6 +7,59 @@ const router = express.Router();
 
 /**
  * @swagger
+ * /api/trade:
+ *   get:
+ *     summary: Get all trade proposals (community)
+ *     tags: [Trade]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Returns a list of all trade proposals
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     description: Trade ID
+ *                   proposer:
+ *                     type: string
+ *                     description: Proposer user ID
+ *                   offeredCards:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         card_id:
+ *                           type: number
+ *                         quantity:
+ *                           type: number
+ *                   requestedCards:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         card_id:
+ *                           type: number
+ *                         quantity:
+ *                           type: number
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get('/', authenticateJWT, tradeController.getAllTrades);  // Nuova rotta per recuperare tutte le proposte
+
+
+/**
+ * @swagger
  * /trade:
  *   post:
  *     summary: Create a new trade proposal
@@ -98,5 +151,88 @@ router.post('/:tradeId/offers', authenticateJWT, tradeController.addOffer);
  *         description: Trade accepted and completed successfully
  */
 router.put('/:tradeId/offers/:offerId/accept', authenticateJWT, tradeController.acceptOffer);
+
+/**
+ * @swagger
+ * /trade/user/proposals:
+ *   get:
+ *     summary: Get the trade proposals made by the logged-in user
+ *     tags: [Trade]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Returns a list of trade proposals made by the user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     description: Trade ID
+ *                   offered_cards:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         card_id:
+ *                           type: number
+ *                         quantity:
+ *                           type: number
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get('/user/proposals', authenticateJWT, tradeController.getUserProposals);
+
+/**
+ * @swagger
+ * /trade/user/offers:
+ *   get:
+ *     summary: Get the trade offers made by the logged-in user
+ *     tags: [Trade]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Returns a list of trade offers made by the user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     description: Trade offer ID
+ *                   proposalId:
+ *                     type: string
+ *                     description: The ID of the trade proposal the user made an offer on
+ *                   offered_cards:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         card_id:
+ *                           type: number
+ *                         quantity:
+ *                           type: number
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get('/user/offers', authenticateJWT, tradeController.getUserOffers);
 
 export default router;

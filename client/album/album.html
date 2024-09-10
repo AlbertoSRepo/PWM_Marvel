@@ -38,8 +38,7 @@
     <div id="row-1" class="row justify-content-center mb-2"></div>
     <div id="row-2" class="row justify-content-center mb-2"></div>
     <div id="row-3" class="row justify-content-center mb-2"></div>
-</div>
-
+  </div>
 
   <!-- Loading spinner -->
   <div id="loading-spinner" class="spinner-border text-primary" role="status">
@@ -60,14 +59,11 @@
 
       <!-- Parte sinistra (70%) per le collezioni -->
       <div class="overlay-left">
-        <!-- Spinner di caricamento -->
         <div id="loading-spinner-overlay" class="spinner-border text-primary" role="status" style="display: none;">
           <span class="sr-only">Loading...</span>
         </div>
 
-        <!-- Accordion for comics, series, stories, and events -->
         <div class="accordion" id="detailsAccordion" style="display: none;">
-          <!-- Comics Section -->
           <div class="accordion-item">
             <h2 class="accordion-header" id="headingComics">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
@@ -77,13 +73,10 @@
             </h2>
             <div id="collapseComics" class="accordion-collapse collapse" aria-labelledby="headingComics"
               data-bs-parent="#detailsAccordion">
-              <div class="accordion-body" id="overlay-comics">
-                <!-- Comics list will be loaded here -->
-              </div>
+              <div class="accordion-body" id="overlay-comics"></div>
             </div>
           </div>
 
-          <!-- Series Section -->
           <div class="accordion-item">
             <h2 class="accordion-header" id="headingSeries">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
@@ -93,13 +86,10 @@
             </h2>
             <div id="collapseSeries" class="accordion-collapse collapse" aria-labelledby="headingSeries"
               data-bs-parent="#detailsAccordion">
-              <div class="accordion-body" id="overlay-series">
-                <!-- Series list will be loaded here -->
-              </div>
+              <div class="accordion-body" id="overlay-series"></div>
             </div>
           </div>
 
-          <!-- Stories Section -->
           <div class="accordion-item">
             <h2 class="accordion-header" id="headingStories">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
@@ -109,13 +99,10 @@
             </h2>
             <div id="collapseStories" class="accordion-collapse collapse" aria-labelledby="headingStories"
               data-bs-parent="#detailsAccordion">
-              <div class="accordion-body" id="overlay-stories">
-                <!-- Stories list will be loaded here -->
-              </div>
+              <div class="accordion-body" id="overlay-stories"></div>
             </div>
           </div>
 
-          <!-- Events Section -->
           <div class="accordion-item">
             <h2 class="accordion-header" id="headingEvents">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
@@ -125,15 +112,27 @@
             </h2>
             <div id="collapseEvents" class="accordion-collapse collapse" aria-labelledby="headingEvents"
               data-bs-parent="#detailsAccordion">
-              <div class="accordion-body" id="overlay-events">
-                <!-- Events list will be loaded here -->
-              </div>
+              <div class="accordion-body" id="overlay-events"></div>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Template per la creazione delle carte -->
+  <template id="card-template">
+    <div class="col-lg-2 col-md-4 col-12 marvel-card">
+      <div class="card">
+        <img class="card-img-top" alt="Superhero Image">
+        <div class="card-body">
+          <h5 class="card-title"></h5>
+          <p class="card-id">ID: </p>
+          <p class="card-quantity">Quantità: </p>
+        </div>
+      </div>
+    </div>
+  </template>
 
   <div class="fixed-bottom-bar">
     <form id="albumForm">

@@ -19,7 +19,7 @@ export default async ({ app }) => {
   // Load API routes
   app.use('/api/users', userRoutes);
   app.use('/api/album', albumRoutes);
-  app.use('/api/tradeW', tradeRoutes);  // Add the trade routes
+  app.use('/api/trade', tradeRoutes);  // Add the trade routes
 
   // Error Handler (should be the last middleware)
   app.use(errorHandler);

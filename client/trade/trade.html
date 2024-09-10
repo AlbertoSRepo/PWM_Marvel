@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marvel Trade</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="trade.css">
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">PWM Marvel</a>
+      <div class="d-flex ms-auto">
+        <button class="btn btn-secondary me-2" type="button" onclick="window.location.href = '../album/album.html';">Album</button>
+        <button class="btn btn-secondary me-2" type="button" onclick="window.location.href = '../buy/buy.html';">Buy</button>
+        <button class="btn btn-primary me-2" type="button">Exchange</button>
+        <button class="btn btn-secondary me-2" type="button" onclick="window.location.href = '../user/user.html';">User</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container mt-4">
+    <div class="row">
+      <!-- Colonna sinistra: Proposte della Community -->
+      <div class="col-lg-6">
+        <h3>Proposte della Community</h3>
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Carte</th>
+              <th>Data</th>
+            </tr>
+          </thead>
+          <tbody id="community-trades">
+            <!-- Qui verranno inserite le proposte della community -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Colonna destra: Proposte e Offerte dell'Utente -->
+      <div class="col-lg-6">
+        <!-- Proposte fatte dall'utente -->
+        <div class="mb-4">
+          <h3>Le tue Proposte</h3>
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Carte</th>
+                <th>Data</th>
+              </tr>
+            </thead>
+            <tbody id="user-proposals">
+              <!-- Qui verranno inserite le proposte fatte dall'utente -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Offerte fatte dall'utente -->
+        <div>
+          <h3>Le tue Offerte</h3>
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Proposta</th>
+                <th>Carte Offerte</th>
+                <th>Data</th>
+              </tr>
+            </thead>
+            <tbody id="user-offers">
+              <!-- Qui verranno inserite le offerte fatte dall'utente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="trade.js"></script>
+</body>
+
+</html>

@@ -3,6 +3,27 @@ import { Trade } from './model.js';
 import { User } from '../users/model.js';
 
 class TradeService {
+    // Funzione per recuperare tutte le proposte di trade
+    async getAllTrades() {
+        try {
+            // Recupera tutte le proposte di trade e popola il campo proposer_id con l'username dell'utente
+            const trades = await Trade.find({})
+                .populate('proposer_id', 'username'); // Popola con il campo username dell'utente
+
+            return trades.map(trade => ({
+                _id: trade._id,
+                proposer: trade.proposer_id.username,  // Includi l'username
+                proposed_cards: trade.proposed_cards,
+                status: trade.status,
+                offers: trade.offers,
+                created_at: trade.created_at.toLocaleString(),  // Formatta la data
+            }));
+        } catch (error) {
+            throw new Error('Errore durante il recupero delle proposte di trade.');
+        }
+    }
+
+
     // Crea una nuova proposta di trade
     async createTrade(proposerId, proposedCards) {
         const proposer = await User.findById(proposerId);
@@ -78,7 +99,7 @@ class TradeService {
         await this.executeTrade(trade, offer);
 
         // Cancella la proposta e tutte le offerte correlate
-        await trade.remove();
+        await Trade.deleteOne({ _id: tradeId });  // Usa deleteOne per eliminare il trade
         return { message: 'Trade completed and removed from the system' };
     }
 
@@ -130,6 +151,18 @@ class TradeService {
         // Salva le modifiche degli utenti
         await proposer.save();
         await offerer.save();
+    }
+
+    // Ottenere le proposte fatte dall'utente
+    async getProposalsByUser(userId) {
+        const userProposals = await Trade.find({ proposer_id: userId });
+        return userProposals;
+    }
+
+    // Ottenere le offerte fatte dall'utente
+    async getOffersByUser(userId) {
+        const userOffers = await Trade.find({ 'offers.user_id': userId });
+        return userOffers;
     }
 }
 

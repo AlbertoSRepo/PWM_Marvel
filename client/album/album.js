@@ -1,13 +1,183 @@
-// Funzione per mostrare il caricamento delle carte (spinner)
-function showLoadingSpinner() {
-    document.getElementById('loading-spinner').style.display = 'block';
-    document.querySelector('.card-container').classList.add('d-none');
+
+// Gestione del caricamento iniziale e della paginazione
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('albumPage').value = 1;
+    updatePaginationButtons(1);
+
+    fetchCards(1);
+
+    document.getElementById('albumForm').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const pageNumber = parseInt(document.getElementById('albumPage').value);
+        fetchCards(pageNumber);
+        updatePaginationButtons(pageNumber);
+    });
+
+    document.getElementById('prevPageBtn').addEventListener('click', () => {
+        let currentPage = parseInt(document.getElementById('albumPage').value);
+        if (currentPage > 1) {
+            currentPage--;
+            document.getElementById('albumPage').value = currentPage;
+            fetchCards(currentPage);
+            updatePaginationButtons(currentPage);
+        }
+    });
+
+    document.getElementById('nextPageBtn').addEventListener('click', () => {
+        let currentPage = parseInt(document.getElementById('albumPage').value);
+        if (currentPage < 105) {
+            currentPage++;
+            document.getElementById('albumPage').value = currentPage;
+            fetchCards(currentPage);
+            updatePaginationButtons(currentPage);
+        }
+    });
+});
+
+// Funzione per fare la richiesta al server e ottenere i dettagli del personaggio
+async function fetchCharacterDetails(characterId) {
+    const jwtToken = localStorage.getItem('jwtTokenPWMMarvel');
+
+    if (!jwtToken) {
+        console.error('Token JWT mancante');
+        alert('Token JWT non trovato. Devi autenticarti.');
+        return null;
+    }
+
+    try {
+        const response = await fetch(`http://localhost:3000/api/album/characters/${characterId}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${jwtToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Errore nella richiesta al server. Status code: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Errore durante il recupero dei dettagli del personaggio:', error);
+        alert('Si è verificato un errore durante il caricamento dei dettagli del personaggio.');
+        return null;
+    }
 }
 
-// Funzione per nascondere il caricamento delle carte (spinner)
-function hideLoadingSpinner() {
-    document.getElementById('loading-spinner').style.display = 'none';
-    document.querySelector('.card-container').classList.remove('d-none');
+// Funzione per creare la card in base ai dettagli ricevuti usando il template
+function createCardHTML(card) {
+    const template = document.getElementById('card-template').content.cloneNode(true);
+
+    template.querySelector('.card-title').textContent = card.name || 'Carta sconosciuta';
+    template.querySelector('.card-id').textContent = `ID: ${card.id}`;
+    template.querySelector('.card-quantity').textContent = card.quantity ? `Quantità: ${card.quantity}` : '';
+
+    if (card.thumbnail) {
+        template.querySelector('.card-img-top').src = `${card.thumbnail.path}.${card.thumbnail.extension}`;
+    } else {
+        template.querySelector('.card-img-top').src = 'placeholder-image.jpg';
+    }
+
+    if (card.state === 'posseduta') {
+        template.querySelector('.marvel-card').classList.add('posseduta');
+        template.querySelector('.marvel-card').onclick = () => showOverlay(card.id);
+    } else {
+        template.querySelector('.marvel-card').classList.add('non-posseduta');
+    }
+
+    return template;
+}
+
+// Funzione per aggiornare le carte nella pagina
+function updateCards(cardsData) {
+    if (!cardsData || cardsData.length === 0) {
+        alert('Nessuna carta trovata per la pagina selezionata.');
+        return;
+    }
+
+    const row1 = document.querySelector('#row-1');
+    const row2 = document.querySelector('#row-2');
+    const row3 = document.querySelector('#row-3');
+
+    row1.innerHTML = '';
+    row2.innerHTML = '';
+    row3.innerHTML = '';
+
+    cardsData.slice(0, 5).forEach(card => row1.appendChild(createCardHTML(card)));
+    cardsData.slice(5, 10).forEach(card => row2.appendChild(createCardHTML(card)));
+    cardsData.slice(10, 15).forEach(card => row3.appendChild(createCardHTML(card)));
+}
+
+// Funzione per ottenere le carte dal server
+async function fetchCards(pageNumber) {
+    try {
+        showLoadingSpinner();
+        const jwtToken = localStorage.getItem('jwtTokenPWMMarvel');
+        if (!jwtToken) throw new Error('Token JWT mancante');
+
+        const response = await fetch(`http://localhost:3000/api/album/cards?page_number=${pageNumber}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${jwtToken}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) throw new Error(`Errore nella richiesta al server. Status code: ${response.status}`);
+        const data = await response.json();
+        updateCards(data);
+    } catch (error) {
+        console.error('Errore durante il caricamento delle carte:', error);
+        alert('Si è verificato un errore durante il caricamento delle carte.');
+    } finally {
+        hideLoadingSpinner();
+    }
+}
+
+// Funzione per aggiornare lo stato dei pulsanti di paginazione
+function updatePaginationButtons(currentPage) {
+    const prevButton = document.getElementById('prevPageBtn');
+    const nextButton = document.getElementById('nextPageBtn');
+
+    prevButton.disabled = currentPage <= 1;
+    nextButton.disabled = currentPage >= 105;
+}
+
+
+// Funzione per cercare figurine possedute per nome del supereroe
+document.getElementById('search-button').addEventListener('click', () => {
+    const searchQuery = document.getElementById('search-input').value.trim();
+    if (searchQuery) {
+        searchCardsByName(searchQuery);
+    }
+});
+
+// Funzione per cercare carte per nome del supereroe
+async function searchCardsByName(name) {
+    try {
+        showLoadingSpinner();
+        const jwtToken = localStorage.getItem('jwtTokenPWMMarvel');
+        if (!jwtToken) throw new Error('Token JWT mancante');
+
+        const response = await fetch(`http://localhost:3000/api/album/search?name_starts_with=${name}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${jwtToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) throw new Error(`Errore nella richiesta al server. Status code: ${response.status}`);
+        const data = await response.json();
+        updateCards(data);
+    } catch (error) {
+        console.error('Errore durante la ricerca delle carte:', error);
+        alert('Si è verificato un errore durante la ricerca delle carte.');
+    } finally {
+        hideLoadingSpinner();
+    }
 }
 
 // Funzione per fare la richiesta al server e ottenere i dettagli del personaggio
@@ -41,6 +211,7 @@ async function fetchCharacterDetails(characterId) {
         return null;
     }
 }
+
 // Funzione per mostrare l'overlay con uno spinner iniziale
 async function showOverlay(characterId) {
     // Mostra l'overlay subito
@@ -81,9 +252,8 @@ async function showOverlay(characterId) {
     populateAccordionSection('overlay-comics', characterDetails.comics, 'Comics');
     populateAccordionSection('overlay-series', characterDetails.series, 'Series');
     populateAccordionSection('overlay-stories', characterDetails.stories, 'Stories');
-    populateAccordionSection('overlay-events', characterDetails, 'Events');
+    populateAccordionSection('overlay-events', characterDetails.events, 'Events');
 }
-
 
 // Funzione per popolare ogni sezione della lista a tendina
 function populateAccordionSection(sectionId, items, sectionName) {
@@ -116,212 +286,20 @@ function populateAccordionSection(sectionId, items, sectionName) {
     }
 }
 
-// Funzione per nascondere l'overlay e ripristinare la trasparenza
+// Funzione per nascondere l'overlay
 function hideOverlay() {
     document.getElementById('overlay-background').style.display = 'none';
     document.getElementById('overlay').style.display = 'none';
-    document.querySelector('.card-container').classList.remove('transparent');
 }
 
-
-// Funzione per creare la card in base ai dettagli ricevuti
-createCard = (card) => {
-    if (card.state === 'posseduta') {
-        // Carta posseduta con dettagli completi, ID e quantità
-        return `
-            <div class="col-lg-2 col-md-4 col-12 marvel-card posseduta" onclick="showOverlay('${card.id}')">
-                <div class="card">
-                    <img src="${card.thumbnail.path}.${card.thumbnail.extension}" class="card-img-top" alt="${card.name}">
-                    <div class="card-body">
-                        <h5 class="card-title">${card.name}</h5>
-                        <p class="card-id">ID: ${card.id}</p> <!-- Mostra l'ID della carta -->
-                        <p class="card-quantity">Quantità: ${card.quantity}</p> <!-- Mostra la quantità solo per le carte possedute -->
-                    </div>
-                </div>
-            </div>
-        `;
-    } else {
-        // Carta non posseduta con un segnaposto e senza quantità
-        return `
-            <div class="col-lg-2 col-md-4 col-12 marvel-card non-posseduta">
-                <div class="card">
-                    <img src="placeholder-image.jpg" class="card-img-top" alt="Carta non posseduta">
-                    <div class="card-body">
-                        <h5 class="card-title">Carta sconosciuta</h5>
-                        <p class="card-id">ID: ${card.id}</p> <!-- Mostra l'ID della carta -->
-                        <div class="overlay-non-posseduta">Non posseduta</div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
+// Funzione per mostrare il caricamento delle carte (spinner)
+function showLoadingSpinner() {
+    document.getElementById('loading-spinner').style.display = 'block';
+    document.querySelector('.card-container').classList.add('d-none');
 }
 
-
-
-
-// Funzione per aggiornare le carte nella pagina
-updateCards = (cardsData) => {
-    if (!cardsData || cardsData.length === 0) {
-        console.warn('Nessuna carta trovata per la pagina selezionata');
-        alert('Nessuna carta trovata per la pagina selezionata.');
-        return;
-    }
-
-    const row1 = document.querySelector('#row-1');
-    const row2 = document.querySelector('#row-2');
-    const row3 = document.querySelector('#row-3');
-
-    let cardsHTML1 = '', cardsHTML2 = '', cardsHTML3 = '';
-
-    // Suddividi le carte in 3 righe
-    for (let i = 0; i < 5 && i < cardsData.length; i++) cardsHTML1 += createCard(cardsData[i]);
-    for (let i = 5; i < 10 && i < cardsData.length; i++) cardsHTML2 += createCard(cardsData[i]);
-    for (let i = 10; i < 15 && i < cardsData.length; i++) cardsHTML3 += createCard(cardsData[i]);
-
-    row1.innerHTML = cardsHTML1;
-    row2.innerHTML = cardsHTML2;
-    row3.innerHTML = cardsHTML3;
+// Funzione per nascondere il caricamento delle carte (spinner)
+function hideLoadingSpinner() {
+    document.getElementById('loading-spinner').style.display = 'none';
+    document.querySelector('.card-container').classList.remove('d-none');
 }
-
-// Funzione per ottenere le carte dal server
-fetchCards = (pageNumber) => {
-    showLoadingSpinner();
-
-    const jwtToken = localStorage.getItem('jwtTokenPWMMarvel');
-
-    if (!jwtToken) {
-        console.error('Token JWT mancante');
-        alert('Token JWT non trovato. Devi autenticarti.');
-        hideLoadingSpinner();
-        return;
-    }
-
-    fetch(`http://localhost:3000/api/album/cards?page_number=${pageNumber}`, {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${jwtToken}`,
-            'Content-Type': 'application/json'
-        }
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Errore nella richiesta al server. Status code: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            updateCards(data);
-            hideLoadingSpinner();
-        })
-        .catch(error => {
-            console.error('Errore durante il caricamento delle carte:', error);
-            alert('Si è verificato un errore durante il caricamento delle carte.');
-            hideLoadingSpinner();
-        });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    // Imposta il numero della pagina iniziale a 1 nella barra di ricerca
-    document.getElementById('albumPage').value = 1;
-    updatePaginationButtons(1); // Aggiorna lo stato dei pulsanti alla pagina iniziale
-
-    // Carica la pagina 1 all'avvio
-    fetchCards(1);
-
-    // Gestione dell'invio del form per cambiare pagina
-    document.getElementById('albumForm').addEventListener('submit', (event) => {
-        event.preventDefault();
-        const pageNumber = parseInt(document.getElementById('albumPage').value);
-        fetchCards(pageNumber);
-        updatePaginationButtons(pageNumber); // Aggiorna i pulsanti
-    });
-
-    // Gestione del pulsante "Pagina Precedente"
-    document.getElementById('prevPageBtn').addEventListener('click', () => {
-        let currentPage = parseInt(document.getElementById('albumPage').value);
-        if (currentPage > 1) {
-            currentPage--;
-            document.getElementById('albumPage').value = currentPage;
-            fetchCards(currentPage);
-            updatePaginationButtons(currentPage); // Aggiorna i pulsanti
-        }
-    });
-
-    // Gestione del pulsante "Pagina Successiva"
-    document.getElementById('nextPageBtn').addEventListener('click', () => {
-        let currentPage = parseInt(document.getElementById('albumPage').value);
-        if (currentPage < 105) { // Assumendo che 105 sia il numero massimo di pagine
-            currentPage++;
-            document.getElementById('albumPage').value = currentPage;
-            fetchCards(currentPage);
-            updatePaginationButtons(currentPage); // Aggiorna i pulsanti
-        }
-    });
-});
-
-// Funzione per aggiornare lo stato dei pulsanti di paginazione
-function updatePaginationButtons(currentPage) {
-    const prevButton = document.getElementById('prevPageBtn');
-    const nextButton = document.getElementById('nextPageBtn');
-
-    // Disabilita il pulsante "Pagina Precedente" se siamo alla prima pagina
-    if (currentPage <= 1) {
-        prevButton.disabled = true;
-    } else {
-        prevButton.disabled = false;
-    }
-
-    // Disabilita il pulsante "Pagina Successiva" se siamo all'ultima pagina
-    if (currentPage >= 105) { // Assumendo che 105 sia il numero massimo di pagine
-        nextButton.disabled = true;
-    } else {
-        nextButton.disabled = false;
-    }
-}
-// Funzione per cercare figurine possedute per nome del supereroe
-function searchCardsByName(name) {
-    const jwtToken = localStorage.getItem('jwtTokenPWMMarvel');
-
-    if (!jwtToken) {
-        console.error('Token JWT mancante');
-        alert('Token JWT non trovato. Devi autenticarti.');
-        return;
-    }
-
-    // Mostra lo spinner quando inizia la ricerca
-    showLoadingSpinner();
-
-    fetch(`http://localhost:3000/api/album/search?name_starts_with=${name}`, {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${jwtToken}`,
-            'Content-Type': 'application/json'
-        }
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Errore nella richiesta al server. Status code: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            // Nascondi lo spinner e mostra i risultati della ricerca
-            updateCards(data);
-            hideLoadingSpinner();
-        })
-        .catch(error => {
-            console.error('Errore durante la ricerca delle carte:', error);
-            alert('Si è verificato un errore durante la ricerca delle carte.');
-            hideLoadingSpinner(); // Nascondi lo spinner anche in caso di errore
-        });
-}
-
-
-// Event listener per il pulsante di ricerca
-document.getElementById('search-button').addEventListener('click', () => {
-    const searchQuery = document.getElementById('search-input').value.trim();
-    if (searchQuery) {
-        searchCardsByName(searchQuery);
-    }
-});

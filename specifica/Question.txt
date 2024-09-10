@@ -21,7 +21,13 @@ Album
     -ridimensionamento per schermi grandi
     -vendita carta
     
-Carte 
+Credit 
+    -controlla che comprare crediti funzioni correttamente 
+
+Card    
+    -quando vengono comprate 2 carte segna quantity 2 available_quantity 0
+
+
 
 
 
