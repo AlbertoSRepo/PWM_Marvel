@@ -1,4 +1,4 @@
-// src/api/v1/users/service.js
+// src/api/users/service.js
 import { User } from './model.js';
 import fs from 'fs';
 import path from 'path';
@@ -42,24 +42,29 @@ class UserService {
   }
 
   async registerUser(userData) {
-    // Load card IDs from the JSON file
+    // Carica gli ID delle carte da un file JSON
     const cardIds = this.loadCardIdsFromFile();
 
-    // Populate the album array with card IDs
+    // Crea un album vuoto con gli ID delle carte
     const album = cardIds.map(card_id => ({
-      card_id: card_id, // Numeric IDs
+      card_id: card_id, 
       quantity: 0,
       available_quantity: 0,
     }));
 
-    // Set initial credits and album
+    // Imposta crediti iniziali e album per il nuovo utente
     userData.credits = 10;
     userData.album = album;
 
-    // Create and save the user
+    // Crea e salva il nuovo utente
     const user = new User(userData);
     await user.save();
-    return user;
+
+    // Genera il token JWT
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    // Restituisce l'utente e il token
+    return { user, token };
   }
 
   loadCardIdsFromFile() {

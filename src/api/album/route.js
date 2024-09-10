@@ -1,4 +1,3 @@
-// src/api/v1/album/route.js
 import express from 'express';
 import albumController from './controller.js';
 import { authenticateJWT } from '../../middlewares/auth.js';
@@ -104,5 +103,52 @@ router.get('/cards', authenticateJWT, albumController.getAlbumPage);
  *         description: User not found or no matching characters available
  */
 router.get('/search', authenticateJWT, albumController.searchCards);
+
+/**
+ * @swagger
+ * /album/characters/{characterId}:
+ *   get:
+ *     summary: Retrieve complete character details
+ *     tags: [Album]
+ *     security:
+ *       - bearerAuth: []  # JWT token is required
+ *     parameters:
+ *       - in: path
+ *         name: characterId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the character to retrieve details for
+ *     responses:
+ *       200:
+ *         description: Detailed character information
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   description: The ID of the character
+ *                 name:
+ *                   type: string
+ *                   description: The name of the character
+ *                 description:
+ *                   type: string
+ *                   description: The description of the character
+ *                 comics:
+ *                   type: array
+ *                   description: List of comics associated with the character
+ *                 series:
+ *                   type: array
+ *                   description: List of series associated with the character
+ *                 stories:
+ *                   type: array
+ *                   description: List of stories associated with the character
+ *                 events:
+ *                   type: array
+ *                   description: List of events associated with the character
+ */
+router.get('/characters/:characterId', authenticateJWT, albumController.getCharacterDetails);
 
 export default router;

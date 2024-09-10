@@ -1,3 +1,4 @@
+//src/api/users/controller.js
 import userService from './service.js';
 import { User } from './model.js';
 
@@ -19,8 +20,15 @@ class UserController {
 
   register = async (req, res, next) => {
     try {
-      const user = await userService.registerUser(req.body);
-      res.status(201).json({ message: 'Registrazione avvenuta con successo', user_id: user._id });
+      // Registra l'utente e ottieni il token JWT
+      const { user, token } = await userService.registerUser(req.body);
+
+      // Restituisce il token e l'ID dell'utente
+      res.status(201).json({
+        message: 'Registrazione avvenuta con successo',
+        user_id: user._id,
+        token: token  // Include il token nella risposta
+      });
     } catch (error) {
       next(error);
     }

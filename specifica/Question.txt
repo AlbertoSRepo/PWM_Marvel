@@ -1,0 +1,27 @@
+Token
+    -Il token deve essere verificato per accedere alle route da utente registrato?
+    -il token deve essere ricreato a ogni accesso a route che lo richiede?
+    *accesso automatico a pagina index
+    *pagina index da loggato e pagina index da non loggato
+
+Performance
+    -Caricare 15 carte è oneroso 
+        1) meno carte per pagina
+        2) sistema di caching dei risultati
+        3) lazy loading
+        4) parallelizzazione richieste (o batch)
+        
+Error 
+    -Se siamo in pagina album, e cambiamo pagina prima del caricamento delle carte da errore.
+
+Album 
+    -aggiungere ulteriori dettagli
+    -filtro solo carte possedute (è solo lato client (è un filtro alla ricerca per pagina))
+    -Analizzare caching    
+    -ridimensionamento per schermi grandi
+    -vendita carta
+    
+Carte 
+
+
+

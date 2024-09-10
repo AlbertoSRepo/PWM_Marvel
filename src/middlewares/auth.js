@@ -1,3 +1,4 @@
+//src/middlewares/auth.js
 import userService from '../api/users/service.js';
 
 export const authenticateJWT = async (req, res, next) => {

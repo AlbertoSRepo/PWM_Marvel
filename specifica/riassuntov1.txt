@@ -1,0 +1,102 @@
+1. Specifica delle Funzionalità dell'Applicazione
+L'obiettivo dell'applicazione è sviluppare un sistema per gestire un Album delle Figurine dei Super Eroi, che consente agli utenti di acquistare pacchetti di figurine, gestire un album personale, e scambiare figurine con altri utenti. Le principali funzionalità sono:
+
+Funzionalità Front-End:
+Registrazione e Login:
+
+Gli utenti possono registrarsi inserendo informazioni come nome utente, email, password e il loro supereroe preferito.
+Gli utenti possono effettuare il login usando email e password per accedere al proprio album.
+Acquisto di Crediti:
+
+Gli utenti possono acquistare pacchetti di crediti virtuali tramite un'interfaccia che permette di scegliere diversi importi (1, 5, 10, 20 crediti).
+I crediti sono utilizzati per comprare pacchetti di figurine.
+Acquisto di Pacchetti di Figurine:
+
+Ogni pacchetto contiene un numero predefinito di figurine casuali (ad esempio, 5 figurine per pacchetto). Gli utenti spendono crediti per acquistare questi pacchetti.
+Ogni figurina rappresenta un supereroe con le sue informazioni principali (nome, descrizione, immagine).
+Visualizzazione Album:
+
+Gli utenti possono visualizzare e navigare nel loro album di figurine, organizzato per pagine. Possono anche cercare figurine per nome.
+Le informazioni dettagliate su ogni supereroe, inclusi eventi, serie e storie, sono visualizzabili.
+Gestione degli Scambi:
+
+Gli utenti possono proporre scambi con altri giocatori offrendo le loro figurine doppie e richiedendo quelle che non possiedono.
+Gli utenti possono accettare o rifiutare le proposte di scambio ricevute da altri utenti.
+Funzionalità Amministrative:
+Gestione degli Scambi Complessi:
+
+Possibilità di configurare scambi complessi (es. 2 figurine per 1).
+Pacchetti Speciali:
+
+Gli amministratori possono creare offerte speciali per pacchetti di figurine (ad esempio, pacchetti più grandi a prezzi diversi).
+2. Specifica Funzionale del Modello dei Dati
+L'applicazione utilizza un modello di dati basato su MongoDB, con i seguenti principali modelli:
+
+Modello User (Utente):
+_id: Identificativo univoco dell'utente.
+username: Nome utente unico.
+email: Indirizzo email univoco.
+password: Password crittografata.
+favorite_superhero: Supereroe preferito dell'utente.
+credits: Numero di crediti disponibili per l'utente.
+album: Collezione di figurine possedute dall'utente, con le seguenti proprietà:
+card_id: ID della figurina.
+quantity: Numero di copie possedute.
+available_quantity: Numero di copie disponibili per lo scambio.
+Modello Card (Carta/figurina):
+_id: Identificativo univoco della carta (derivato dall'API Marvel).
+name: Nome della figurina (es. "Spider-Man").
+description: Descrizione del supereroe rappresentato dalla figurina.
+series_ids: Elenco di ID delle serie a cui la figurina appartiene.
+stories_ids: Elenco di ID delle storie a cui la figurina appartiene.
+events_ids: Elenco di ID degli eventi a cui la figurina partecipa.
+Modello Trade (Scambio):
+_id: Identificativo univoco dello scambio.
+proposer_id: ID dell'utente che propone lo scambio.
+receiver_id: ID dell'utente che riceve la proposta di scambio.
+proposed_cards: Lista di carte offerte dallo scambiatore.
+requested_cards: Lista di carte richieste dall'utente.
+status: Stato dello scambio (es. pending, accepted, rejected).
+created_at: Data di creazione dello scambio.
+updated_at: Ultimo aggiornamento dello scambio.
+3. Specifica del Server
+3.1 Struttura del Server (Architettura):
+Il server è basato su Node.js, Express, e MongoDB e segue un'architettura a moduli con separazione delle responsabilità tra i vari componenti. La struttura principale del server è organizzata in:
+
+/src: Contiene tutto il codice sorgente dell'applicazione.
+/api: Moduli per le API REST, organizzati per risorsa e versione (es. /users, /cards, /trades).
+Controller: Gestisce le richieste HTTP e invoca i servizi.
+Route: Definisce le rotte HTTP per ciascun modulo (es. POST /users/register, GET /cards/:id).
+Service: Contiene la logica di business per ogni risorsa.
+Model: Definisce i modelli dei dati usando Mongoose.
+/middlewares: Middleware comuni per la gestione delle richieste.
+errorHandler.js: Middleware per la gestione degli errori.
+auth.js: Middleware per autenticare le richieste (verifica token JWT).
+/config: Configurazione dell'applicazione (es. connessione al database, variabili d'ambiente).
+database.js: Gestisce la connessione a MongoDB.
+env.js: Gestione delle variabili d'ambiente (es. API keys, URL del database).
+/loaders: Caricamento e configurazione delle componenti principali.
+expressLoader.js: Configura Express, carica le rotte e i middleware.
+mongooseLoader.js: Configura e connette Mongoose a MongoDB.
+app.js: Configurazione principale dell'applicazione.
+server.js: Entry point del server.
+3.2 Specifica Funzionale del Server (API e Logica di Business):
+Il server espone una serie di API RESTful per la gestione degli utenti, delle carte, e degli scambi, e interagisce con l'API di Marvel per recuperare i dettagli delle figurine.
+
+API Utenti (User Management):
+POST /users/register: Registra un nuovo utente. Invia un payload con nome utente, email, password e supereroe preferito. Restituisce un token JWT.
+POST /users/login: Esegue il login dell'utente e restituisce un token JWT.
+PUT /users/update: Permette all'utente di aggiornare i propri dati.
+POST /users/buy-credits: Permette di acquistare crediti. Richiede il numero di crediti da acquistare.
+API Album (Gestione dell'Album):
+GET /album/cards?page_number=X: Restituisce le figurine dell'album dell'utente per la pagina specificata (es. 15 carte per pagina).
+GET /album/search?name_starts_with=X: Cerca una figurina per nome.
+API Scambi (Gestione degli Scambi):
+POST /trades/create: Crea una proposta di scambio tra due utenti.
+PUT /trades/accept/
+: Accetta uno scambio proposto.
+DELETE /trades/cancel/
+: Annulla uno scambio.
+Middleware:
+Autenticazione JWT: Tutte le rotte che gestiscono album e scambi sono protette da token JWT, che viene verificato per ogni richiesta.
+Gestione degli Errori: Gli errori generati a livello di API o di server vengono gestiti tramite un middleware centralizzato, che restituisce messaggi di errore coerenti.

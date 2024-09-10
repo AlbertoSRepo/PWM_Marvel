@@ -1,3 +1,4 @@
+//src/api/users/route.js
 import express from 'express';
 import userController from './controller.js';
 import { authenticateJWT } from '../../middlewares/auth.js';

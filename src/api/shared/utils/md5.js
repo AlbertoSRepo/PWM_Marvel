@@ -1,4 +1,4 @@
-// src/api/v1/shared/utils/md5.js
+// src/api/shared/utils/md5.js
 
 export function MD5(d) {
     var M = function(d) {

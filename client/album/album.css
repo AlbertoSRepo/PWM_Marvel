@@ -1,0 +1,235 @@
+/* Impostazioni di base per l'HTML e il body */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Impostazioni della riga di contenuto (utilizzata per disporre le carte in riga) */
+  .content-row {
+    height: 30vh;
+    padding: 20px;
+    align-items: center;
+    text-align: center;
+  }
+  
+  /* Contenitore principale delle carte */
+  .card-container {
+    margin-top: 20px;
+    padding-bottom: 50px;
+    position: relative;
+    transition: opacity 0.3s ease;
+  }
+  
+  .card-container.transparent {
+    opacity: 0.3; /* Semitrasparenza quando l'overlay è attivo */
+  }
+  
+/* Stile per l'ID della carta */
+.card-id {
+    font-size: 0.9rem;
+    color: #555;
+    margin-top: 5px;
+    text-align: center;
+  }
+  
+  /* Stile per la quantità posseduta */
+  .card-quantity {
+    font-size: 0.9rem;
+    color: #555;
+    margin-top: 5px;
+    text-align: center;
+  }
+
+  /* Animazione di ingrandimento per le carte */
+/* Generale per tutte le carte */
+    .marvel-card {
+        text-align: center;
+        transition: transform 0.3s ease; /* Mantieni l'animazione di ingrandimento */
+    }
+  
+  /* Solo per le carte possedute, aggiungi l'effetto hover */
+  .posseduta:hover {
+    transform: scale(1.1); /* Ingrandimento quando il cursore è sopra la carta posseduta */
+  }
+  
+  /* Rende le carte non possedute in bianco e nero e disabilita l'effetto hover */
+  .non-posseduta {
+    filter: grayscale(100%);
+    pointer-events: none; /* Disabilita l'interazione con il mouse, quindi non si applica l'hover */
+  }
+  
+  .marvel-card:hover {
+    transform: scale(1.1); /* Ingrandimento quando il cursore è sopra la carta */
+  }
+  
+  /* Stile per le immagini delle carte */
+  .card-img-top {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+  }
+  
+  /* Barra fissa in fondo con l'inserimento della pagina dell'album */
+  .fixed-bottom-bar {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 10px 0;
+    box-shadow: 0px -2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .fixed-bottom-bar form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .fixed-bottom-bar input {
+    width: 200px;
+    margin-right: 10px;
+  }
+  
+  /* Style for the loading spinner */
+  #loading-spinner {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    display: none;
+    z-index: 9999;
+  }
+  
+  /* Sfondo nero semitrasparente per l'overlay */
+  #overlay-background {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 9998;
+  }
+  
+  /* Overlay principale */
+  #overlay {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10000;
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    width: 80vw; /* Larghezza aumentata per visualizzare meglio i dettagli */
+    height: 80vh; /* Altezza aumentata */
+    display: flex; /* Divisione in due parti: immagine a destra e collezioni a sinistra */
+  }
+  
+  /* Stile per il titolo nell'overlay */
+  #overlay h5 {
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+  }
+  
+  /* Impostazioni per dividere l'overlay in due parti */
+  .overlay-content {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    justify-content: space-between;
+  }
+  
+  /* Parte destra (30%) con immagine e nome del personaggio */
+  .overlay-right {
+    flex: 30%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  
+  .overlay-right img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+  }
+  
+  /* Parte sinistra (70%) con collezioni e barra di scorrimento */
+  .overlay-left {
+    flex: 70%;
+    overflow-y: auto; /* Barra di scorrimento per le collezioni */
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  
+  /* Impostazioni per il contenitore accordion */
+  #detailsAccordion {
+    max-height: 100%; /* Massima altezza per il contenitore delle collezioni */
+    overflow-y: auto; /* Abilita lo scrolling verticale */
+  }
+  
+  /* Personalizzazione della barra di scorrimento */
+  #detailsAccordion::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  #detailsAccordion::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+  }
+  
+  /* Impostazioni per gli elementi accordion */
+  .accordion-button {
+    background-color: #f8f9fa; /* Sfondo per il pulsante accordion */
+    color: #333;
+  }
+  
+  .accordion-button:hover {
+    background-color: #e2e6ea; /* Colore di sfondo al passaggio del mouse */
+  }
+  
+.accordion-body {
+  display: block; /* Cambia da flex a block per disporre gli elementi in verticale */
+  padding: 10px;
+}
+
+/* Se vuoi aggiungere margine tra gli elementi della lista */
+.accordion-body div {
+  margin-bottom: 15px; /* Aggiunge spazio tra gli elementi della lista */
+}
+
+/* Mantieni le immagini a dimensioni coerenti */
+.accordion-body img {
+  width: 100px;
+  height: auto;
+  margin-left: 10px;
+}
+  
+  /* Icona X per chiudere l'overlay */
+  .close-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+    font-size: 20px;
+    color: red;
+  }
+  
+  .non-posseduta .overlay-non-posseduta {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-align: center;
+    z-index: 1;
+  }
+  
