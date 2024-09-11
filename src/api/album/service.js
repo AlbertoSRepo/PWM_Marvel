@@ -6,51 +6,113 @@ import { User } from '../users/model.js'; // Percorso corretto per il modello Us
 dotenv.config();
 
 class AlbumService {
-  // Funzione per ottenere le carte per la pagina dell'album
-  async getCardsForPage(userId, pageNumber) {
-    const cardsPerPage = 15;
-    const startIndex = (pageNumber - 1) * cardsPerPage;
-    const endIndex = startIndex + cardsPerPage;
+// Funzione per ottenere le carte per la pagina dell'album
+async getCardsForPage(userId, pageNumber, cardsPerPage, onlyOwned) {
+  const startIndex = (pageNumber - 1) * cardsPerPage;
+  const endIndex = startIndex + cardsPerPage;
 
-    // Ottieni l'utente e il suo album
-    const user = await User.findById(userId);
-    if (!user) throw new Error('User not found');
+  // Ottieni l'utente e il suo album
+  const user = await User.findById(userId);
+  if (!user) throw new Error('User not found');
 
-    // Ottieni le carte per la pagina selezionata dall'album dell'utente
-    const pageCards = user.album.slice(startIndex, endIndex);
+  // Ottieni le carte per la pagina selezionata dall'album dell'utente
+  const pageCards = user.album.slice(startIndex, endIndex);
 
-    // Array per le carte possedute
-    const ownedCards = [];
+  // Scorriamo tutte le carte nella pagina per segnarle come possedute o non possedute
+  const cardsWithState = await Promise.all(pageCards.map(async (card) => {
+    // Se `onlyOwned` è true, restituisce solo le carte possedute
+    if (onlyOwned && card.quantity <= 0) {
+      return null; // Ignora le carte non possedute
+    }
 
-    // Scorriamo tutte le carte nella pagina per segnarle come possedute o non possedute
-    const cardsWithState = await Promise.all(pageCards.map(async (card) => {
-      // Controlla se la carta è posseduta (quantity > 0)
-      if (card.quantity > 0) {
-        ownedCards.push(card.card_id);
-        const [detailedCard] = await this.getCharacterDetails([card.card_id]);
+    if (card.quantity > 0) {
+      const [detailedCard] = await this.getCharacterDetails([card.card_id]);
 
-        // Restituisci la carta con lo stato "posseduta" e i dettagli
-        return {
-          id: card.card_id,
-          name: detailedCard.name,
-          thumbnail: detailedCard.thumbnail,
-          state: 'posseduta', // Carta posseduta
-          quantity: card.quantity
-        };
-      } else {
-        // Carta non posseduta
-        return {
-          id: card.card_id,
-          name: "Carta sconosciuta",
-          thumbnail: { path: "placeholder-path", extension: "jpg" }, // Placeholder per le carte non possedute
-          state: 'non posseduta', // Carta non posseduta
-          quantity: 0
-        };
-      }
-    }));
+      console.log('Dettagli della carta:', detailedCard);
 
-    return cardsWithState;
+      // Restituisci la carta con lo stato "posseduta" e i dettagli
+      return {
+        id: card.card_id,
+        name: detailedCard.name,
+        thumbnail: detailedCard.thumbnail,
+        state: 'posseduta', // Carta posseduta
+        quantity: card.quantity
+      };
+    } else {
+      // Carta non posseduta
+      return {
+        id: card.card_id,
+        name: "Carta sconosciuta",
+        thumbnail: { path: "placeholder-path", extension: "jpg" }, // Placeholder per le carte non possedute
+        state: 'non posseduta', // Carta non posseduta
+        quantity: 0
+      };
+    }
+  }));
+
+  // Filtra le carte null (quelle non possedute quando `onlyOwned` è true)
+  return cardsWithState.filter(card => card !== null);
+}
+
+// Funzione per ottenere le carte possedute per una pagina specifica nel trade
+async getCardsForPageTrade(userId, pageNumber) {
+  const cardsPerPage = 28;
+
+  // Ottieni l'utente e il suo album
+  const user = await User.findById(userId);
+  if (!user) throw new Error('User not found');
+
+  // Filtra solo le carte possedute (quantity > 0)
+  const ownedCards = user.album.filter(card => card.available_quantity > 0);
+
+  // Se non ci sono carte possedute, restituisci una lista vuota
+  if (ownedCards.length === 0) {
+    return [];
   }
+
+  // Calcola il numero totale di pagine basato sulle carte possedute
+  const totalPages = Math.ceil(ownedCards.length / cardsPerPage);
+
+  // Verifica se la pagina richiesta è valida
+  if (pageNumber < 1 || pageNumber > totalPages) {
+    throw new Error('Numero di pagina non valido.');
+  }
+
+  // Determina l'indice di inizio e fine per la pagina corrente
+  const startIndex = (pageNumber - 1) * cardsPerPage;
+  const endIndex = startIndex + cardsPerPage;
+
+  // Ottieni le carte per la pagina selezionata
+  const pageCards = ownedCards.slice(startIndex, endIndex);
+
+  // Scorriamo tutte le carte nella pagina e otteniamo i dettagli
+  const cardsWithState = await Promise.all(pageCards.map(async (card) => {
+    const [detailedCard] = await this.getCharacterDetails([card.card_id]);
+
+    // Verifica che i dettagli della carta siano validi
+    if (!detailedCard || !detailedCard.name) {
+      return {
+        id: card.card_id,
+        name: "Dettagli non disponibili",
+        thumbnail: { path: "placeholder-path", extension: "jpg" }, // Placeholder
+        state: 'posseduta', // Carta posseduta
+        quantity: card.quantity
+      };
+    }
+
+    // Restituisci la carta con i dettagli e lo stato "posseduta"
+    return {
+      id: card.card_id,
+      name: detailedCard.name,
+      thumbnail: detailedCard.thumbnail,
+      state: 'posseduta',
+      quantity: card.quantity
+    };
+  }));
+
+  return cardsWithState;
+}
+
 
   // Funzione per ottenere i dettagli delle carte dal Marvel API
   async getCharacterDetails(characterIds) {

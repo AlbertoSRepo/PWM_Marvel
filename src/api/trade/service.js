@@ -23,33 +23,47 @@ class TradeService {
         }
     }
 
-
-    // Crea una nuova proposta di trade
-    async createTrade(proposerId, proposedCards) {
-        const proposer = await User.findById(proposerId);
-        if (!proposer) throw new Error('User not found');
-
-        // Verifica e aggiorna l'available_quantity delle carte proposte
-        proposedCards.forEach(card => {
-            const albumCard = proposer.album.find(c => c.card_id === card.card_id);
-            if (!albumCard || albumCard.available_quantity < card.quantity) {
-                throw new Error(`Insufficient available quantity for card ID ${card.card_id}`);
-            }
-            albumCard.available_quantity -= card.quantity;
-        });
-
-        // Salva le modifiche dell'utente
-        await proposer.save();
-
-        // Crea la proposta di trade
-        const trade = new Trade({
-            proposer_id: proposerId,
-            proposed_cards: proposedCards
-        });
-        await trade.save();
-
-        return trade;
-    }
+// Funzione per creare una nuova proposta di trade
+async createTrade(proposerId, proposedCards) {
+    const proposer = await User.findById(proposerId);
+    if (!proposer) throw new Error('User not found');
+  
+    // Mostra tutti gli ID delle carte presenti nell'album dell'utente
+    console.log("ID delle carte presenti nell'album dell'utente:", proposer.album.map(c => c.card_id));
+  
+    // Verifica e aggiorna l'available_quantity delle carte proposte
+    proposedCards.forEach(card => {
+      // Confronta gli ID come numeri per evitare problemi di tipo
+      const albumCard = proposer.album.find(c => Number(c.card_id) === Number(card.card_id));
+  
+      // Debug per vedere se la carta è trovata e qual è il suo stato
+      if (albumCard) {
+        console.log(`Trovata carta: ${albumCard.card_id}, available_quantity: ${albumCard.available_quantity}`);
+      } else {
+        console.log(`Carta con ID ${card.card_id} non trovata nell'album`);
+      }
+  
+      // Verifica se la carta non esiste o non ha quantità disponibile sufficiente
+      if (!albumCard || albumCard.available_quantity < card.quantity) {
+        throw new Error(`Insufficient available quantity for card ID ${card.card_id}`);
+      }
+      albumCard.available_quantity -= card.quantity;
+    });
+  
+    // Salva le modifiche dell'utente
+    await proposer.save();
+  
+    // Crea la proposta di trade
+    const trade = new Trade({
+      proposer_id: proposerId,
+      proposed_cards: proposedCards
+    });
+    await trade.save();
+  
+    return trade;
+  }
+  
+  
 
     // Aggiungi un'offerta a una proposta di trade esistente
     async addOffer(tradeId, userId, offeredCards) {

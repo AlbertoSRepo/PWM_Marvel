@@ -19,6 +19,18 @@ const router = express.Router();
  *           type: integer
  *         required: true
  *         description: The page number of the album to retrieve cards from
+ *       - in: query
+ *         name: cards_per_page
+ *         schema:
+ *           type: integer
+ *         required: false
+ *         description: The number of cards to retrieve per page (default is 15)
+ *       - in: query
+ *         name: only_owned
+ *         schema:
+ *           type: boolean
+ *         required: false
+ *         description: If true, only return owned cards (quantity > 0). Default is false
  *     responses:
  *       200:
  *         description: A list of cards for the specified page
@@ -47,6 +59,18 @@ const router = express.Router();
  *                       available_quantity:
  *                         type: integer
  *                         description: The available quantity of this card in the user's album
+ *                       state:
+ *                         type: string
+ *                         description: The ownership state of the card (e.g., "posseduta", "non posseduta")
+ *                       thumbnail:
+ *                         type: object
+ *                         properties:
+ *                           path:
+ *                             type: string
+ *                             description: The URL path of the card's thumbnail
+ *                           extension:
+ *                             type: string
+ *                             description: The file extension for the card's thumbnail image
  *                       details:
  *                         type: object
  *                         description: Additional details about the character, fetched from the Marvel API
@@ -56,6 +80,61 @@ const router = express.Router();
  *         description: User not found or no cards available on the specified page
  */
 router.get('/cards', authenticateJWT, albumController.getAlbumPage);
+
+/**
+ * @swagger
+ * /album/trade/cards:
+ *   get:
+ *     summary: Retrieve 28 owned cards for a specific page for trade proposals
+ *     tags: [Album]
+ *     security:
+ *       - bearerAuth: []  # JWT token is required
+ *     parameters:
+ *       - in: query
+ *         name: page_number
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The page number to retrieve owned cards from
+ *     responses:
+ *       200:
+ *         description: A list of 28 owned cards for the specified page
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                     description: The ID of the card
+ *                   name:
+ *                     type: string
+ *                     description: The name of the character associated with the card
+ *                   quantity:
+ *                     type: integer
+ *                     description: The quantity of this card in the user's album
+ *                   thumbnail:
+ *                     type: object
+ *                     properties:
+ *                       path:
+ *                         type: string
+ *                         description: The URL path of the card's thumbnail
+ *                       extension:
+ *                         type: string
+ *                         description: The file extension for the card's thumbnail image
+ *                   state:
+ *                     type: string
+ *                     description: Ownership state (e.g., "posseduta")
+ *       400:
+ *         description: Invalid request
+ *       404:
+ *         description: No owned cards found for the specified page
+ *       500:
+ *         description: Server error
+ */
+router.get('/trade/cards', authenticateJWT, albumController.getCardsForPageTrade);
 
 /**
  * @swagger

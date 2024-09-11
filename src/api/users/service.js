@@ -23,7 +23,7 @@ class UserService {
       }
 
       try {
-          const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+          const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '10h' });
           console.log('Generated Token:', token);
           return { userId: user._id, token };
       } catch (error) {
