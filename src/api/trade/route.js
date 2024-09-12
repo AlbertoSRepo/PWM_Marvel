@@ -235,4 +235,60 @@ router.get('/user/proposals', authenticateJWT, tradeController.getUserProposals)
  */
 router.get('/user/offers', authenticateJWT, tradeController.getUserOffers);
 
+/**
+ * @swagger
+ * /trade/offers/{offerId}:
+ *   delete:
+ *     summary: Delete an offer made by the user
+ *     tags: [Trade]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: offerId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the offer to delete
+ *     responses:
+ *       200:
+ *         description: Offer deleted successfully
+ *       401:
+ *         description: Unauthorized. User is not allowed to delete this offer.
+ *       404:
+ *         description: Offer or trade not found
+ *       500:
+ *         description: Server error
+ */
+// Route per cancellare un'offerta fatta dall'utente all'interno di una proposta di trade
+router.delete('/offers/:offerId', authenticateJWT, tradeController.deleteOffer);
+
+/**
+ * @swagger
+ * /trade/{tradeId}:
+ *   delete:
+ *     summary: Delete a trade proposal made by the user
+ *     tags: [Trade]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: tradeId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the trade proposal to delete
+ *     responses:
+ *       200:
+ *         description: Trade proposal deleted successfully
+ *       401:
+ *         description: Unauthorized. User is not allowed to delete this proposal.
+ *       404:
+ *         description: Trade proposal not found
+ *       500:
+ *         description: Server error
+ */
+// Route per cancellare una proposta di trade
+router.delete('/:tradeId', authenticateJWT, tradeController.deleteTrade);
+
 export default router;

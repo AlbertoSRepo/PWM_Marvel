@@ -3,25 +3,24 @@ import { Trade } from './model.js';
 import { User } from '../users/model.js';
 
 class TradeService {
-    // Funzione per recuperare tutte le proposte di trade
-    async getAllTrades() {
+    async getAllTrades(userId) {
         try {
-            // Recupera tutte le proposte di trade e popola il campo proposer_id con l'username dell'utente
-            const trades = await Trade.find({})
-                .populate('proposer_id', 'username'); // Popola con il campo username dell'utente
-
-            return trades.map(trade => ({
-                _id: trade._id,
-                proposer: trade.proposer_id.username,  // Includi l'username
-                proposed_cards: trade.proposed_cards,
-                status: trade.status,
-                offers: trade.offers,
-                created_at: trade.created_at.toLocaleString(),  // Formatta la data
-            }));
+          // Recupera tutte le proposte di trade, escludendo quelle fatte dall'utente loggato
+          const trades = await Trade.find({ proposer_id: { $ne: userId } }) // Escludi le proposte dell'utente
+            .populate('proposer_id', 'username'); // Popola con il campo username dell'utente
+      
+          return trades.map(trade => ({
+            _id: trade._id,
+            proposer: trade.proposer_id.username,  // Includi l'username
+            proposed_cards: trade.proposed_cards,
+            status: trade.status,
+            offers: trade.offers,
+            created_at: trade.created_at.toLocaleString(),  // Formatta la data
+          }));
         } catch (error) {
-            throw new Error('Errore durante il recupero delle proposte di trade.');
+          throw new Error('Errore durante il recupero delle proposte di trade.');
         }
-    }
+      }
 
 // Funzione per creare una nuova proposta di trade
 async createTrade(proposerId, proposedCards) {
@@ -63,8 +62,6 @@ async createTrade(proposerId, proposedCards) {
     return trade;
   }
   
-  
-
     // Aggiungi un'offerta a una proposta di trade esistente
     async addOffer(tradeId, userId, offeredCards) {
         const trade = await Trade.findById(tradeId);
@@ -72,10 +69,12 @@ async createTrade(proposerId, proposedCards) {
 
         const offerer = await User.findById(userId);
         if (!offerer) throw new Error('User not found');
+        console.log("utete trovato:", offerer);
 
         // Verifica e aggiorna l'available_quantity delle carte offerte
         offeredCards.forEach(card => {
-            const albumCard = offerer.album.find(c => c.card_id === card.card_id);
+            const albumCard = offerer.album.find(c => Number(c.card_id) === Number(card.card_id));
+            console.log(`albumCard: ${albumCard}`);
             if (!albumCard || albumCard.available_quantity < card.quantity) {
                 throw new Error(`Insufficient available quantity for card ID ${card.card_id}`);
             }
@@ -173,11 +172,79 @@ async createTrade(proposerId, proposedCards) {
         return userProposals;
     }
 
-    // Ottenere le offerte fatte dall'utente
     async getOffersByUser(userId) {
-        const userOffers = await Trade.find({ 'offers.user_id': userId });
-        return userOffers;
+        try {
+          // Recupera tutte le proposte che contengono offerte fatte dall'utente loggato
+          const userOffers = await Trade.find({ 'offers.user_id': userId });
+      
+          // Filtra le offerte per includere solo quelle fatte dall'utente loggato
+          const filteredTrades = userOffers.map(trade => {
+            const filteredOffers = trade.offers.filter(offer => offer.user_id.toString() === userId.toString()); // Confronta gli ID come stringhe
+      
+            return {
+              _id: trade._id,
+              proposer_id: trade.proposer_id,
+              proposed_cards: trade.proposed_cards,
+              status: trade.status,
+              created_at: trade.created_at,
+              offers: filteredOffers  // Include solo le offerte fatte dall'utente loggato
+            };
+          });
+      
+          return filteredTrades;
+        } catch (error) {
+          console.error('Errore durante il recupero delle offerte dell\'utente:', error);
+          throw new Error('Errore durante il recupero delle offerte dell\'utente.');
+        }
+      }
+
+// Service: Funzione per cancellare un'offerta fatta dall'utente
+deleteOffer = async (userId, offerId) => {
+    try {
+      // Cerca la proposta che contiene l'offerta
+      const trade = await Trade.findOne({ 'offers._id': offerId });
+  
+      if (!trade) {
+        throw new Error('Proposta non trovata.');
+      }
+  
+      // Cerca l'offerta specifica all'interno della proposta
+      const offer = trade.offers.id(offerId);
+  
+      // Verifica che l'offerta appartenga all'utente loggato
+      if (offer.user_id.toString() !== userId.toString()) {
+        throw new Error('Non sei autorizzato a cancellare questa offerta.');
+      }
+  
+      // Rimuovi l'offerta dall'array delle offerte
+      trade.offers.pull({ _id: offerId });
+  
+      // Salva le modifiche nella proposta
+      await trade.save();
+    } catch (error) {
+      console.error('Errore durante la cancellazione dell\'offerta:', error);
+      throw new Error('Errore durante la cancellazione dell\'offerta.');
     }
+  };
+// Service: Funzione per cancellare una proposta di trade
+deleteTrade = async (userId, tradeId) => {
+    try {
+      // Cerca la proposta di trade per ID e verifica che appartenga all'utente loggato
+      const trade = await Trade.findOne({ _id: tradeId, proposer_id: userId });
+  
+      if (!trade) {
+        throw new Error('Proposta non trovata o non autorizzato a cancellarla.');
+      }
+  
+      // Cancella la proposta dal database
+      await Trade.deleteOne({ _id: tradeId }); // Usa `deleteOne()` per cancellare la proposta
+  
+    } catch (error) {
+      console.error('Errore durante la cancellazione della proposta:', error);
+      throw new Error('Errore durante la cancellazione della proposta.');
+    }
+  };
+  
 }
 
 export default new TradeService();

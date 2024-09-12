@@ -41,6 +41,7 @@
               <th>Nome</th>
               <th>Carte</th>
               <th>Data</th>
+              <th>Azioni</th> <!-- Colonna per il bottone "Invia Offerta" -->
             </tr>
           </thead>
           <tbody id="community-trades">
@@ -101,12 +102,12 @@
         </div>
 
         <!-- Bottone per inviare le carte selezionate -->
-        <button id="submit-trade-btn" class="btn btn-success mt-3">Invia Proposta</button>
+        <button id="submit-trade-offer-btn" class="btn btn-success mt-3">Invia Proposta</button>
       </div>
 
       <!-- Colonna destra: Selezione delle carte -->
       <div class="card-selection-container">
-        <h4>Seleziona le tue carte</h4>
+        <h4 id="overlay-title">Seleziona le tue carte</h4>
 
         <!-- Barra di ricerca per nome del supereroe -->
         <div class="row justify-content-center mb-3">
@@ -149,7 +150,8 @@
 
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="trade.js"></script>
+  <script src="trade.js" type="module"></script>
+  <script src="route.js" type="module"></script>
 </body>
 
 </html>
