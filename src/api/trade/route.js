@@ -291,4 +291,71 @@ router.delete('/offers/:offerId', authenticateJWT, tradeController.deleteOffer);
 // Route per cancellare una proposta di trade
 router.delete('/:tradeId', authenticateJWT, tradeController.deleteTrade);
 
+/**
+ * @swagger
+ * /trade/user/proposals/{tradeId}:
+ *   get:
+ *     summary: Get a single trade proposal made by the user
+ *     tags: [Trade]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: tradeId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the trade proposal to retrieve
+ *     responses:
+ *       200:
+ *         description: Trade proposal retrieved successfully
+ *       401:
+ *         description: Unauthorized. User is not allowed to view this proposal.
+ *       404:
+ *         description: Trade proposal not found
+ *       500:
+ *         description: Server error
+ */
+// Route per ottenere una singola proposta di trade dell'utente loggato
+router.get('/user/proposals/:tradeId', authenticateJWT, tradeController.getUserProposal);
+
+/**
+ * @swagger
+ * /trade/cards/details:
+ *   post:
+ *     summary: Get details of multiple offered cards
+ *     tags: [Trade]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               offers:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     id_offerta:
+ *                       type: string
+ *                       description: The ID of the offer
+ *                     idCarte:
+ *                       type: array
+ *                       items:
+ *                         type: number
+ *                       description: The IDs of the cards in the offer
+ *     responses:
+ *       200:
+ *         description: Returns detailed information for the offered cards
+ *       400:
+ *         description: Invalid input format
+ *       500:
+ *         description: Server error
+ */
+// Route per ottenere i dettagli di un gruppo di carte offerte
+router.post('/cards/details', authenticateJWT, tradeController.getOfferedCardsDetails);
+
 export default router;

@@ -68,7 +68,7 @@ async function fetchUserProposals() {
   try {
     const jwtToken = getJwtToken();
 
-    // Effettua una richiesta GET all'endpoint /api/trades/user/proposals
+    // Effettua una richiesta GET all'endpoint /api/trade/user/proposals
     const response = await fetch('http://localhost:3000/api/trade/user/proposals', {
       method: 'GET',
       headers: {
@@ -85,14 +85,21 @@ async function fetchUserProposals() {
     const container = document.getElementById('user-proposals');
     container.innerHTML = ''; // Pulisce il contenitore
 
+    // Ciclo attraverso ogni proposta e aggiungo un bottone "Elimina"
     userProposals.forEach(proposal => {
-      const offeredCards = proposal.proposed_cards ? proposal.proposed_cards.map(card => `ID: ${card.card_id}, Quantità: ${card.quantity}`).join(', ') : 'N/A';
+      const offeredCards = proposal.proposed_cards.map(card => `ID: ${card.card_id}, Quantità: ${card.quantity}`).join(', ');
 
       const row = document.createElement('tr');
       row.innerHTML = `
-          <td>${offeredCards}</td>
-          <td>${new Date(proposal.created_at).toLocaleString()}</td>
-        `;
+        <td>${offeredCards}</td>
+        <td>${new Date(proposal.created_at).toLocaleDateString()}</td>
+        <td>
+          <button class="btn btn-danger" data-trade-id="${proposal._id}">Elimina</button>
+          <button class="btn btn-primary" data-trade-id="${proposal._id}">Gestisci Proposta</button>
+        </td>
+
+      `;
+
       container.appendChild(row);
     });
   } catch (error) {
@@ -100,6 +107,7 @@ async function fetchUserProposals() {
     alert('Errore durante il caricamento delle tue proposte.');
   }
 }
+
 
 // Funzione per caricare le offerte fatte dall'utente (GET)
 async function fetchUserOffers() {
@@ -134,6 +142,9 @@ async function fetchUserOffers() {
           <td>${trade._id}</td> <!-- ID della proposta di trade -->
           <td>${offeredCards}</td>
           <td>${new Date(offer.created_at).toLocaleString()}</td>
+          <td>
+            <button class="btn btn-danger" data-offer-id="${offer._id}">Elimina</button>
+          </td>
         `;
         container.appendChild(row);
       });
@@ -141,6 +152,37 @@ async function fetchUserOffers() {
   } catch (error) {
     console.error('Errore durante il caricamento delle tue offerte:', error);
     alert('Errore durante il caricamento delle tue offerte.');
+  }
+}
+
+// Funzione per cancellare un'offerta (DELETE a /trade/offers/:offerId)
+export async function deleteOffer(offerId) {
+  try {
+    const jwtToken = getJwtToken();
+
+    // Effettua la richiesta DELETE per cancellare l'offerta
+    const response = await fetch(`http://localhost:3000/api/trade/offers/${offerId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${jwtToken}`,
+        'Content-Type': 'application/json',
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Errore nella cancellazione dell\'offerta.');
+    }
+
+    // Messaggio di successo e rimozione dell'offerta dall'interfaccia utente
+    console.log('Offerta cancellata con successo');
+    alert('Offerta cancellata con successo');
+
+    // Dopo la cancellazione, ricarica le offerte dell'utente per riflettere i cambiamenti
+    fetchUserOffers(); // Ricarica la lista delle offerte
+
+  } catch (error) {
+    console.error('Errore durante la cancellazione dell\'offerta:', error);
+    alert('Errore durante la cancellazione dell\'offerta.');
   }
 }
 
@@ -222,3 +264,163 @@ export async function getUserCards(pageNumber) {
     throw error;
   }
 }
+
+// Funzione per cancellare una proposta di trade (DELETE a /trade/:tradeId)
+export async function deleteTrade(tradeId) {
+  try {
+    const jwtToken = getJwtToken();
+
+    const response = await fetch(`http://localhost:3000/api/trade/${tradeId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${jwtToken}`,
+        'Content-Type': 'application/json',
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Errore nella cancellazione della proposta.');
+    }
+
+    // Messaggio di successo e rimozione della proposta dall'interfaccia utente
+    console.log('Proposta cancellata con successo');
+    alert('Proposta cancellata con successo');
+
+    // Dopo la cancellazione, ricarica le proposte dell'utente per riflettere i cambiamenti
+    fetchUserProposals(); // Ricarica la lista delle proposte
+
+  } catch (error) {
+    console.error('Errore durante la cancellazione della proposta:', error);
+    alert('Errore durante la cancellazione della proposta.');
+  }
+}
+
+// Funzione per accettare un'offerta (PUT a /trade/:tradeId/offers/:offerId/accept)
+export async function putAcceptOffer(tradeId, offerId) {
+  try {
+      const jwtToken = getJwtToken();
+
+      const response = await fetch(`http://localhost:3000/api/trade/${tradeId}/offers/${offerId}/accept`, {
+          method: 'PUT',
+          headers: {
+              'Authorization': `Bearer ${jwtToken}`,
+              'Content-Type': 'application/json',
+          }
+      });
+
+      if (!response.ok) {
+          throw new Error('Errore durante l\'accettazione dell\'offerta.');
+      }
+
+      return await response.json();
+
+  } catch (error) {
+      console.error('Errore durante l\'accettazione dell\'offerta:', error);
+      throw error;
+  }
+}
+
+// Funzione per caricare la proposta e le offerte associate (GET a /api/trade/user/proposals/:tradeId)
+export async function getUserProposalWithOffers(tradeId) {
+  try {
+      const jwtToken = getJwtToken();
+
+      const response = await fetch(`http://localhost:3000/api/trade/user/proposals/${tradeId}`, {
+          method: 'GET',
+          headers: {
+              'Authorization': `Bearer ${jwtToken}`,
+              'Content-Type': 'application/json',
+          }
+      });
+
+      if (!response.ok) {
+          throw new Error('Errore durante il recupero della proposta e delle offerte.');
+      }
+
+      return await response.json();
+
+  } catch (error) {
+      console.error('Errore durante il caricamento della proposta e delle offerte:', error);
+      throw error;
+  }
+}
+
+// Funzione per caricare i dettagli completi delle carte offerte e visualizzarle nell'overlay usando il template
+export async function getOfferedCards(offeredCards, containerId) {
+  try {
+      const jwtToken = getJwtToken();
+
+      // Prepara i dati per inviare la richiesta POST all'endpoint con le carte offerte
+      const requestBody = {
+          offers: [
+              {
+                  id_offerta: containerId, // Associa l'ID dell'offerta al container
+                  idCarte: offeredCards.map(card => card.card_id) // Mappa gli ID delle carte offerte
+              }
+          ]
+      };
+
+      // Effettua la richiesta POST per ottenere i dettagli delle carte offerte
+      const response = await fetch('http://localhost:3000/api/trade/cards/details', {
+          method: 'POST',
+          headers: {
+              'Authorization': `Bearer ${jwtToken}`,
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody)
+      });
+
+      if (!response.ok) {
+          throw new Error('Errore durante il recupero dei dettagli delle carte offerte.');
+      }
+
+      return await response.json();
+
+  } catch (error) {
+      console.error('Errore durante il caricamento delle carte offerte:', error);
+      throw error;
+  }
+}
+
+// Funzione per inviare l'offerta (POST a /trade/:tradeId/offers)
+export async function postOffer(tradeId, selectedCards) {
+  if (selectedCards.length === 0) {
+    alert('Devi selezionare almeno una carta per inviare l\'offerta.');
+    return;
+  }
+
+  const offeredCards = selectedCards.map(card => ({
+    card_id: card.id,
+    quantity: 1  // Puoi modificare la quantità in base alla tua logica
+  }));
+
+  try {
+    const jwtToken = getJwtToken();
+
+    const response = await fetch(`http://localhost:3000/api/trade/${tradeId}/offers`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${jwtToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ offered_cards: offeredCards }) // Corpo della richiesta
+    });
+
+    if (!response.ok) {
+      // Ottieni dettagli dell'errore dal server (se disponibili)
+      const errorDetails = await response.json();
+      throw new Error(errorDetails.message || 'Errore nell\'invio dell\'offerta.');
+    }
+
+    // Gestisci correttamente la risposta di successo
+    return await response.json();
+
+  } catch (error) {
+    // Stampa l'errore e mostra il messaggio solo se c'è un problema
+    console.error('Errore durante l\'invio dell\'offerta:', error);
+    throw error;
+  }
+}
+
+
+

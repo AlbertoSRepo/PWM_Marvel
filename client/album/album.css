@@ -8,7 +8,7 @@ html, body {
 /* Contenitore principale delle carte */
 .card-container {
   margin-top: 20px;
-  padding-bottom: 50px;
+  margin-bottom: 20px;
   position: relative;
   transition: opacity 0.3s ease;
 }
@@ -24,10 +24,71 @@ html, body {
   text-align: center;
 }
 
-/* Animazione di ingrandimento per le carte */
-.marvel-card {
+.card{
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px; /* Imposta il border-radius sulla carta */
+  overflow: hidden; /* Assicura che l'immagine rispetti il border-radius della carta */
+}
+
+.custom-aspect-ratio {
+  position: relative;
+  width: 100%;
+  padding-bottom: 133.33%; /* Rapporto 3:4 (4 / 3 = 1.333) */
+}
+
+.card-body {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  color: white;
+}
+
+.card-img-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px 10px 0 0; /* Applica il border-radius solo agli angoli superiori */
+  object-fit: cover;
+}
+
+.card-title {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
   text-align: center;
-  transition: transform 0.3s ease;
+  border: 2px solid white;
+  padding: 5px;
+  border-radius: 5px;
+  width: 90%; /* Imposta la larghezza del titolo al 90% della carta */
+  font-size: 0.9rem; /* Rende il testo più piccolo */
+  background-color: black;
+}
+
+.card-id {
+  display: none;
+}
+
+.posseduta .card-quantity {
+  position: absolute;
+  top: 10px; /* Posiziona il cerchio 10px dall'alto */
+  right: 10px; /* Posiziona il cerchio 10px da destra */
+  width: 40px; /* Larghezza del cerchio */
+  height: 40px; /* Altezza del cerchio (uguale alla larghezza per fare un cerchio) */
+  border-radius: 50%; /* Trasforma il contenitore in un cerchio */
+  border: 2px solid rgba(139, 0, 0); /* Bordo bianco attorno al cerchio */
+  display: flex; /* Usa Flexbox per centrare il contenuto */
+  justify-content: center; /* Centra orizzontalmente il contenuto */
+  align-items: center; /* Centra verticalmente il contenuto */
+  background-color: rgba(139, 0, 0); /* Sfondo semitrasparente per contrasto */
+  color: white; /* Colore del testo */
 }
 
 .marvel-card:hover {
@@ -41,36 +102,40 @@ html, body {
 
 /* Carta non posseduta */
 .non-posseduta {
-  filter: grayscale(100%);
   pointer-events: none;
 }
 
-/* Stile per le immagini delle carte */
-.card-img-top {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-}
-
-/* Barra fissa in fondo con l'inserimento della pagina dell'album */
 .fixed-bottom-bar {
   position: fixed;
   bottom: 0;
   width: 100%;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(136, 0, 0, 0.9);
   padding: 10px 0;
-  box-shadow: 0px -2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.fixed-bottom-bar form {
+#albumForm {
   display: flex;
-  justify-content: center;
+  justify-content: space-between; /* Distribuisce gli elementi con spazio tra di loro */
   align-items: center;
+  width: 100%;
+  max-width: 600px; /* Limita la larghezza totale del form per evitare che gli elementi si allontanino troppo */
+  margin: 0 auto;
 }
 
-.fixed-bottom-bar input {
-  width: 200px;
-  margin-right: 10px;
+#albumPage {
+  width: 100px;
+  text-align: center;
+  margin: 0 auto;
+}
+
+.button-group-left, .button-group-right {
+  display: flex;
+  gap: 20px; /* Spazio tra i pulsanti */
+}
+
+.button-group-right {
+  display: flex;
+  gap: 20px;
 }
 
 /* Style for the loading spinner */
@@ -79,7 +144,6 @@ html, body {
   top: 50%;
   left: 50%;
   display: none;
-  z-index: 9999;
 }
 
 /* Sfondo nero semitrasparente per l'overlay */
@@ -91,7 +155,6 @@ html, body {
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.8);
-  z-index: 9998;
 }
 
 /* Overlay principale */
@@ -101,7 +164,6 @@ html, body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 10000;
   background-color: white;
   padding: 20px;
   border-radius: 8px;
@@ -109,6 +171,16 @@ html, body {
   width: 80vw;
   height: 80vh;
   display: flex;
+}
+
+#loading-spinner-overlay {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2000; /* Mantiene lo spinner davanti a tutti gli altri elementi */
 }
 
 /* Stile per il titolo nell'overlay */
@@ -153,14 +225,40 @@ html, body {
   max-height: 100%;
   overflow-y: auto;
 }
-
-.accordion-body {
-  padding: 10px;
-}
-
 .accordion-body div {
-  margin-bottom: 15px;
+  margin-bottom: 1rem;
 }
+/* Mantieni gli stili predefiniti per .accordion-body *
+
+/* Applica display: flex al nuovo wrapper .accordion-content */
+.accordion-content {
+  display: flex;
+  align-items: flex-start;
+}
+
+/* Stili per l'immagine */
+.accordion-image {
+  flex: 0 0 auto;
+  width: 20%;
+  margin-right: 15px;
+  object-fit: cover;
+  min-width: 50px;
+}
+
+/* Stili per il testo */
+.accordion-text {
+  flex: 1;
+}
+
+.accordion-text p {
+  margin-bottom: 0.5rem;
+}
+
+.accordion-text a {
+  display: inline-block;
+  margin-top: 0.5rem;
+}
+
 
 /* Icona X per chiudere l'overlay */
 .close-icon {
@@ -168,6 +266,35 @@ html, body {
   top: 10px;
   right: 10px;
   cursor: pointer;
-  font-size: 20px;
+  font-size: 40px;
   color: red;
+}
+
+/* Z INDEX */
+
+.card-img-top {
+  z-index: 100;
+}
+
+.card-body {
+  z-index: 200;
+}
+
+.fixed-bottom-bar {
+  z-index: 300; /* Imposta un alto valore di z-index per assicurare che sia sempre davanti */
+}
+
+/* Style for the loading spinner */
+#loading-spinner {
+  z-index: 900;
+}
+
+/* Sfondo nero semitrasparente per l'overlay */
+#overlay-background {
+  z-index: 800;
+}
+
+/* Overlay principale */
+#overlay {
+  z-index: 1000;
 }

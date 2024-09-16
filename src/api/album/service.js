@@ -43,7 +43,7 @@ async getCardsForPage(userId, pageNumber, cardsPerPage, onlyOwned) {
       return {
         id: card.card_id,
         name: "Carta sconosciuta",
-        thumbnail: { path: "placeholder-path", extension: "jpg" }, // Placeholder per le carte non possedute
+        thumbnail: { path: "placeholder-image", extension: "jpeg" }, // Placeholder per le carte non possedute
         state: 'non posseduta', // Carta non posseduta
         quantity: 0
       };
@@ -51,8 +51,15 @@ async getCardsForPage(userId, pageNumber, cardsPerPage, onlyOwned) {
   }));
 
   // Filtra le carte null (quelle non possedute quando `onlyOwned` è true)
-  return cardsWithState.filter(card => card !== null);
+  const filteredCards = cardsWithState.filter(card => card !== null);
+  console.log('Carte filtrate:', filteredCards);
+  // Includi i crediti dell'utente nella risposta
+  return {
+    credits: user.credits, // Includi i crediti dell'utente
+    cards: filteredCards  // Le carte filtrate
+  };
 }
+
 
 // Funzione per ottenere le carte possedute per una pagina specifica nel trade
 async getCardsForPageTrade(userId, pageNumber) {
@@ -94,7 +101,7 @@ async getCardsForPageTrade(userId, pageNumber) {
       return {
         id: card.card_id,
         name: "Dettagli non disponibili",
-        thumbnail: { path: "placeholder-path", extension: "jpg" }, // Placeholder
+        thumbnail: { path: "placeholder-image", extension: "jpeg" }, // Placeholder
         state: 'posseduta', // Carta posseduta
         quantity: card.quantity
       };
@@ -179,83 +186,150 @@ async getCardsForPageTrade(userId, pageNumber) {
     }
   }
 
-  // Funzione per ottenere dettagli aggiuntivi da Marvel API (comics, series, stories, events)
-  async getAdditionalDetails(collectionURI) {
-    const publicApiKey = process.env.MARVELAPI_PUBLICKEY;
-    const privateApiKey = process.env.MARVELAPI_PRIVATEKEY;
+// Funzione per ottenere dettagli aggiuntivi da Marvel API (comics, series, stories, events)
+async getAdditionalDetails(collectionURI) {
+  const publicApiKey = process.env.MARVELAPI_PUBLICKEY;
+  const privateApiKey = process.env.MARVELAPI_PRIVATEKEY;
 
-    const timestamp = Date.now();
-    const hash = MD5(timestamp + privateApiKey + publicApiKey);
-    const authParams = `ts=${timestamp}&apikey=${publicApiKey}&hash=${hash}`;
-    const apiUrl = `${collectionURI}?${authParams}`;
+  const timestamp = Date.now();
+  const hash = MD5(timestamp + privateApiKey + publicApiKey);
+  const authParams = `ts=${timestamp}&apikey=${publicApiKey}&hash=${hash}`;
+  const apiUrl = `${collectionURI}?${authParams}`;
 
-    try {
-      const response = await fetch(apiUrl);
-      const data = await response.json();
+  try {
+    const response = await fetch(apiUrl);
+    const data = await response.json();
 
-      if (data && data.data && Array.isArray(data.data.results)) {
-        return data.data.results;
-      } else {
-        console.error(`Struttura della risposta non valida da ${apiUrl}:`, data);
-        return []; // Restituisci un array vuoto se la struttura della risposta non è valida
-      }
-    } catch (error) {
-      console.error(`Errore durante il recupero dei dati da ${apiUrl}:`, error);
-      return []; // Gestione degli errori
+    if (data && data.data && Array.isArray(data.data.results)) {
+      // Mappa i risultati per estrarre solo i campi desiderati
+      const simplifiedResults = data.data.results.map(item => ({
+        name: item.title || item.name,
+        description: item.description,
+        thumbnail: item.thumbnail,
+      }));
+      return simplifiedResults;
+    } else {
+      console.error(`Struttura della risposta non valida da ${apiUrl}:`, data);
+      return []; // Restituisci un array vuoto se la struttura della risposta non è valida
     }
+  } catch (error) {
+    console.error(`Errore durante il recupero dei dati da ${apiUrl}:`, error);
+    return []; // Gestione degli errori
   }
-  // Funzione per cercare esclusivamente le carte possedute per nome del supereroe
-  async searchCardsByName(userId, nameStartsWith) {
-    const baseUrl = process.env.CHARACTERS_URL;
-    const publicApiKey = process.env.MARVELAPI_PUBLICKEY;
-    const privateApiKey = process.env.MARVELAPI_PRIVATEKEY;
+}
 
-    // Genera i parametri di autenticazione
-    const timestamp = Date.now();
-    const hash = MD5(timestamp + privateApiKey + publicApiKey);
-    const authParams = `ts=${timestamp}&apikey=${publicApiKey}&hash=${hash}`;
 
-    try {
-      // Richiedi al Marvel API i personaggi che iniziano con il nome specificato
-      const response = await fetch(`${baseUrl}?nameStartsWith=${nameStartsWith}&${authParams}`);
+// Funzione per cercare esclusivamente le carte possedute per nome del supereroe
+async searchCardsByName(userId, nameStartsWith) {
+  const baseUrl = process.env.CHARACTERS_URL;
+  const publicApiKey = process.env.MARVELAPI_PUBLICKEY;
+  const privateApiKey = process.env.MARVELAPI_PRIVATEKEY;
+
+  // Genera i parametri di autenticazione
+  const timestamp = Date.now();
+  const hash = MD5(timestamp + privateApiKey + publicApiKey);
+  const authParams = `ts=${timestamp}&apikey=${publicApiKey}&hash=${hash}`;
+
+  try {
+    // Variabili per la paginazione
+    let allResults = [];
+    let offset = 0;
+    const limit = 100;
+    let total = 0;
+
+    do {
+      // Richiedi al Marvel API i personaggi con l'offset corrente
+      const response = await fetch(`${baseUrl}?nameStartsWith=${nameStartsWith}&${authParams}&limit=${limit}&offset=${offset}`);
       const data = await response.json();
+      console.log('Risultati della ricerca:', data);
 
-      // Se non ci sono risultati
+      // Controlla se ci sono risultati
       if (!data || !data.data || data.data.results.length === 0) {
-        return []; // Nessun personaggio trovato
+        break; // Nessun personaggio trovato
       }
 
-      // Mappa per ottenere gli ID dei personaggi trovati
-      const foundCharacterIds = data.data.results.map(character => character.id);
+      // Imposta il totale al primo passaggio
+      if (total === 0) {
+        total = data.data.total;
+      }
 
-      // Ottieni le carte possedute dall'utente
-      const user = await User.findById(userId);
-      if (!user) throw new Error('Utente non trovato');
+      // Aggiungi i risultati alla lista completa
+      allResults = allResults.concat(data.data.results);
 
-      // Filtra solo le carte possedute con quantity > 0 e corrispondenti ai personaggi trovati
-      const ownedCardsWithDetails = await Promise.all(user.album
-        .filter(card => card.quantity > 0 && foundCharacterIds.includes(card.card_id)) // Solo carte possedute
-        .map(async (card) => {
-          const [detailedCard] = await this.getCharacterDetails([card.card_id]);
+      // Aggiorna l'offset per la prossima iterazione
+      offset += data.data.count;
 
-          // Restituisci solo le carte possedute con i dettagli
-          return {
-            id: card.card_id,
-            name: detailedCard.name,
-            thumbnail: detailedCard.thumbnail,
-            state: 'posseduta', // Carta posseduta
-            quantity: card.quantity,
-          };
-        })
-      );
+    } while (offset < total);
 
-      return ownedCardsWithDetails;
+    // Mappa per ottenere gli ID dei personaggi trovati
+    const foundCharacterIds = allResults.map(character => character.id);
 
-    } catch (error) {
-      console.error('Errore durante la ricerca delle carte:', error);
-      throw new Error('Errore durante la ricerca delle carte');
-    }
+    // Ottieni le carte possedute dall'utente
+    const user = await User.findById(userId);
+    if (!user) throw new Error('Utente non trovato');
+
+    // Filtra solo le carte possedute con quantity > 0 e corrispondenti ai personaggi trovati
+    const ownedCardsWithDetails = await Promise.all(user.album
+      .filter(card => card.quantity > 0 && foundCharacterIds.includes(card.card_id))
+      .map(async (card) => {
+        const [detailedCard] = await this.getCharacterDetails([card.card_id]);
+
+        // Restituisci solo le carte possedute con i dettagli
+        return {
+          id: card.card_id,
+          name: detailedCard.name,
+          thumbnail: detailedCard.thumbnail,
+          state: 'posseduta', // Carta posseduta
+          quantity: card.quantity,
+        };
+      })
+    );
+
+    console.log('Carte possedute trovate:', ownedCardsWithDetails);
+    return ownedCardsWithDetails;
+
+  } catch (error) {
+    console.error('Errore durante la ricerca delle carte:', error);
+    throw new Error('Errore durante la ricerca delle carte');
   }
+}
+
+// Service: Funzione per vendere una carta posseduta dall'utente
+sellCard = async (userId, cardId) => {
+  try {
+    // Trova l'utente e il suo album
+    const user = await User.findById(userId);
+    if (!user) throw new Error('Utente non trovato.');
+
+    // Trova la carta nell'album dell'utente
+    const albumCard = user.album.find(card => card.card_id.toString() === cardId);
+    if (!albumCard || albumCard.quantity <= 0) {
+      throw new Error('Carta non posseduta o quantità insufficiente.');
+    }
+
+    // Decrementa la quantità della carta
+    albumCard.quantity -= 1;
+    albumCard.available_quantity = Math.min(albumCard.available_quantity, albumCard.quantity);
+
+    // Se la quantità della carta è 0, imposta available_quantity a 0, ma non rimuoverla dall'album
+    if (albumCard.quantity === 0) {
+      albumCard.available_quantity = 0; // Imposta disponibile a 0, ma la carta resta nell'album
+    }
+
+    // Aggiungi 1 credito all'utente
+    user.credits += 1;
+
+    // Salva le modifiche dell'utente
+    await user.save();
+
+    return { credits: user.credits, cardSold: cardId };
+  } catch (error) {
+    console.error('Errore durante la vendita della carta:', error);
+    throw new Error('Errore durante la vendita della carta.');
+  }
+};
+
+
 }
 
 export default new AlbumService();

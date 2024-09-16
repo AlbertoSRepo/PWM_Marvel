@@ -16,24 +16,23 @@ Error
 
 Album 
     -aggiungere ulteriori dettagli
-    -gestire cambio pagina per ricerca per nome
-    -filtro solo carte possedute (è solo lato client (è un filtro alla ricerca per pagina))
     -Analizzare caching    
-    -ridimensionamento per schermi grandi
-    -vendita carta
-    
-Credit 
-    -controlla che comprare crediti funzioni correttamente 
 
 Card    
     -quando vengono comprate 2 carte segna quantity 2 available_quantity 0
 
 Trade 
-    -Gestire cambio pagina su ricerca per nome
+    -ricaricamentoi pagina a seguito di un operazione -> e aggiornamento crediti
+    -Nel inviare un offerta, non si possono inviare carte della proposta
 
 Notifiche 
     -accettazione offerta
     -cancellazione proposta a cui avevi fatto offerta
+    -polling o websocket
 
+Buy 
+    -finisci formattazione 
 
+!!!Controlla gestione Quantità
+!!!Mostra crediti nella navbar, aggiorna crediti a operazioni che modificano crediti (trade,buy!,user)
 

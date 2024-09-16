@@ -125,4 +125,70 @@
     font-size: 20px; /* Font size ridotto */
     color: red;
   }
+
+  /* Sfondo semitrasparente per l'overlay */
+#manage-proposal-overlay-background {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8); /* Sfondo scuro e sfocato */
+  z-index: 9998;
+}
+
+/* Overlay per la gestione delle proposte */
+#manage-proposal-overlay {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70vw; /* Larghezza del 70% dello schermo */
+  height: 70vh; /* Altezza del 70% dello schermo */
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Stile del titolo dell'overlay */
+#manage-proposal-overlay-title {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+}
+
+/* Contenitore per la lista delle offerte */
+#offer-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  border: 1px solid #ddd;
+  background-color: #f9f9f9;
+}
+
+/* Stile per ogni offerta */
+.offer-item {
+  background-color: #e9ecef;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+/* Icona per chiudere l'overlay */
+.close-icon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
+  cursor: pointer;
+  color: red;
+}
+
   

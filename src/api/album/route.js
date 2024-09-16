@@ -230,4 +230,47 @@ router.get('/search', authenticateJWT, albumController.searchCards);
  */
 router.get('/characters/:characterId', authenticateJWT, albumController.getCharacterDetails);
 
+/**
+ * @swagger
+ * /album/sell/{cardId}:
+ *   put:
+ *     summary: Sell a possessed card for 1 credit
+ *     tags: [Album]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: cardId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the card to sell
+ *     responses:
+ *       200:
+ *         description: Card sold successfully and credit added
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Success message
+ *                 result:
+ *                   type: object
+ *                   properties:
+ *                     credits:
+ *                       type: integer
+ *                       description: Updated number of credits
+ *                     cardSold:
+ *                       type: string
+ *                       description: The ID of the card that was sold
+ *       404:
+ *         description: User or card not found
+ *       500:
+ *         description: Server error
+ */
+// Route per vendere una carta posseduta
+router.put('/sell/:cardId', authenticateJWT, albumController.sellCard);
+
 export default router;

@@ -1,7 +1,12 @@
 import { postTradeProposal } from './route.js';
 import { getCardsByName } from './route.js';
 import { getUserCards } from './route.js';
-
+import { deleteTrade } from './route.js';
+import { deleteOffer } from './route.js';
+import { putAcceptOffer } from './route.js';
+import { getUserProposalWithOffers } from './route.js';
+import { getOfferedCards } from './route.js';
+import { postOffer } from './route.js';
 // Variabile per tenere traccia delle carte selezionate
 let selectedCards = [];
 
@@ -49,13 +54,83 @@ document.addEventListener('DOMContentLoaded', () => {
     // Event delegation per i bottoni "Invia Offerta" nella tabella delle proposte
     document.getElementById('community-trades').addEventListener('click', (event) => {
         const offerButton = event.target.closest('.btn-primary');
-    
+
         if (!offerButton) return; // Se non è il bottone "Invia Offerta", ignora
-    
+
         const tradeId = offerButton.getAttribute('data-trade-id');
         console.log('Bottone "Invia Offerta" cliccato per il trade ID:', tradeId);
         if (tradeId) {
-        showOfferOverlay(tradeId); // Apre l'overlay per inviare l'offerta con l'ID del trade
+            showOfferOverlay(tradeId); // Apre l'overlay per inviare l'offerta con l'ID del trade
+        }
+    });
+
+    // Event delegation per i bottoni "Elimina" nelle proposte personali
+    document.getElementById('user-proposals').addEventListener('click', (event) => {
+        const deleteButton = event.target.closest('.btn-danger');
+
+        if (!deleteButton) return; // Se non è il bottone "Elimina", ignora
+
+        const tradeId = deleteButton.getAttribute('data-trade-id');
+        console.log('Bottone "Elimina" cliccato per il trade ID:', tradeId);
+        if (tradeId) {
+            deleteTrade(tradeId); // Chiama la funzione per cancellare la proposta
+        }
+    });
+
+    // Event delegation per i bottoni "Elimina" nelle offerte dell'utente
+    document.getElementById('user-offers').addEventListener('click', (event) => {
+        const deleteButton = event.target.closest('.btn-danger');
+
+        if (!deleteButton) return; // Se non è il bottone "Elimina", ignora
+
+        const offerId = deleteButton.getAttribute('data-offer-id');
+        console.log('Bottone "Elimina" cliccato per l\'offerta ID:', offerId);
+        if (offerId) {
+            deleteOffer(offerId); // Chiameremo la funzione `deleteOffer` per cancellare l'offerta
+        }
+    });
+
+    // Event delegation per il bottone "Gestisci Proposta"
+    document.getElementById('user-proposals').addEventListener('click', (event) => {
+        const manageButton = event.target.closest('.btn-primary');
+
+        if (!manageButton) return; // Ignora se non è il bottone "Gestisci Proposta"
+
+        const tradeId = manageButton.getAttribute('data-trade-id');
+        console.log('Bottone "Gestisci Proposta" cliccato per il trade ID:', tradeId);
+
+        if (tradeId) {
+            showManageProposalOverlay(tradeId); // Chiama la funzione per aprire l'overlay
+        }
+    });
+
+    // Event delegation per chiudere l'overlay quando si clicca sulla "X"
+    document.addEventListener('click', (event) => {
+        const closeIcon = event.target.closest('.close-icon');
+        if (closeIcon) {
+            hideManageProposalOverlay(); // Chiama la funzione per chiudere l'overlay
+        }
+    });
+
+    // Event delegation per il bottone "Accetta Offerta"
+    document.getElementById('offer-list').addEventListener('click', (event) => {
+        const acceptButton = event.target.closest('.accept-offer-btn');
+
+        if (!acceptButton) return; // Se non è il bottone "Accetta Offerta", ignora
+
+        const tradeId = acceptButton.getAttribute('data-trade-id');
+        const offerId = acceptButton.getAttribute('data-offer-id');
+
+        if (tradeId && offerId) {
+            acceptOffer(tradeId, offerId); // Chiama la funzione per accettare l'offerta
+        }
+    });
+
+    // Event delegation per chiudere l'overlay quando si clicca sull'icona "X"
+    document.addEventListener('click', (event) => {
+        const closeIcon = event.target.closest('.close-icon');
+        if (closeIcon) {
+            hideOverlay(); // Chiama la funzione per chiudere l'overlay
         }
     });
 
@@ -174,70 +249,17 @@ function showOfferOverlay(tradeId) {
 
     // Imposta l'evento di click per inviare l'offerta
     document.getElementById('submit-trade-offer-btn').onclick = function () {
-        submitOffer(tradeId); // Chiama la funzione per inviare l'offerta con l'ID della proposta
+
+        postOffer(tradeId, selectedCards); // Chiama la funzione per inviare l'offerta con l'ID della proposta
+        alert('Offerta inviata con successo!');
+        // Reset delle carte selezionate e chiusura dell'overlay
+        selectedCards = [];
+        updateSelectedCards();
+        hideOverlay();
     };
 
     // Carica le carte dell'utente per la selezione (ad esempio, pagina 1)
     loadUserCards(1); // Funzione già esistente per caricare le carte
-}
-
-// Funzione per inviare l'offerta (POST a /trade/:tradeId/offers)
-async function submitOffer(tradeId) {
-    if (selectedCards.length === 0) {
-      alert('Devi selezionare almeno una carta per inviare l\'offerta.');
-      return;
-    }
-  
-    const offeredCards = selectedCards.map(card => ({
-      card_id: card.id,
-      quantity: 1  // Puoi modificare la quantità in base alla tua logica
-    }));
-  
-    console.log('Dati inviati al server per l\'offerta:', tradeId); // Log per verificare i dati
-
-    try {
-      const jwtToken = getJwtToken();
-  
-      const response = await fetch(`http://localhost:3000/api/trade/${tradeId}/offers`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${jwtToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ offered_cards: offeredCards }) // Corpo della richiesta
-      });
-  
-      if (!response.ok) {
-        // Ottieni dettagli dell'errore dal server (se disponibili)
-        const errorDetails = await response.json();
-        throw new Error(errorDetails.message || 'Errore nell\'invio dell\'offerta.');
-      }
-  
-      // Gestisci correttamente la risposta di successo
-      const offer = await response.json();
-      console.log('Offerta inviata con successo:', offer);
-      alert('Offerta inviata con successo!');
-  
-      // Reset delle carte selezionate e chiusura dell'overlay
-      selectedCards = [];
-      updateSelectedCards();
-      hideOverlay();
-  
-    } catch (error) {
-      // Stampa l'errore e mostra il messaggio solo se c'è un problema
-      console.error('Errore durante l\'invio dell\'offerta:', error);
-      alert(`Errore durante l'invio dell'offerta: ${error.message}`);
-    }
-  }
-
-
-// Funzione per ottenere il token JWT dal localStorage
-function getJwtToken() {
-    const jwtToken = localStorage.getItem('jwtTokenPWMMarvel');
-    if (!jwtToken) {
-        throw new Error('Token JWT mancante. Devi autenticarti.');
-    }
-    return jwtToken;
 }
 
 // Funzione per nascondere l'overlay
@@ -301,4 +323,89 @@ function updatePaginationButtons(page) {
     // Se non ci sono carte nella risposta, disabilita il bottone "Pagina Successiva"
     const cardsExist = document.getElementById('card-selection').childElementCount > 0;
     document.getElementById('next-page-btn').disabled = !cardsExist;
+}
+
+// Funzione per aprire l'overlay per gestire la proposta
+function showManageProposalOverlay(tradeId) {
+    // Mostra l'overlay per la gestione delle offerte
+    document.getElementById('manage-proposal-overlay-background').style.display = 'block';
+    document.getElementById('manage-proposal-overlay').style.display = 'block';
+
+    // Cambia il titolo dell'overlay
+    document.getElementById('manage-proposal-overlay-title').textContent = 'Gestisci Proposta';
+
+    // Carica la proposta e le offerte associate
+    loadUserProposalWithOffers(tradeId);
+}
+
+// Funzione per nascondere l'overlay "Gestisci Proposta"
+function hideManageProposalOverlay() {
+    document.getElementById('manage-proposal-overlay-background').style.display = 'none';
+    document.getElementById('manage-proposal-overlay').style.display = 'none';
+}
+
+// Funzione per caricare la proposta e le offerte associate (GET a /api/trade/user/proposals/:tradeId)
+async function loadUserProposalWithOffers(tradeId) {
+    try {
+        // Recupera la proposta con le offerte
+        const trade = await getUserProposalWithOffers(tradeId);
+        const offerListContainer = document.getElementById('offer-list');
+        offerListContainer.innerHTML = ''; // Pulisce il contenitore
+
+        // Verifica se ci sono offerte
+        if (!trade.offers || trade.offers.length === 0) {
+            offerListContainer.innerHTML = '<p>Nessuna offerta per questa proposta.</p>';
+            return;
+        }
+
+        // Ciclo attraverso ogni offerta e recupera i dettagli delle carte offerte
+        for (const offer of trade.offers) {
+            const offerElement = document.createElement('div');
+            offerElement.classList.add('offer-item');
+
+            // Aggiungi i dettagli dell'offerta
+            offerElement.innerHTML = `
+          <p>Offerta da: ${offer.user_id}</p>
+          <p>Stato: ${offer.status}</p>
+          <p>Data: ${new Date(offer.created_at).toLocaleString()}</p>
+          <div class="offer-cards" id="offer-cards-${offer._id}"></div> <!-- Contenitore delle carte -->
+          <button class="btn btn-success accept-offer-btn" data-trade-id="${trade._id}" data-offer-id="${offer._id}">Accetta Offerta</button> <!-- Bottone "Accetta Offerta" -->
+        `;
+
+            offerListContainer.appendChild(offerElement);
+
+            // Recupera i dettagli delle carte offerte per questa offerta
+            const offersWithDetails = await getOfferedCards(offer.offered_cards);
+            const cards = offersWithDetails[0].cards; // Ottieni i dettagli delle carte
+
+            // Aggiungi le carte al container usando il template
+            const container = document.getElementById(`offer-cards-${offer._id}`);
+            cards.forEach(card => {
+                const cardElement = document.getElementById('card-template').content.cloneNode(true);
+
+                // Popola il template con i dettagli della carta
+                cardElement.querySelector('.card-title').textContent = card.name;
+                cardElement.querySelector('.card-id').textContent = `ID: ${card.id}`;
+                cardElement.querySelector('.card-quantity').textContent = `Quantità Offerta: ${offer.offered_cards.find(c => c.card_id === card.id).quantity}`;
+                cardElement.querySelector('.card-img-top').src = `${card.thumbnail.path}.${card.thumbnail.extension}`;
+
+                container.appendChild(cardElement);
+            });
+        }
+
+    } catch (error) {
+        console.error('Errore durante il caricamento della proposta e delle carte offerte:', error);
+        alert('Errore durante il caricamento della proposta e delle carte offerte.');
+    }
+}
+
+async function acceptOffer(tradeId, offerId) {
+    try {
+        // Invia la richiesta per accettare l'offerta
+        await putAcceptOffer(tradeId, offerId);
+        alert('Offerta accettata con successo!');
+        hideManageProposalOverlay(); // Chiudi l'overlay
+    } catch (error) {
+        alert(`Errore: ${error.message}`);
+    }
 }

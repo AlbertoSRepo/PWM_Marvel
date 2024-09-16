@@ -1,13 +1,34 @@
-  // Funzione per mostrare il messaggio di acquisto crediti o pacchetto
-  function showOverlayMessage(message) {
-    const overlay = document.getElementById('overlay-message');
-    overlay.textContent = message;
-    overlay.style.display = 'block';
-    
-    // Nasconde il messaggio dopo 3 secondi
+// Gestione del caricamento iniziale e della paginazione
+document.addEventListener('DOMContentLoaded', () => {
+
+});
+
+// Funzione per mostrare il messaggio di acquisto crediti o pacchetto
+function showOverlayMessage(message, credits) {
+    const overlayBackground = document.getElementById('overlay-background');
+    const overlayMessage = document.getElementById('overlay-message');
+
+    // Imposta il contenuto del messaggio
+    overlayMessage.innerHTML = `<h2>Complimenti!</h2><p>${message}</p>`;
+
+    // Mostra l'overlay
+    overlayBackground.style.display = 'block';
+
+    // Nasconde l'overlay dopo 3 secondi
     setTimeout(() => {
-        overlay.style.display = 'none';
+        overlayBackground.style.display = 'none';
     }, 3000);
+
+    // Aggiorna i crediti nella navbar
+    updateCredits(credits);
+}
+
+// Funzione per aggiornare il campo HTML che mostra i crediti nella navbar
+function updateCredits(credits) {
+    const creditsElement = document.getElementById('user-credits');
+    if (creditsElement) {
+        creditsElement.textContent = `Crediti: ${credits}`; // Aggiorna il testo con i crediti
+    }
 }
 
 // Funzione per gestire l'acquisto di crediti
@@ -33,7 +54,7 @@ function buyCredits(credits) {
     .then(result => {
         if (result.message) {
             // Mostra il messaggio di successo
-            showOverlayMessage(`Hai acquistato ${creditAmount} crediti.`);
+            showOverlayMessage(`Hai acquistato ${creditAmount} crediti.`, result.credits);
         } else {
             alert('Errore durante l\'acquisto dei crediti.');
         }
@@ -62,18 +83,61 @@ function buyCardPacket() {
     })
     .then(response => response.json())
     .then(result => {
-        if (result.newCards) {
-            // Mostra gli identificativi delle carte ricevute
-            const cardIds = result.newCards.join(', ');
-            showOverlayMessage(`Hai ricevuto le seguenti carte: ${cardIds}`);
+        if (!result.success) {
+            // Mostra un messaggio se non ci sono abbastanza crediti
+            showOverlayMessage(result.message, result.credits);
         } else {
-            alert('Errore durante l\'acquisto del pacchetto.');
+            // Mostra le carte ricevute se l'acquisto è andato a buon fine
+            showCardsInOverlay(result.newCards, result.credits);
         }
     })
     .catch(error => {
         console.error('Errore durante l\'acquisto del pacchetto:', error);
         alert('Errore durante la richiesta.');
     });
+}
+
+// Funzione per mostrare le carte nell'overlay usando il template
+function showCardsInOverlay(cards, credits) {
+    const overlayBackground = document.getElementById('overlay-background');
+    const overlayMessage = document.getElementById('overlay-message');
+
+    // Svuota il contenuto precedente
+    overlayMessage.innerHTML = `<h2>Complimenti! Hai ricevuto le seguenti carte:</h2>`;
+
+    const cardContainer = document.createElement('div');
+    cardContainer.classList.add('row', 'card-container');
+
+    // Crea le carte usando il template
+    cards.forEach(card => {
+        const cardElement = createCardHTML(card);
+        cardContainer.appendChild(cardElement);
+    });
+
+    // Aggiungi le carte nell'overlay
+    overlayMessage.appendChild(cardContainer);
+
+    // Mostra l'overlay
+    overlayBackground.style.display = 'block';
+
+    // Nascondi l'overlay dopo 5 secondi
+    setTimeout(() => {
+        overlayBackground.style.display = 'none';
+    }, 5000);
+
+    // Aggiorna i crediti nella navbar
+    updateCredits(credits);
+}
+
+// Funzione per creare la card in base ai dettagli ricevuti usando il template
+function createCardHTML(card) {
+    console.log('carta :'  + card);
+    const template = document.getElementById('card-template').content.cloneNode(true);
+
+    template.querySelector('.card-title').textContent = card.name || 'Carta sconosciuta';
+    template.querySelector('.card-img-top').src = `${card.thumbnail.path}.${card.thumbnail.extension}`;
+
+    return template;
 }
 
 // Aggiungi event listener ai bottoni per i crediti

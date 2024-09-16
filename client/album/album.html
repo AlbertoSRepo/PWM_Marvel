@@ -20,19 +20,23 @@
         <button class="btn btn-secondary me-2" type="button">Exchange</button>
         <button class="btn btn-secondary me-2" type="button"
           onclick="window.location.href = '../user/user.html';">User</button>
+        <!-- Aggiungi qui il campo non cliccabile per mostrare i crediti -->
+        <span id="user-credits" class="navbar-text ms-3">
+          Crediti: <span id="credit-count">0</span>
+        </span>
       </div>
     </div>
   </nav>
 
   <div class="container card-container">
-    <div class="row justify-content-center mb-3">
-        <!-- Barra di ricerca per nome del supereroe -->
-        <div class="col-md-6">
-            <input type="text" id="search-input" class="form-control" placeholder="Cerca un supereroe...">
-        </div>
-        <div class="col-md-2">
-            <button class="btn btn-primary" id="search-button">Cerca</button>
-        </div>
+    <div class="row justify-content-center mb-5">
+      <!-- Barra di ricerca per nome del supereroe -->
+      <div class="offset-2 col-md-3">
+        <input type="text" id="search-input" class="form-control" placeholder="Cerca un supereroe...">
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-primary" id="search-button">Cerca</button>
+      </div>
     </div>
     <!-- Le righe che contengono le carte -->
     <div id="row-1" class="row justify-content-center mb-2"></div>
@@ -52,9 +56,14 @@
 
     <div class="overlay-content">
       <!-- Parte destra (30%) per l'immagine e il nome -->
+      <!-- Parte destra (30%) per l'immagine e il nome -->
       <div class="overlay-right">
-        <img id="overlay-img" src="placeholder-image.jpg" alt="Superhero Image" class="img-fluid">
+        <img id="overlay-img" src="placeholder-image.jpeg" alt="Superhero Image" class="img-fluid">
         <h5 id="overlay-title"></h5>
+        <!-- Aggiungi l'elemento per la descrizione -->
+        <p id="overlay-description"></p>
+        <!-- Bottone per vendere la carta -->
+        <button id="sell-card-btn" class="btn btn-danger">Vendi Carta</button>
       </div>
 
       <!-- Parte sinistra (70%) per le collezioni -->
@@ -120,10 +129,9 @@
     </div>
   </div>
 
-  <!-- Template per la creazione delle carte -->
   <template id="card-template">
-    <div class="col-lg-2 col-md-4 col-12 marvel-card">
-      <div class="card">
+    <div class="col-lg-2 col-md-4 col-sm-6 col-12 marvel-card mb-4">
+      <div class="card custom-aspect-ratio">
         <img class="card-img-top" alt="Superhero Image">
         <div class="card-body">
           <h5 class="card-title"></h5>
@@ -136,13 +144,19 @@
 
   <div class="fixed-bottom-bar">
     <form id="albumForm">
-      <button type="button" id="prevPageBtn" class="btn btn-secondary">Pagina Precedente</button>
+      <div class="button-group-left">
+        <button type="button" id="prevPageBtn" class="btn btn-secondary">Pagina Precedente</button>
+      </div>
       <input type="number" id="albumPage" class="form-control" placeholder="Inserisci pagina album" min="1" max="105"
         required>
-      <button type="button" id="nextPageBtn" class="btn btn-secondary">Pagina Successiva</button>
-      <button type="submit" class="btn btn-primary">Vai alla Pagina</button>
+      <div class="button-group-right">
+        <button type="button" id="nextPageBtn" class="btn btn-secondary">Pagina Successiva</button>
+        <button type="submit" class="btn btn-primary">Vai alla Pagina</button>
+      </div>
     </form>
   </div>
+
+
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="album.js"></script>

@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import jwt from 'jsonwebtoken'; 
-
+import { MD5 } from '../shared/utils/md5.js';
 class UserService {
   async loginUser(email, password) {
       console.log('Starting login process for email:', email);
@@ -108,24 +108,38 @@ class UserService {
   async buyCardPacket(userId) {
     const packetSize = parseInt(process.env.PACKET_SIZE, 10);
     const packetCost = parseInt(process.env.PACKET_COST, 10);
-
+    
+    // Trova l'utente
     const user = await User.findById(userId);
-    if (!user) throw new Error('User not found');
-    if (user.credits < packetCost) throw new Error('Not enough credits');
-
+    if (!user) {
+      return {
+        success: false,
+        message: 'User not found'
+      };
+    }
+  
+    // Verifica se l'utente ha abbastanza crediti
+    if (user.credits < packetCost) {
+      return {
+        success: false,
+        message: 'Non hai abbastanza crediti',
+        credits: user.credits,
+      };
+    }
+  
     // Deduct the packet price from the user's credits
     user.credits -= packetCost;
-
+  
     // Load card IDs from the JSON file to randomly pick cards
     const cardIds = this.loadCardIdsFromFile();
-
+  
     // Randomly select cards to add to the user's album
     const newCards = [];
     for (let i = 0; i < packetSize; i++) {
       const randomIndex = Math.floor(Math.random() * cardIds.length);
       const card_id = cardIds[randomIndex];
       newCards.push(card_id);
-
+  
       // Update the user's album
       const albumCard = user.album.find(c => c.card_id === card_id);
       if (albumCard) {
@@ -139,13 +153,48 @@ class UserService {
         });
       }
     }
-
+  
     await user.save();
-
+  
+    // Ottieni i dettagli delle carte dal Marvel API
+    const cardDetails = await this.getCharacterDetails(newCards);
+  
+    // Filtrare per restituire solo nome e thumbnail
+    const simplifiedCardDetails = cardDetails.map(card => ({
+      name: card.name,
+      thumbnail: card.thumbnail,
+    }));
+  
+    // Restituisce i dettagli delle carte e i crediti rimanenti
     return {
+      success: true,
       credits: user.credits,
-      newCards: newCards,
+      newCards: simplifiedCardDetails
     };
+  }
+  // Funzione per ottenere i dettagli delle carte dal Marvel API
+  async getCharacterDetails(characterIds) {
+    const baseUrl = process.env.CHARACTERS_URL;
+    const publicApiKey = process.env.MARVELAPI_PUBLICKEY;
+    const privateApiKey = process.env.MARVELAPI_PRIVATEKEY;
+
+    // Genera i parametri di autenticazione
+    const timestamp = Date.now();
+    const hash = MD5(timestamp + privateApiKey + publicApiKey);
+    const authParams = `ts=${timestamp}&apikey=${publicApiKey}&hash=${hash}`;
+
+    // Mappa per tutte le richieste parallele
+    const requests = characterIds.map(async (characterId) => {
+      const response = await fetch(`${baseUrl}/${characterId}?${authParams}`);
+      const data = await response.json();
+      if (data && data.data && data.data.results && data.data.results.length > 0) {
+        return data.data.results[0];
+      }
+      return null;
+    });
+
+    const detailedCharacters = await Promise.all(requests);
+    return detailedCharacters.filter(Boolean);
   }
 
 }

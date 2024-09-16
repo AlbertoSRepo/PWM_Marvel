@@ -1,84 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buy Credits and Card Packets</title>
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }
-        .container-fluid {
-            height: 100%;
-        }
-        .row {
-            height: 100%;
-        }
-        .left-side, .right-side {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .buy-button {
-            width: 100px;
-            height: 100px;
-            margin: 20px;
-            font-size: 1.5rem;
-        }
-        /* Sovraimpressione per mostrare il messaggio */
-        #overlay-message {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            display: none;
-            z-index: 9999;
-        }
-    </style>
+    <!-- Foglio di stile personalizzato -->
+    <link rel="stylesheet" href="buy.css">
 </head>
+
 <body>
+    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">PWM Marvel</a>
-            <div class="d-flex ms-auto"> 
-                <button class="btn btn-secondary me-2" type="button" onclick="window.location.href = '../album/album.html';">Album</button>
-                <button class="btn btn-primary me-2" type="button" onclick="window.location.href = '#';">Buy</button> 
-                <button class="btn btn-secondary me-2" type="button" onclick="window.location.href = '../exchange/exchange.html';">Exchange</button> 
-                <button class="btn btn-secondary me-2" type="button" onclick="window.location.href = '../user/user.html';">User</button> 
-            </div>
+          <a class="navbar-brand" href="#">PWM Marvel</a>
+          <div class="d-flex ms-auto">
+            <button class="btn btn-secondary me-2" type="button" onclick="window.location.href = '../album/album.html';">Album</button>
+            <button class="btn btn-primary me-2" type="button"
+              onclick="window.location.href = '../buy/buy.html';">Buy</button>
+            <button class="btn btn-secondary me-2" type="button">Exchange</button>
+            <button class="btn btn-secondary me-2" type="button"
+              onclick="window.location.href = '../user/user.html';">User</button>
+            <!-- Aggiungi qui il campo non cliccabile per mostrare i crediti -->
+            <span id="user-credits" class="navbar-text ms-3">
+              Crediti: <span id="credit-count">0</span>
+            </span>
+          </div>
         </div>
-    </nav>
+      </nav>
 
-    <div class="container-fluid">
-        <div class="row">
+    <!-- Contenuto principale -->
+    <div class="container-fluid h-100">
+        <div class="row h-100">
             <!-- Parte Sinistra: Bottoni per l'acquisto dei crediti -->
-            <div class="col-md-6 left-side">
+            <div class="col-md-6 d-flex justify-content-center align-items-center">
                 <div>
-                    <button class="btn btn-primary buy-button" data-credits="1">1 Credito</button>
-                    <button class="btn btn-primary buy-button" data-credits="5">5 Crediti</button>
-                    <button class="btn btn-primary buy-button" data-credits="10">10 Crediti</button>
-                    <button class="btn btn-primary buy-button" data-credits="20">20 Crediti</button>
+                    <div class="d-flex justify-content-center mb-4">
+                        <button class="btn btn-primary buy-button me-5" data-credits="1">1 Credito</button>
+                        <button class="btn btn-primary buy-button" data-credits="5">5 Crediti</button>
+                    </div>
+                    <div class="d-flex justify-content-center">
+                        <button class="btn btn-primary buy-button me-5" data-credits="10">10 Crediti</button>
+                        <button class="btn btn-primary buy-button" data-credits="20">20 Crediti</button>
+                    </div>
                 </div>
             </div>
 
             <!-- Parte Destra: Pulsante per l'acquisto del pacchetto di carte -->
-            <div class="col-md-6 right-side">
+            <div class="col-md-6 d-flex justify-content-center align-items-center">
                 <button id="buyPacketBtn" class="btn btn-success">Compra Pacchetto</button>
             </div>
         </div>
     </div>
 
     <!-- Sovraimpressione per mostrare il messaggio di successo -->
-    <div id="overlay-message"></div>
+    <div id="overlay-background">
+        <div id="overlay-message"></div>
+    </div>
 
+<!-- Template per la visualizzazione delle carte -->
+<template id="card-template">
+    <div class="col-lg-2 col-md-4 col-sm-6 col-12 marvel-card mb-4">
+        <div class="card custom-aspect-ratio">
+            <img class="card-img-top" alt="Superhero Image">
+            <div class="card-body">
+                <h5 class="card-title"></h5>
+            </div>
+        </div>
+    </div>
+</template>
+
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Script personalizzato -->
     <script src="buy.js"></script>
 </body>
+
 </html>

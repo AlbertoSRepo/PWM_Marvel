@@ -60,6 +60,7 @@
               <tr>
                 <th>Carte</th>
                 <th>Data</th>
+                <th>Azioni</th> <!-- Colonna per il bottone "Invia Offerta" -->
               </tr>
             </thead>
             <tbody id="user-proposals">
@@ -77,6 +78,7 @@
                 <th>Proposta</th>
                 <th>Carte Offerte</th>
                 <th>Data</th>
+                <th>Azioni</th> <!-- Colonna per il bottone "Invia Offerta" -->
               </tr>
             </thead>
             <tbody id="user-offers">
@@ -91,7 +93,7 @@
   <!-- Overlay per la selezione delle carte -->
   <div id="overlay-background" class="overlay-background" style="display:none;"></div>
   <div id="overlay" class="overlay" style="display:none;">
-    <span class="close-icon" onclick="hideOverlay()">&times;</span>
+    <span class="close-icon">&times;</span>
     <div class="overlay-content d-flex">
 
       <!-- Colonna sinistra: Carte selezionate -->
@@ -133,6 +135,17 @@
     </div>
   </div>
 
+<!-- Overlay per la gestione delle offerte di una proposta -->
+<div id="manage-proposal-overlay-background" class="overlay-background" style="display:none;"></div>
+<div id="manage-proposal-overlay" class="overlay" style="display:none;">
+  <span class="close-icon">&times;</span> <!-- Rimosso `onclick` -->
+  <div class="overlay-content d-flex flex-column">
+    <h4 id="manage-proposal-overlay-title">Gestisci Proposta</h4>
+    <div id="offer-list" class="offer-list">
+      <!-- Le offerte saranno inserite dinamicamente qui -->
+    </div>
+  </div>
+</div>
 
   <!-- Template HTML per creare una card -->
   <template id="card-template">

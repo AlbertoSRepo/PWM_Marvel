@@ -105,6 +105,47 @@ deleteTrade = async (req, res) => {
       res.status(500).json({ message: 'Errore durante la cancellazione della proposta.' });
     }
   };
+
+// Controller: Funzione per ottenere una singola proposta di trade dell'utente loggato
+getUserProposal = async (req, res) => {
+    try {
+      const { tradeId } = req.params; // Recupera l'ID della proposta dall'URL
+      const userId = req.user.userId; // Estrai l'ID dell'utente dal token JWT
+  
+      // Chiama il service per ottenere la proposta
+      const trade = await tradeService.getUserProposal(userId, tradeId);
+  
+      if (!trade) {
+        return res.status(404).json({ message: 'Proposta non trovata o non autorizzato a visualizzarla.' });
+      }
+  
+      res.status(200).json(trade);
+    } catch (error) {
+      console.error('Errore durante il recupero della proposta:', error);
+      res.status(500).json({ message: 'Errore durante il recupero della proposta.' });
+    }
+  };
+  
+  // Controller: Funzione per ottenere i dettagli delle carte offerte
+getOfferedCardsDetails = async (req, res) => {
+  try {
+    const { offers } = req.body; // Riceve l'array di oggetti contenenti ID dell'offerta e ID delle carte
+
+    if (!offers || !Array.isArray(offers)) {
+      return res.status(400).json({ message: 'Formato dati offerta non valido.' });
+    }
+
+    // Chiama il service per ottenere i dettagli delle carte
+    const offersWithDetails = await tradeService.getOfferedCardsDetails(offers);
+
+    res.status(200).json(offersWithDetails);
+  } catch (error) {
+    console.error('Errore durante il recupero dei dettagli delle carte offerte:', error);
+    res.status(500).json({ message: 'Errore durante il recupero dei dettagli delle carte offerte.' });
+  }
 }
+
+
+};
 
 export default new TradeController();
