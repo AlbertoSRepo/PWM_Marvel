@@ -32,15 +32,6 @@ class UserService {
       }
   }
 
-  async verifyToken(token) {
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        return decoded;
-    } catch (error) {
-        throw new Error('Invalid or expired token');
-    }
-  }
-
   async registerUser(userData) {
     // Carica gli ID delle carte da un file JSON
     const cardIds = this.loadCardIdsFromFile();
