@@ -1,6 +1,6 @@
 import express from 'express';
 import albumController from './controller.js';
-import { authenticateJWT } from '../../middlewares/auth.js';
+import authenticateJWTMiddleware from '../../middlewares/auth.js';
 
 const router = express.Router();
 
@@ -79,7 +79,7 @@ const router = express.Router();
  *       404:
  *         description: User not found or no cards available on the specified page
  */
-router.get('/cards', authenticateJWT, albumController.getAlbumPage);
+router.get('/cards', authenticateJWTMiddleware, albumController.getAlbumPage);
 
 /**
  * @swagger
@@ -134,7 +134,7 @@ router.get('/cards', authenticateJWT, albumController.getAlbumPage);
  *       500:
  *         description: Server error
  */
-router.get('/trade/cards', authenticateJWT, albumController.getCardsForPageTrade);
+router.get('/trade/cards', authenticateJWTMiddleware, albumController.getCardsForPageTrade);
 
 /**
  * @swagger
@@ -181,7 +181,7 @@ router.get('/trade/cards', authenticateJWT, albumController.getCardsForPageTrade
  *       404:
  *         description: User not found or no matching characters available
  */
-router.get('/search', authenticateJWT, albumController.searchCards);
+router.get('/search', authenticateJWTMiddleware, albumController.searchCards);
 
 /**
  * @swagger
@@ -228,7 +228,7 @@ router.get('/search', authenticateJWT, albumController.searchCards);
  *                   type: array
  *                   description: List of events associated with the character
  */
-router.get('/characters/:characterId', authenticateJWT, albumController.getCharacterDetails);
+router.get('/characters/:characterId', authenticateJWTMiddleware, albumController.getCharacterDetails);
 
 /**
  * @swagger
@@ -271,6 +271,6 @@ router.get('/characters/:characterId', authenticateJWT, albumController.getChara
  *         description: Server error
  */
 // Route per vendere una carta posseduta
-router.put('/sell/:cardId', authenticateJWT, albumController.sellCard);
+router.put('/sell/:cardId', authenticateJWTMiddleware, albumController.sellCard);
 
 export default router;

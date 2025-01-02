@@ -1,6 +1,7 @@
+import { loadNavbar } from "../shared/navbar.js";
 // Gestione del caricamento iniziale e della paginazione
 document.addEventListener('DOMContentLoaded', () => {
-
+    loadNavbar('buy');
 });
 
 // Funzione per mostrare il messaggio di acquisto crediti o pacchetto
@@ -33,19 +34,12 @@ function updateCredits(credits) {
 
 // Funzione per gestire l'acquisto di crediti
 function buyCredits(credits) {
-    const jwtToken = localStorage.getItem('jwtTokenPWMMarvel');
-
-    if (!jwtToken) {
-        alert('Devi essere autenticato per acquistare crediti.');
-        return;
-    }
 
     const creditAmount = parseInt(credits, 10);
 
     fetch('http://localhost:3000/api/users/buy-credits', {
         method: 'POST',
         headers: {
-            'Authorization': `Bearer ${jwtToken}`,
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({ amount: creditAmount })
@@ -67,17 +61,10 @@ function buyCredits(credits) {
 
 // Funzione per gestire l'acquisto del pacchetto di carte
 function buyCardPacket() {
-    const jwtToken = localStorage.getItem('jwtTokenPWMMarvel');
-
-    if (!jwtToken) {
-        alert('Devi essere autenticato per acquistare un pacchetto.');
-        return;
-    }
 
     fetch('http://localhost:3000/api/users/buy-packet', {
         method: 'POST',
         headers: {
-            'Authorization': `Bearer ${jwtToken}`,
             'Content-Type': 'application/json'
         }
     })

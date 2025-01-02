@@ -18,21 +18,25 @@ Album
     -aggiungere ulteriori dettagli
     -Analizzare caching    
 
+user
+    -quando si modifica l'email bisogna verificare lato bootstrap che sia una mail
+
 Card    
     -quando vengono comprate 2 carte segna quantity 2 available_quantity 0
 
 Trade 
-    -ricaricamentoi pagina a seguito di un operazione -> e aggiornamento crediti
     -Nel inviare un offerta, non si possono inviare carte della proposta
-
-Notifiche 
-    -accettazione offerta
-    -cancellazione proposta a cui avevi fatto offerta
-    -polling o websocket
 
 Buy 
     -finisci formattazione 
 
+Cookie 
+    -gestisci logica con jwt -> refresh token!
+
+Aggiornamento crediti legato a caricamento navbar -> ogni volta che riccarico pagina, quindi quando faccio operazioni che cambiano crediti basta ricaricare pagina
+____ E' Stupido fare richiesta appena caricato il dom allo stesso server dai cui ho scaricato i file html.
+
 !!!Controlla gestione Quantità
 !!!Mostra crediti nella navbar, aggiorna crediti a operazioni che modificano crediti (trade,buy!,user)
 
+Bisogna considerare l'aggiornamento delle informazioni automatico

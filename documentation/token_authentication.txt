@@ -1,0 +1,86 @@
+Di seguito una breve documentazione sul funzionamento dell’autenticazione JWT nella tua applicazione, con riferimento sia ai punti di forza sia ai limiti di sicurezza intrinseci a questo approccio.
+
+1. Panoramica
+L’applicazione utilizza JSON Web Token (JWT) per autenticare gli utenti e proteggere determinate rotte.
+
+Il token JWT viene creato al momento del login o della registrazione e inviato al client come cookie jwtToken.
+Tutte le rotte che richiedono autenticazione passano attraverso un middleware che verifica l’esistenza e la validità del token.
+2. Generazione del Token
+Al login e alla registrazione, il server genera un nuovo token con jwt.sign(...), impostando:
+
+Payload: contiene informazioni minime, tipicamente un identificatore univoco dell’utente (userId).
+Chiave segreta (process.env.JWT_SECRET): utilizzata per firmare il token.
+Durata di validità (expiresIn): ad esempio, 1 ora ('1h').
+Il token viene poi inserito in un cookie HttpOnly con un maxAge coerente con la scadenza (expiresIn).
+
+js
+
+const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+res.cookie('jwtToken', token, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  maxAge: 3600000 // 1h
+});
+Nota: httpOnly: true rende il cookie non accessibile a JavaScript lato client (mitigando i rischi di XSS), mentre secure: true lo invia solo su HTTPS (in produzione).
+
+3. Middleware di Autenticazione
+Tutte le rotte che necessitano protezione usano il middleware authenticateJWTMiddleware. Questo middleware:
+
+Recupera il token dal cookie jwtToken.
+Verifica il token con jwt.verify(token, process.env.JWT_SECRET).
+Se il token è inesistente o non valido, restituisce un errore 401 in formato JSON o un redirect verso una pagina “no login” (a seconda del tipo di richiesta).
+Se il token è valido, aggiunge a req.user le informazioni decodificate (decoded) e chiama next() per far procedere la richiesta.
+3.1. Sliding Expiration
+Per estendere la durata del token quando l’utente è ancora attivo, il middleware:
+
+Controlla il tempo rimanente prima della scadenza.
+Se è inferiore a una soglia (es. 5 minuti), genera un nuovo token con la stessa durata (es. 1 ora) e aggiorna il cookie jwtToken. In questo modo, la scadenza “slitta” in avanti a ogni richiesta ravvicinata.
+js
+Copia codice
+const nowInSeconds = Math.floor(Date.now() / 1000);
+const timeLeft = decoded.exp - nowInSeconds;
+const RENEW_THRESHOLD = 300; // 5 minuti
+
+if (timeLeft < RENEW_THRESHOLD) {
+  const newToken = jwt.sign({ userId: decoded.userId }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  res.cookie('jwtToken', newToken, { /* impostazioni cookie */ });
+}
+4. Flusso di Autenticazione
+Login/Register:
+
+Il client invia credenziali (username/password).
+Se valide, il server crea il JWT e lo inserisce in un cookie.
+Il client memorizza il cookie e da quel momento può fare richieste autenticate.
+Accesso a rotte protette:
+
+Il client (browser / applicazione front-end) invia il cookie jwtToken con ogni richiesta.
+Il middleware authenticateJWTMiddleware verifica la validità.
+Se il token sta per scadere e la soglia è superata, il token viene rinnovato e rispedito al client.
+Scadenza / Logout:
+
+Se non arriva alcuna richiesta prima della scadenza effettiva, il cookie diventa invalidato e l’utente dovrà rifare il login.
+In caso di logout esplicito, si potrebbe cancellare il cookie lato server e lato client, invalidando di fatto la sessione.
+5. Aspetti Critici e Limiti
+Revoca dei Token Rubati
+
+Con una semplice strategia “JWT + sliding expiration”, non hai un meccanismo nativo per revocare un token rubato prima che scada. Un token compromesso rimane valido finché non arriva a naturale scadenza (o finché non si cambia la chiave JWT per invalidare tutti i token).
+Se vuoi consentire la revoca specifica, serve una blacklist (o meccanismi simili) lato server, oppure il sistema Access Token + Refresh Token con archiviazione e revoca dei refresh token.
+Durata Infinita se l’Utente è Attivo
+
+Il meccanismo “sliding expiration” può, di fatto, creare sessioni molto lunghe se l’utente non si disconnette mai e resta costantemente attivo. Per mitigare, si potrebbe introdurre un “max session time” globale oltre il quale l’utente deve comunque riloggarsi.
+Assenza di Refresh Token
+
+La mancanza di un Refresh Token rende il sistema più semplice da gestire (nessun token secondario, nessuna endpoint di refresh), ma in caso di scadenza effettiva (dopo inattività prolungata) l’utente deve rifare il login.
+In produzioni più complesse, l’uso di Refresh Token e Access Token con scadenza breve è spesso la soluzione più “sicura” e versatile.
+Gestione Storage
+
+Il token è conservato in un cookie HttpOnly, il che migliora la sicurezza, ma devi comunque assicurarti che le rotte sensibili siano servite solo su HTTPS (impostazione secure: true su cookie).
+In ambienti di test o di sviluppo potresti disabilitare secure, ma attenzione a non esporre l’applicazione su HTTP in contesti reali.
+6. Conclusioni
+La soluzione di autenticazione attuale, basata su un singolo JWT rinnovato dinamicamente (sliding expiration), è relativamente semplice e offre un’esperienza utente fluida, evitando re-login frequenti. Tuttavia, alcuni aspetti di sicurezza e revoca restano parzialmente scoperti, e la durata della sessione potrebbe diventare eccessiva se l’utente resta attivo a lungo.
+
+Se la tua applicazione necessita di uno standard di sicurezza più alto, è consigliabile:
+
+Implementare la coppia Access Token + Refresh Token, e/o
+Adottare un meccanismo di blacklist/whitelist dei token lato server, per gestire revoche e scadenze “hard” (massime).
+Altrimenti, la soluzione corrente è appropriata per molte applicazioni di piccola e media complessità, garantendo comunque un buon livello di usabilità e sicurezza di base.

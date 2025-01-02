@@ -1,6 +1,8 @@
-
+import { loadNavbar } from "../shared/navbar.js";
 // Gestione del caricamento iniziale e della paginazione
 document.addEventListener('DOMContentLoaded', () => {
+    loadNavbar('album');
+
     document.getElementById('albumPage').value = 1;
     updatePaginationButtons(1);
 
@@ -132,13 +134,10 @@ function updateCredits(credits) {
 async function fetchCards(pageNumber) {
     try {
         showLoadingSpinner();
-        const jwtToken = localStorage.getItem('jwtTokenPWMMarvel');
-        if (!jwtToken) throw new Error('Token JWT mancante');
 
         const response = await fetch(`http://localhost:3000/api/album/cards?page_number=${pageNumber}`, {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${jwtToken}`,
                 'Content-Type': 'application/json',
             },
         });
@@ -184,13 +183,10 @@ document.getElementById('search-button').addEventListener('click', () => {
 async function searchCardsByName(name) {
     try {
         showLoadingSpinner();
-        const jwtToken = localStorage.getItem('jwtTokenPWMMarvel');
-        if (!jwtToken) throw new Error('Token JWT mancante');
 
         const response = await fetch(`http://localhost:3000/api/album/search?name_starts_with=${name}`, {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${jwtToken}`,
                 'Content-Type': 'application/json'
             }
         });
@@ -208,19 +204,10 @@ async function searchCardsByName(name) {
 
 // Funzione per fare la richiesta al server e ottenere i dettagli del personaggio
 async function fetchCharacterDetails(characterId) {
-    const jwtToken = localStorage.getItem('jwtTokenPWMMarvel');
-
-    if (!jwtToken) {
-        console.error('Token JWT mancante');
-        alert('Token JWT non trovato. Devi autenticarti.');
-        return null;
-    }
-
     try {
         const response = await fetch(`http://localhost:3000/api/album/characters/${characterId}`, {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${jwtToken}`,
                 'Content-Type': 'application/json'
             }
         });
@@ -385,18 +372,9 @@ function hideLoadingSpinner() {
 // Funzione per inviare la richiesta di vendita della carta
 async function sellCard(cardId, currentPage) {
     try {
-        const jwtToken = localStorage.getItem('jwtTokenPWMMarvel');
-
-        if (!jwtToken) {
-            console.error('Token JWT mancante');
-            alert('Devi autenticarti per vendere una carta.');
-            return;
-        }
-
         const response = await fetch(`http://localhost:3000/api/album/sell/${cardId}`, {
             method: 'PUT',
             headers: {
-                'Authorization': `Bearer ${jwtToken}`,
                 'Content-Type': 'application/json'
             }
         });

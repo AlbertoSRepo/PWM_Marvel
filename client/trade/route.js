@@ -9,25 +9,14 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchUserOffers();
 });
 
-// Funzione per ottenere il token JWT dal localStorage
-function getJwtToken() {
-  const jwtToken = localStorage.getItem('jwtTokenPWMMarvel');
-  if (!jwtToken) {
-    throw new Error('Token JWT mancante. Devi autenticarti.');
-  }
-  return jwtToken;
-}
-
 // Funzione per caricare le proposte della community (GET)
 async function fetchCommunityTrades() {
   try {
-    const jwtToken = getJwtToken();
 
     // Effettua una richiesta GET all'endpoint /api/trades
     const response = await fetch('http://localhost:3000/api/trade', {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${jwtToken}`,
         'Content-Type': 'application/json',
       }
     });
@@ -66,13 +55,11 @@ async function fetchCommunityTrades() {
 // Funzione per caricare le proposte fatte dall'utente (GET)
 async function fetchUserProposals() {
   try {
-    const jwtToken = getJwtToken();
 
     // Effettua una richiesta GET all'endpoint /api/trade/user/proposals
     const response = await fetch('http://localhost:3000/api/trade/user/proposals', {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${jwtToken}`,
         'Content-Type': 'application/json',
       }
     });
@@ -112,13 +99,9 @@ async function fetchUserProposals() {
 // Funzione per caricare le offerte fatte dall'utente (GET)
 async function fetchUserOffers() {
   try {
-    const jwtToken = getJwtToken();
-
-    // Effettua una richiesta GET all'endpoint /api/trades/user/offers
     const response = await fetch('http://localhost:3000/api/trade/user/offers', {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${jwtToken}`,
         'Content-Type': 'application/json',
       }
     });
@@ -158,13 +141,12 @@ async function fetchUserOffers() {
 // Funzione per cancellare un'offerta (DELETE a /trade/offers/:offerId)
 export async function deleteOffer(offerId) {
   try {
-    const jwtToken = getJwtToken();
+
 
     // Effettua la richiesta DELETE per cancellare l'offerta
     const response = await fetch(`http://localhost:3000/api/trade/offers/${offerId}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${jwtToken}`,
         'Content-Type': 'application/json',
       }
     });
@@ -189,13 +171,11 @@ export async function deleteOffer(offerId) {
 // Funzione per inviare la proposta di trade (API call)
 export async function postTradeProposal(proposedCards) {
   try {
-    const jwtToken = getJwtToken();
 
     // Effettua la richiesta POST per creare una nuova proposta di trade
     const response = await fetch('http://localhost:3000/api/trade', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${jwtToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ proposed_cards: proposedCards })
@@ -217,12 +197,10 @@ export async function postTradeProposal(proposedCards) {
 // Funzione per cercare carte per nome del supereroe
 export async function getCardsByName(name) {
   try {
-    const jwtToken = getJwtToken();
 
     const response = await fetch(`http://localhost:3000/api/album/search?name_starts_with=${name}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${jwtToken}`,
         'Content-Type': 'application/json'
       }
     });
@@ -241,7 +219,6 @@ export async function getCardsByName(name) {
 // Funzione per caricare le carte dell'utente per la selezione (28 per pagina)
 export async function getUserCards(pageNumber) {
   try {
-    const jwtToken = getJwtToken();
 
     console.log(`Caricamento delle carte per la pagina: ${pageNumber}`); // Debug
 
@@ -249,7 +226,6 @@ export async function getUserCards(pageNumber) {
     const response = await fetch(`http://localhost:3000/api/album/trade/cards?page_number=${pageNumber}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${jwtToken}`,
         'Content-Type': 'application/json',
       }
     });
@@ -268,12 +244,10 @@ export async function getUserCards(pageNumber) {
 // Funzione per cancellare una proposta di trade (DELETE a /trade/:tradeId)
 export async function deleteTrade(tradeId) {
   try {
-    const jwtToken = getJwtToken();
 
     const response = await fetch(`http://localhost:3000/api/trade/${tradeId}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${jwtToken}`,
         'Content-Type': 'application/json',
       }
     });
@@ -298,12 +272,10 @@ export async function deleteTrade(tradeId) {
 // Funzione per accettare un'offerta (PUT a /trade/:tradeId/offers/:offerId/accept)
 export async function putAcceptOffer(tradeId, offerId) {
   try {
-      const jwtToken = getJwtToken();
 
       const response = await fetch(`http://localhost:3000/api/trade/${tradeId}/offers/${offerId}/accept`, {
           method: 'PUT',
           headers: {
-              'Authorization': `Bearer ${jwtToken}`,
               'Content-Type': 'application/json',
           }
       });
@@ -323,12 +295,10 @@ export async function putAcceptOffer(tradeId, offerId) {
 // Funzione per caricare la proposta e le offerte associate (GET a /api/trade/user/proposals/:tradeId)
 export async function getUserProposalWithOffers(tradeId) {
   try {
-      const jwtToken = getJwtToken();
 
       const response = await fetch(`http://localhost:3000/api/trade/user/proposals/${tradeId}`, {
           method: 'GET',
           headers: {
-              'Authorization': `Bearer ${jwtToken}`,
               'Content-Type': 'application/json',
           }
       });
@@ -348,7 +318,6 @@ export async function getUserProposalWithOffers(tradeId) {
 // Funzione per caricare i dettagli completi delle carte offerte e visualizzarle nell'overlay usando il template
 export async function getOfferedCards(offeredCards, containerId) {
   try {
-      const jwtToken = getJwtToken();
 
       // Prepara i dati per inviare la richiesta POST all'endpoint con le carte offerte
       const requestBody = {
@@ -364,7 +333,6 @@ export async function getOfferedCards(offeredCards, containerId) {
       const response = await fetch('http://localhost:3000/api/trade/cards/details', {
           method: 'POST',
           headers: {
-              'Authorization': `Bearer ${jwtToken}`,
               'Content-Type': 'application/json',
           },
           body: JSON.stringify(requestBody)
@@ -395,12 +363,10 @@ export async function postOffer(tradeId, selectedCards) {
   }));
 
   try {
-    const jwtToken = getJwtToken();
 
     const response = await fetch(`http://localhost:3000/api/trade/${tradeId}/offers`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${jwtToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ offered_cards: offeredCards }) // Corpo della richiesta

@@ -3,57 +3,44 @@ import userService from './service.js';
 import { User } from './model.js';
 
 class UserController {
-  login = async (req, res) => {
-    console.log('Received login request for:', req.body.email);
+  login = async (req, res, next) => {
     try {
-        const { email, password } = req.body;
-        const { userId, token } = await userService.loginUser(email, password);  // Destructure userId and token
-
-        console.log('Login successful, sending response');
-        // Send back both userId and token in the response
-        res.status(200).json({ userId, token });
-    } catch (error) {
-        console.error('Error during login:', error.message);
-        res.status(401).json({ message: error.message });
-    }
-  }
-
-  register = async (req, res, next) => {
-    try {
-      // Registra l'utente e ottieni il token JWT
-      const { user, token } = await userService.registerUser(req.body);
-
-      // Restituisce il token e l'ID dell'utente
-      res.status(201).json({
-        message: 'Registrazione avvenuta con successo',
-        user_id: user._id,
-        token: token  // Include il token nella risposta
-      });
+      await userService.loginUser(req.body, res);
+      res.status(200).json({ message: 'Login avvenuto con successo' });
     } catch (error) {
       next(error);
     }
   }
 
+  register = async (req, res, next) => {
+    try {
+      await userService.registerUser(req.body, res);
+      res.status(201).json({ message: 'Registrazione avvenuta con successo' });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   getUserInfo = async (req, res) => {
     try {
-        // Use req.user.userId (extracted from the token) to find the user
-        const user = await User.findById(req.user.userId).select('_id username email favorite_superhero credits password');
+      const user = await User.findById(req.user.userId).select('_id username email favorite_superhero credits password');
 
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
+      if (!user) {
+        const error = new Error('Utente non trovato');
+        error.statusCode = 404;
+        throw error;
+      }
 
-        res.status(200).json(user);
+      res.status(200).json(user);
     } catch (error) {
-        console.error('Error fetching user info:', error);
-        res.status(500).json({ message: 'Server error' });
+      next(error);
     }
   }
 
   update = async (req, res, next) => {
     try {
-      // Use userId from the JWT token
-      const user = await userService.updateUser(req.user.userId, req.body);
+      await userService.updateUser(req.user.userId, req.body);
+
       res.status(200).json({ message: 'Informazioni aggiornate con successo' });
     } catch (error) {
       next(error);
@@ -62,7 +49,6 @@ class UserController {
 
   delete = async (req, res, next) => {
     try {
-      // Use userId from the JWT token
       await userService.deleteUser(req.user.userId);
       res.status(200).json({ message: 'Account eliminato con successo' });
     } catch (error) {
@@ -70,9 +56,17 @@ class UserController {
     }
   }
 
+  getCredits = async (req, res, next) => {
+    try {
+      const user = await User.findById(req.user.userId);
+      res.status(200).json({ message: 'Credits purchased successfully', credits: user.credits });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   buyCredits = async (req, res, next) => {
     try {
-      // Use userId from the JWT token
       const { amount } = req.body;
       const credits = await userService.buyCredits(req.user.userId, amount);
       res.status(200).json({ message: 'Credits purchased successfully', credits });
@@ -81,9 +75,8 @@ class UserController {
     }
   }
 
-  buyCardPacket = async (req, res, next) =>{
+  buyCardPacket = async (req, res, next) => {
     try {
-      // Use userId from the JWT token
       const { packet_size } = req.body;
       const result = await userService.buyCardPacket(req.user.userId, packet_size);
       res.status(200).json({ message: 'Card packet purchased successfully', ...result });

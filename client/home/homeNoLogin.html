@@ -8,7 +8,18 @@
     <link rel="stylesheet" src="/home/home.css">
 </head>
 <body>
-    <div id="navbar"></div>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <!-- Nome del progetto a sinistra -->
+            <a class="navbar-brand" href="#">PWM Marvel</a>
+                
+            <!-- I due bottoni a destra -->
+            <div class="d-flex ms-auto"> 
+                <button class="btn btn-primary me-2" type="button" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button> 
+                <button class="btn btn-secondary" type="button" data-bs-toggle="modal" data-bs-target="#registerModal">Register</button>   
+            </div>
+        </div>
+    </nav>
 
     <div class="container-fluid">
         <!-- Prima riga -->
@@ -114,6 +125,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script type="module" src="/home/home.js"></script>
+    <script type="module" src="/home/homeNoLogin.js"></script>
 </body>
 </html>

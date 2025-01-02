@@ -7,6 +7,7 @@ import { putAcceptOffer } from './route.js';
 import { getUserProposalWithOffers } from './route.js';
 import { getOfferedCards } from './route.js';
 import { postOffer } from './route.js';
+import { loadNavbar } from '../shared/navbar.js';
 // Variabile per tenere traccia delle carte selezionate
 let selectedCards = [];
 
@@ -18,6 +19,7 @@ let currentPage = 1;
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    loadNavbar('trade'); // Carica la navbar
     // Aggiungi l'evento per aprire l'overlay al click sul bottone "Crea Nuova Proposta"
     document.getElementById('create-trade-btn').addEventListener('click', showOverlay);
 

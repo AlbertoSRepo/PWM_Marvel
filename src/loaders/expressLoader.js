@@ -3,53 +3,56 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from '../config/swagger.js';
 import userRoutes from '../api/users/route.js';
 import albumRoutes from '../api/album/route.js';
 import tradeRoutes from '../api/trade/route.js';
-import errorHandler from '../middlewares/errorHandler.js';
+import errorHandlerMiddleware from '../middlewares/errorHandler.js';
+import authenticateJWTMiddleware  from '../middlewares/auth.js';
 
 // Helper to get the current directory for serving HTML files
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export default async ({ app }) => {
+const expressAppLoader = async ({ app }) => {
   app.use(cors());
   app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  app.use(cookieParser());
 
-  // Serve static HTML files from the 'public' folder
   app.use(express.static(path.join(__dirname, '../../client')));
 
-  // API documentation setup
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-  // Load API routes
-  app.use('/api/users', userRoutes);
+  app.use('/api/users', userRoutes);  
   app.use('/api/album', albumRoutes);
   app.use('/api/trade', tradeRoutes);
 
-  // HTML routes
-  app.get('/', (req, res) => {
+  app.get('/',authenticateJWTMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, '../../client/home/home.html'));
   });
 
-  app.get('/home', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../client/home/home.html'));
-  });
-
-  app.get('/buy', (req, res) => {
+  app.get('/buy', authenticateJWTMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, '../../client/buy/buy.html'));
   });
 
-  app.get('/album', (req, res) => {
+  app.get('/album', authenticateJWTMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, '../../client/album/album.html'));
   });
 
-  app.get('/trade', (req, res) => {
+  app.get('/trade', authenticateJWTMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, '../../client/trade/trade.html'));
   });
 
+  // Pagina per gli utenti non autenticati
+  app.get('/homeNoLogin', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../client/home/homeNoLogin.html'));
+  });
+
   // Error Handler (should be the last middleware)
-  app.use(errorHandler);
+  app.use(errorHandlerMiddleware);
 };
+
+export default expressAppLoader;

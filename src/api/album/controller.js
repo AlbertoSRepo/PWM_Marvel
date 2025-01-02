@@ -5,10 +5,8 @@ class AlbumController {
     try {
       const { page_number, cards_per_page, only_owned } = req.query;
 
-      // Estrai l'userId dal token JWT
       const userId = req.user.userId;
 
-      // Converti `only_owned` in un booleano (se presente, sarà "true")
       const onlyOwned = only_owned === 'true';
 
       // Passa il valore di onlyOwned al service
@@ -32,8 +30,6 @@ class AlbumController {
       // Restituisci le carte con un codice 200
       res.status(200).json(cards);
     } catch (error) {
-      console.error('Errore durante il recupero delle carte per il trade:', error);
-      res.status(500).json({ message: 'Errore durante il recupero delle carte per il trade.' });
       next(error);
     }
   }
@@ -74,8 +70,7 @@ class AlbumController {
 
       res.status(200).json({ message: 'Carta venduta con successo!', result });
     } catch (error) {
-      console.error('Errore durante la vendita della carta:', error);
-      res.status(500).json({ message: 'Errore durante la vendita della carta.' });
+      next(error);
     }
   };
 }

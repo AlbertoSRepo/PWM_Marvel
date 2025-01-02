@@ -1,7 +1,7 @@
 //src/api/users/route.js
 import express from 'express';
 import userController from './controller.js';
-import { authenticateJWT } from '../../middlewares/auth.js';
+import authenticateJWTMiddleware from '../../middlewares/auth.js';
 
 const router = express.Router();
 
@@ -147,7 +147,7 @@ router.post('/register', userController.register);
  *       404:
  *         description: User not found
  */
-router.get('/info', authenticateJWT, userController.getUserInfo);
+router.get('/info', authenticateJWTMiddleware, userController.getUserInfo);
 
 /**
  * @swagger
@@ -183,7 +183,7 @@ router.get('/info', authenticateJWT, userController.getUserInfo);
  *       400:
  *         description: Bad request
  */
-router.put('/update', authenticateJWT, userController.update);
+router.put('/update', authenticateJWTMiddleware, userController.update);
 
 /**
  * @swagger
@@ -206,7 +206,10 @@ router.put('/update', authenticateJWT, userController.update);
  *       400:
  *         description: Bad request
  */
-router.delete('/delete', authenticateJWT, userController.delete);
+router.delete('/delete', authenticateJWTMiddleware, userController.delete);
+
+
+router.get('/credits', authenticateJWTMiddleware, userController.getCredits);
 
 /**
  * @swagger
@@ -241,7 +244,7 @@ router.delete('/delete', authenticateJWT, userController.delete);
  *       400:
  *         description: Bad request
  */
-router.post('/buy-credits', authenticateJWT, userController.buyCredits);
+router.post('/buy-credits', authenticateJWTMiddleware, userController.buyCredits);
 
 /**
  * @swagger
@@ -281,6 +284,6 @@ router.post('/buy-credits', authenticateJWT, userController.buyCredits);
  *       400:
  *         description: Bad request
  */
-router.post('/buy-packet', authenticateJWT, userController.buyCardPacket);
+router.post('/buy-packet', authenticateJWTMiddleware, userController.buyCardPacket);
 
 export default router;

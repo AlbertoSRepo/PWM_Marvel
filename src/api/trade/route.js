@@ -1,7 +1,7 @@
 // src/api/trades/route.js
 import express from 'express';
 import tradeController from './controller.js';
-import { authenticateJWT } from '../../middlewares/auth.js';
+import authenticateJWTMiddleware from '../../middlewares/auth.js';
 
 const router = express.Router();
 
@@ -55,7 +55,7 @@ const router = express.Router();
  *       500:
  *         description: Server error
  */
-router.get('/', authenticateJWT, tradeController.getAllTrades);  // Nuova rotta per recuperare tutte le proposte
+router.get('/', authenticateJWTMiddleware, tradeController.getAllTrades);  // Nuova rotta per recuperare tutte le proposte
 
 
 /**
@@ -86,7 +86,7 @@ router.get('/', authenticateJWT, tradeController.getAllTrades);  // Nuova rotta 
  *       201:
  *         description: Trade created successfully
  */
-router.post('/', authenticateJWT, tradeController.createTrade);
+router.post('/', authenticateJWTMiddleware, tradeController.createTrade);
 
 /**
  * @swagger
@@ -123,7 +123,7 @@ router.post('/', authenticateJWT, tradeController.createTrade);
  *       201:
  *         description: Offer added successfully
  */
-router.post('/:tradeId/offers', authenticateJWT, tradeController.addOffer);
+router.post('/:tradeId/offers', authenticateJWTMiddleware, tradeController.addOffer);
 
 /**
  * @swagger
@@ -150,7 +150,7 @@ router.post('/:tradeId/offers', authenticateJWT, tradeController.addOffer);
  *       200:
  *         description: Trade accepted and completed successfully
  */
-router.put('/:tradeId/offers/:offerId/accept', authenticateJWT, tradeController.acceptOffer);
+router.put('/:tradeId/offers/:offerId/accept', authenticateJWTMiddleware, tradeController.acceptOffer);
 
 /**
  * @swagger
@@ -190,7 +190,7 @@ router.put('/:tradeId/offers/:offerId/accept', authenticateJWT, tradeController.
  *       500:
  *         description: Server error
  */
-router.get('/user/proposals', authenticateJWT, tradeController.getUserProposals);
+router.get('/user/proposals', authenticateJWTMiddleware, tradeController.getUserProposals);
 
 /**
  * @swagger
@@ -233,7 +233,7 @@ router.get('/user/proposals', authenticateJWT, tradeController.getUserProposals)
  *       500:
  *         description: Server error
  */
-router.get('/user/offers', authenticateJWT, tradeController.getUserOffers);
+router.get('/user/offers', authenticateJWTMiddleware, tradeController.getUserOffers);
 
 /**
  * @swagger
@@ -261,7 +261,7 @@ router.get('/user/offers', authenticateJWT, tradeController.getUserOffers);
  *         description: Server error
  */
 // Route per cancellare un'offerta fatta dall'utente all'interno di una proposta di trade
-router.delete('/offers/:offerId', authenticateJWT, tradeController.deleteOffer);
+router.delete('/offers/:offerId', authenticateJWTMiddleware, tradeController.deleteOffer);
 
 /**
  * @swagger
@@ -289,7 +289,7 @@ router.delete('/offers/:offerId', authenticateJWT, tradeController.deleteOffer);
  *         description: Server error
  */
 // Route per cancellare una proposta di trade
-router.delete('/:tradeId', authenticateJWT, tradeController.deleteTrade);
+router.delete('/:tradeId', authenticateJWTMiddleware, tradeController.deleteTrade);
 
 /**
  * @swagger
@@ -317,7 +317,7 @@ router.delete('/:tradeId', authenticateJWT, tradeController.deleteTrade);
  *         description: Server error
  */
 // Route per ottenere una singola proposta di trade dell'utente loggato
-router.get('/user/proposals/:tradeId', authenticateJWT, tradeController.getUserProposal);
+router.get('/user/proposals/:tradeId', authenticateJWTMiddleware, tradeController.getUserProposal);
 
 /**
  * @swagger
@@ -356,6 +356,6 @@ router.get('/user/proposals/:tradeId', authenticateJWT, tradeController.getUserP
  *         description: Server error
  */
 // Route per ottenere i dettagli di un gruppo di carte offerte
-router.post('/cards/details', authenticateJWT, tradeController.getOfferedCardsDetails);
+router.post('/cards/details', authenticateJWTMiddleware, tradeController.getOfferedCardsDetails);
 
 export default router;

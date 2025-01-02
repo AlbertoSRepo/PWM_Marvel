@@ -2,7 +2,7 @@
 import mongoose from 'mongoose';
 import config from '../config/database.js';
 
-export default async () => {
+const dbConnectionLoader = async () => {
   try {
     await mongoose.connect(config.mongoURI);
     console.log('MongoDB connected');
@@ -11,3 +11,5 @@ export default async () => {
     throw error;
   }
 };
+
+export default dbConnectionLoader;

@@ -28,8 +28,6 @@ async getCardsForPage(userId, pageNumber, cardsPerPage, onlyOwned) {
     if (card.quantity > 0) {
       const [detailedCard] = await this.getCharacterDetails([card.card_id]);
 
-      console.log('Dettagli della carta:', detailedCard);
-
       // Restituisci la carta con lo stato "posseduta" e i dettagli
       return {
         id: card.card_id,
@@ -52,7 +50,6 @@ async getCardsForPage(userId, pageNumber, cardsPerPage, onlyOwned) {
 
   // Filtra le carte null (quelle non possedute quando `onlyOwned` è true)
   const filteredCards = cardsWithState.filter(card => card !== null);
-  console.log('Carte filtrate:', filteredCards);
   // Includi i crediti dell'utente nella risposta
   return {
     credits: user.credits, // Includi i crediti dell'utente

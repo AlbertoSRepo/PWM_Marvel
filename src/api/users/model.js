@@ -15,17 +15,12 @@ const userSchema = new mongoose.Schema({
     }]
 });
 
-// Hash password before saving the user model
 userSchema.pre('save', async function(next) {
     if (!this.isModified('password')) return next();
     this.password = await bcrypt.hash(this.password, 10);
-    //development only
-    console.log('\nHashed password:', this.password);  // Log hashed password
-    //end development only
     next();
 });
 
-// Method to compare entered password with hashed password
 userSchema.methods.comparePassword = function(password) {
     return bcrypt.compare(password, this.password);
 };
