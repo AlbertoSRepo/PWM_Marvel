@@ -1,4 +1,4 @@
-//src/api/users/route.js
+// src/api/users/route.js
 import express from 'express';
 import userController from './controller.js';
 import authenticateJWTMiddleware from '../../middlewares/auth.js';
@@ -17,6 +17,9 @@ const router = express.Router();
  *         - password
  *         - favorite_superhero
  *       properties:
+ *         _id:
+ *           type: string
+ *           description: Unique identifier of the user (ObjectId)
  *         username:
  *           type: string
  *           description: Unique username of the user
@@ -25,7 +28,7 @@ const router = express.Router();
  *           description: Unique email of the user
  *         password:
  *           type: string
- *           description: User's password
+ *           description: User's password (hashed server-side, plain in requests)
  *         favorite_superhero:
  *           type: string
  *           description: The user's favorite superhero
@@ -44,12 +47,19 @@ const router = express.Router();
  *               available_quantity:
  *                 type: integer
  *       example:
+ *         _id: 64aefecb5f1234abcd987654
  *         username: JohnDoe
  *         email: johndoe@example.com
  *         password: plainpassword
  *         favorite_superhero: Spider-Man
  *         credits: 0
  *         album: []
+ *
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
  */
 
 /**
@@ -64,6 +74,9 @@ const router = express.Router();
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - email
+ *               - password
  *             properties:
  *               email:
  *                 type: string
@@ -79,9 +92,8 @@ const router = express.Router();
  *             schema:
  *               type: object
  *               properties:
- *                 token:
+ *                 message:
  *                   type: string
- *                   description: JWT token
  *                 user:
  *                   $ref: '#/components/schemas/User'
  *       401:
@@ -101,6 +113,11 @@ router.post('/login', userController.login);
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - username
+ *               - email
+ *               - password
+ *               - favorite_superhero
  *             properties:
  *               username:
  *                 type: string
@@ -120,10 +137,10 @@ router.post('/login', userController.login);
  *               properties:
  *                 message:
  *                   type: string
- *                 user_id:
- *                   type: string
- *       400:
- *         description: Bad request
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       409:
+ *         description: Email already in use
  */
 router.post('/register', userController.register);
 
@@ -166,6 +183,8 @@ router.get('/info', authenticateJWTMiddleware, userController.getUserInfo);
  *             properties:
  *               username:
  *                 type: string
+ *               email:
+ *                 type: string
  *               password:
  *                 type: string
  *               favorite_superhero:
@@ -180,8 +199,10 @@ router.get('/info', authenticateJWTMiddleware, userController.getUserInfo);
  *               properties:
  *                 message:
  *                   type: string
- *       400:
- *         description: Bad request
+ *       401:
+ *         description: Unauthorized (invalid or missing token)
+ *       404:
+ *         description: User not found
  */
 router.put('/update', authenticateJWTMiddleware, userController.update);
 
@@ -203,12 +224,41 @@ router.put('/update', authenticateJWTMiddleware, userController.update);
  *               properties:
  *                 message:
  *                   type: string
- *       400:
- *         description: Bad request
+ *       401:
+ *         description: Unauthorized (invalid or missing token)
+ *       404:
+ *         description: User not found
  */
 router.delete('/delete', authenticateJWTMiddleware, userController.delete);
 
-
+/**
+ * @swagger
+ * /users/credits:
+ *   get:
+ *     summary: Retrieve the current user's credits
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved the user's credits
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 credits:
+ *                   type: integer
+ *               example:
+ *                 message: Credits retrieved successfully
+ *                 credits: 100
+ *       401:
+ *         description: Unauthorized (invalid or missing token)
+ *       404:
+ *         description: User not found
+ */
 router.get('/credits', authenticateJWTMiddleware, userController.getCredits);
 
 /**
@@ -225,6 +275,8 @@ router.get('/credits', authenticateJWTMiddleware, userController.getCredits);
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - amount
  *             properties:
  *               amount:
  *                 type: integer
@@ -243,6 +295,8 @@ router.get('/credits', authenticateJWTMiddleware, userController.getCredits);
  *                   type: integer
  *       400:
  *         description: Bad request
+ *       401:
+ *         description: Unauthorized (invalid or missing token)
  */
 router.post('/buy-credits', authenticateJWTMiddleware, userController.buyCredits);
 
@@ -250,12 +304,13 @@ router.post('/buy-credits', authenticateJWTMiddleware, userController.buyCredits
  * @swagger
  * /users/buy-packet:
  *   post:
- *     summary: Buy a card packet for a user
+ *     summary: Buy a card packet for the user
  *     tags: [User]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
- *       required: true
+ *       description: Optionally, specify a different packet_size if your code supports it. (Currently read from .env)
+ *       required: false
  *       content:
  *         application/json:
  *           schema:
@@ -274,15 +329,28 @@ router.post('/buy-credits', authenticateJWTMiddleware, userController.buyCredits
  *               properties:
  *                 message:
  *                   type: string
+ *                 success:
+ *                   type: boolean
  *                 credits:
  *                   type: integer
  *                 newCards:
  *                   type: array
  *                   items:
- *                     type: integer
- *                     description: The card IDs in the purchased packet
+ *                     type: object
+ *                     properties:
+ *                       name:
+ *                         type: string
+ *                       thumbnail:
+ *                         type: object
+ *                         properties:
+ *                           path:
+ *                             type: string
+ *                           extension:
+ *                             type: string
  *       400:
- *         description: Bad request
+ *         description: Bad request (e.g. insufficient credits)
+ *       401:
+ *         description: Unauthorized (invalid or missing token)
  */
 router.post('/buy-packet', authenticateJWTMiddleware, userController.buyCardPacket);
 

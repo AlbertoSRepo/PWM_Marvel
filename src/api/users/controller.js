@@ -1,52 +1,67 @@
-//src/api/users/controller.js
 import userService from './service.js';
-import { User } from './model.js';
 
 class UserController {
+  // 1) LOGIN
   login = async (req, res, next) => {
     try {
-      await userService.loginUser(req.body, res);
-      res.status(200).json({ message: 'Login avvenuto con successo' });
+      const { token, user } = await userService.loginUser(req.body);
+
+      res.cookie('jwtToken', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 3600000
+      });
+
+      return res.status(200).json({
+        message: 'Login avvenuto con successo',
+        user: { _id: user._id, email: user.email }
+      });
     } catch (error) {
       next(error);
     }
   }
 
+  // 2) REGISTER
   register = async (req, res, next) => {
     try {
-      await userService.registerUser(req.body, res);
-      res.status(201).json({ message: 'Registrazione avvenuta con successo' });
+      const { user, token } = await userService.registerUser(req.body);
+
+      res.cookie('jwtToken', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 3600000
+      });
+
+      return res.status(201).json({
+        message: 'Registrazione avvenuta con successo',
+        user: { _id: user._id, email: user.email }
+      });
     } catch (error) {
       next(error);
     }
   };
 
-  getUserInfo = async (req, res) => {
+  // 3) GET USER INFO
+  getUserInfo = async (req, res, next) => {
     try {
-      const user = await User.findById(req.user.userId).select('_id username email favorite_superhero credits password');
-
-      if (!user) {
-        const error = new Error('Utente non trovato');
-        error.statusCode = 404;
-        throw error;
-      }
-
-      res.status(200).json(user);
+      const user = await userService.getUserInfo(req.user.userId);
+      return res.status(200).json(user);
     } catch (error) {
       next(error);
     }
-  }
+  };
 
+  // 4) UPDATE USER
   update = async (req, res, next) => {
     try {
       await userService.updateUser(req.user.userId, req.body);
-
       res.status(200).json({ message: 'Informazioni aggiornate con successo' });
     } catch (error) {
       next(error);
     }
   }
 
+  // 5) DELETE USER
   delete = async (req, res, next) => {
     try {
       await userService.deleteUser(req.user.userId);
@@ -56,15 +71,20 @@ class UserController {
     }
   }
 
+  // 6) GET CREDITS
   getCredits = async (req, res, next) => {
     try {
-      const user = await User.findById(req.user.userId);
-      res.status(200).json({ message: 'Credits purchased successfully', credits: user.credits });
+      const credits = await userService.getCreditsAmount(req.user.userId);
+      res.status(200).json({
+        message: 'Credits retrieved successfully',
+        credits
+      });
     } catch (error) {
       next(error);
     }
   }
 
+  // 7) BUY CREDITS
   buyCredits = async (req, res, next) => {
     try {
       const { amount } = req.body;
@@ -75,10 +95,11 @@ class UserController {
     }
   }
 
+  // 8) BUY CARD PACKET
   buyCardPacket = async (req, res, next) => {
     try {
-      const { packet_size } = req.body;
-      const result = await userService.buyCardPacket(req.user.userId, packet_size);
+      // Nel service carichiamo packetSize e packetCost da .env
+      const result = await userService.buyCardPacket(req.user.userId);
       res.status(200).json({ message: 'Card packet purchased successfully', ...result });
     } catch (error) {
       next(error);

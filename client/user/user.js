@@ -1,52 +1,68 @@
-import { getUserInfo, putDataChanges } from './route.js'
+import { getUserInfo, putDataChanges } from './route.js';
 import { loadNavbar } from '../shared/navbar.js';
-// Al caricamento della pagina, fai una richiesta al server per ottenere i dati dell'utente
+
 document.addEventListener('DOMContentLoaded', () => {
-    loadNavbar('user');
+  // Carica navbar
+  loadNavbar('user');
 
-    populateUserInfo();
+  // Reference DOM
+  const form = document.getElementById('userForm');
+  const editBtn = document.getElementById('editBtn');
+  const submitBtn = document.getElementById('submitBtn');
 
-    document.getElementById('editBtn').addEventListener('click', editUserData);
+  const usernameInput = document.getElementById('username');
+  const emailInput = document.getElementById('email');
+  const favoriteInput = document.getElementById('favorite_superhero');
+  const passwordInput = document.getElementById('password');
 
-    document.getElementById('submitBtn').addEventListener('click', sumbitChanges);
+  const allInputs = [usernameInput, emailInput, favoriteInput, passwordInput];
 
-});
+  // Popola i campi
+  populateUserInfo();
 
-const inputs = document.querySelectorAll('.form-control');
+  // Event Listener: click su Edit
+  editBtn.addEventListener('click', () => {
+    toggleInputs(allInputs, submitBtn);
+  });
 
-const populateUserInfo = async () => {
+  // Event Listener: invio del form
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    await submitChanges();
+  });
+
+  // Funzioni
+  async function populateUserInfo() {
     try {
-        const userData = await getUserInfo();
-
-        document.getElementById('username').value = userData.username || '';
-        document.getElementById('email').value = userData.email || '';
-        document.getElementById('favorite_superhero').value = userData.favorite_superhero || '';
-        document.getElementById('password').value = userData.password || '';
+      const userData = await getUserInfo();
+      usernameInput.value = userData.username || '';
+      emailInput.value = userData.email || '';
+      favoriteInput.value = userData.favorite_superhero || '';
+      passwordInput.value = userData.password || '';
     } catch (error) {
-        alert(error);
+      alert(error);
     }
+  }
 
-}
-
-const editUserData = () => {
-    inputs.forEach(input => {
-        input.disabled = !input.disabled; // Abilita/disabilita i campi
+  function toggleInputs(inputsArray, btn) {
+    inputsArray.forEach(input => {
+      input.disabled = !input.disabled;
     });
-    submitBtn.style.display = inputs[0].disabled ? 'none' : 'block'; // Mostra il bottone "Invia" se i campi sono abilitati
-}
+    // Se il primo input è abilitato, mostra il btn, altrimenti nascondilo
+    btn.style.display = inputsArray[0].disabled ? 'none' : 'block';
+  }
 
-const sumbitChanges = async () => {
+  async function submitChanges() {
     try {
-        const updatedUserData = {
-            username: document.getElementById('username').value,
-            email: document.getElementById('email').value,
-            favorite_superhero: document.getElementById('favorite_superhero').value,
-            password: document.getElementById('password').value,
-        };
-
-        await putDataChanges(updatedUserData);
+      const updatedUserData = {
+        username: usernameInput.value,
+        email: emailInput.value,
+        favorite_superhero: favoriteInput.value,
+        password: passwordInput.value,
+      };
+      await putDataChanges(updatedUserData);
     } catch (error) {
-        alert(error);
+      alert(error);
     }
-}
-
+  }
+});
