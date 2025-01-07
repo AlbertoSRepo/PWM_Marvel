@@ -6,6 +6,38 @@ const router = express.Router();
 
 /**
  * @swagger
+ * /album/initialData:
+ *   get:
+ *     summary: Retrieve main figurine data from a JSON file
+ *     tags: [Album]
+ *     security:
+ *       - bearerAuth: []  # JWT token is required
+ *     responses:
+ *       200:
+ *         description: Returns the main figurine data in JSON format
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 figurines:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       name:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *       500:
+ *         description: Server error
+ */
+router.get('/initialData',authenticateJWTMiddleware, albumController.getInitialData);
+
+/**
+ * @swagger
  * /album/cards:
  *   get:
  *     summary: Retrieve cards for a specific album page

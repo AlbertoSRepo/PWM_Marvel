@@ -1,21 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Marvel Trade</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="trade.css">
-</head>
 
+  <!-- CSS di Bootstrap -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+
+  <!-- Il tuo CSS personalizzato -->
+  <link rel="stylesheet" href="trade.css" />
+</head>
 <body>
+  <!-- Navbar -->
   <div id="navbar"></div>
 
   <div class="container mt-4">
     <!-- Bottone per creare una nuova proposta -->
     <div class="d-flex justify-content-end mb-3">
-      <button id="create-trade-btn" class="btn btn-success">Crea Nuova Proposta</button>
+      <button id="create-trade-btn" class="btn btn-success" type="button">
+        Crea Nuova Proposta
+      </button>
     </div>
 
     <div class="row">
@@ -28,12 +36,10 @@
               <th>Nome</th>
               <th>Carte</th>
               <th>Data</th>
-              <th>Azioni</th> <!-- Colonna per il bottone "Invia Offerta" -->
+              <th>Azioni</th>
             </tr>
           </thead>
-          <tbody id="community-trades">
-            <!-- Qui verranno inserite le proposte della community -->
-          </tbody>
+          <tbody id="community-trades"></tbody>
         </table>
       </div>
 
@@ -47,12 +53,10 @@
               <tr>
                 <th>Carte</th>
                 <th>Data</th>
-                <th>Azioni</th> <!-- Colonna per il bottone "Invia Offerta" -->
+                <th>Azioni</th>
               </tr>
             </thead>
-            <tbody id="user-proposals">
-              <!-- Qui verranno inserite le proposte fatte dall'utente -->
-            </tbody>
+            <tbody id="user-proposals"></tbody>
           </table>
         </div>
 
@@ -65,12 +69,10 @@
                 <th>Proposta</th>
                 <th>Carte Offerte</th>
                 <th>Data</th>
-                <th>Azioni</th> <!-- Colonna per il bottone "Invia Offerta" -->
+                <th>Azioni</th>
               </tr>
             </thead>
-            <tbody id="user-offers">
-              <!-- Qui verranno inserite le offerte fatte dall'utente -->
-            </tbody>
+            <tbody id="user-offers"></tbody>
           </table>
         </div>
       </div>
@@ -78,20 +80,34 @@
   </div>
 
   <!-- Overlay per la selezione delle carte -->
-  <div id="overlay-background" class="overlay-background" style="display:none;"></div>
-  <div id="overlay" class="overlay" style="display:none;">
-    <span class="close-icon">&times;</span>
+  <div 
+    id="overlay-background" 
+    class="overlay-background" 
+    style="display: none;"
+  ></div>
+  <div 
+    id="overlay" 
+    class="overlay" 
+    style="display: none;"
+  >
+    <span class="close-icon" id="close-overlay">&times;</span>
     <div class="overlay-content d-flex">
 
       <!-- Colonna sinistra: Carte selezionate -->
       <div id="selected-cards-container" class="selected-cards-container">
         <h5>Carte Selezionate (0/5)</h5>
         <div id="selected-cards" class="selected-cards">
-          <!-- Le carte selezionate verranno inserite qui -->
+          <!-- Le carte selezionate -->
         </div>
 
         <!-- Bottone per inviare le carte selezionate -->
-        <button id="submit-trade-offer-btn" class="btn btn-success mt-3">Invia Proposta</button>
+        <button
+          id="submit-trade-offer-btn"
+          class="btn btn-success mt-3"
+          type="button"
+        >
+          Invia Proposta
+        </button>
       </div>
 
       <!-- Colonna destra: Selezione delle carte -->
@@ -101,44 +117,78 @@
         <!-- Barra di ricerca per nome del supereroe -->
         <div class="row justify-content-center mb-3">
           <div class="col-md-6">
-            <input type="text" id="search-input" class="form-control" placeholder="Cerca un supereroe...">
+            <input
+              type="text"
+              id="search-input"
+              class="form-control"
+              placeholder="Cerca un supereroe..."
+            />
           </div>
           <div class="col-md-2">
-            <button class="btn btn-primary" id="search-button">Cerca</button>
+            <button
+              class="btn btn-primary"
+              id="search-button"
+              type="button"
+            >
+              Cerca
+            </button>
           </div>
         </div>
 
         <!-- Visualizzazione delle carte -->
-        <div id="card-selection" class="row mb-3">
-          <!-- Le carte saranno inserite dinamicamente qui -->
-        </div>
+        <div 
+          id="card-selection" 
+          class="row mb-3"
+        ></div>
 
         <!-- Bottoni di paginazione -->
         <div class="d-flex justify-content-between">
-          <button id="prev-page-btn" class="btn btn-secondary" disabled>Pagina Precedente</button>
-          <button id="next-page-btn" class="btn btn-secondary">Pagina Successiva</button>
+          <button
+            id="prev-page-btn"
+            class="btn btn-secondary"
+            type="button"
+            disabled
+          >
+            Pagina Precedente
+          </button>
+          <button
+            id="next-page-btn"
+            class="btn btn-secondary"
+            type="button"
+          >
+            Pagina Successiva
+          </button>
         </div>
       </div>
     </div>
   </div>
 
-<!-- Overlay per la gestione delle offerte di una proposta -->
-<div id="manage-proposal-overlay-background" class="overlay-background" style="display:none;"></div>
-<div id="manage-proposal-overlay" class="overlay" style="display:none;">
-  <span class="close-icon">&times;</span> <!-- Rimosso `onclick` -->
-  <div class="overlay-content d-flex flex-column">
-    <h4 id="manage-proposal-overlay-title">Gestisci Proposta</h4>
-    <div id="offer-list" class="offer-list">
-      <!-- Le offerte saranno inserite dinamicamente qui -->
+  <!-- Overlay per la gestione delle offerte di una proposta -->
+  <div 
+    id="manage-proposal-overlay-background" 
+    class="overlay-background" 
+    style="display: none;"
+  ></div>
+  <div 
+    id="manage-proposal-overlay" 
+    class="overlay" 
+    style="display: none;"
+  >
+    <span class="close-icon" id="close-manage-proposal">&times;</span>
+    <div class="overlay-content d-flex flex-column">
+      <h4 id="manage-proposal-overlay-title">Gestisci Proposta</h4>
+      <div
+        id="offer-list"
+        class="offer-list"
+      ></div>
     </div>
   </div>
-</div>
 
   <!-- Template HTML per creare una card -->
   <template id="card-template">
     <div class="col-lg-4 col-md-6 col-sm-12 mb-3 marvel-card">
       <div class="card">
-        <img class="card-img-top" alt="Superhero Image">
+        <img class="card-img-top" alt="Superhero Image" />
         <div class="card-body">
           <h5 class="card-title"></h5>
           <p class="card-id"></p>
@@ -148,9 +198,12 @@
     </div>
   </template>
 
+  <!-- Bootstrap Bundle -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+  ></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script type="module" src="/trade/trade.js" ></script>
+  <!-- Unico Entry Point: tradeListeners.js -->
+  <script type="module" src="/trade/tradeListeners.js"></script>
 </body>
-
 </html>

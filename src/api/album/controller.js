@@ -1,6 +1,18 @@
 import albumService from './service.js';
 
 class AlbumController {
+  async getInitialData(req, res, next) {
+    try {
+      
+      // 1. Chiamo la funzione del service
+      const data = await albumService.getInitialData();
+      
+      // 2. “Invio” la risposta al client
+      return res.status(200).json(data);
+    } catch (error) {
+      next(error);
+    }
+  }
   async getAlbumPage(req, res, next) {
     try {
       const { page_number, cards_per_page, only_owned } = req.query;
