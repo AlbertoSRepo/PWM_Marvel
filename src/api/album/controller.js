@@ -15,14 +15,12 @@ class AlbumController {
   }
   async getAlbumPage(req, res, next) {
     try {
-      const { page_number, cards_per_page, only_owned } = req.query;
+      const { page_number, cards_per_page} = req.query;
 
       const userId = req.user.userId;
 
-      const onlyOwned = only_owned === 'true';
-
       // Passa il valore di onlyOwned al service
-      const cards = await albumService.getCardsForPage(userId, page_number, cards_per_page || 18, onlyOwned || false);
+      const cards = await albumService.getCardsForPage(userId, page_number, cards_per_page || 18);
       res.status(200).json(cards);
     } catch (error) {
       next(error);

@@ -5,7 +5,6 @@ import {
   searchCardsByName,
   getCharacterDetails,
   sellCardAPI,
-  getInitialData
 } from './albumRoute.js';
 
 import {
@@ -21,44 +20,66 @@ import {
   populateCharacterOverlay
 } from './albumUI.js';
 
+// albumController.js
 
 /**
-* Verifica se i dati figurine sono nel WebStorage.
-* Se non lo sono, li scarica dal server e li salva in localStorage.
-* Restituisce sempre l'oggetto JSON finale.
-*/
-export async function fetchFigurineDataIfNeeded() {
-  try {
-    // 1. Controllo in localStorage
-    const existingData = localStorage.getItem('figurineData');
-    if (existingData) {
-      // Già presente in Web Storage
-      console.log('Figurine data trovato in localStorage.');
-      return JSON.parse(existingData);
-    } else {
-      // 2. Chiamata al server
-      console.log('Nessun figurine data in localStorage, chiamo il server...');
-      const data = await getInitialData();  // getInitialData() da albumRoute.js
-
-      // 3. Salvo in localStorage per usi futuri
-      localStorage.setItem('figurineData', JSON.stringify(data));
-
-      return data;
-    }
-  } catch (error) {
-    console.error('Errore durante fetchFigurineDataIfNeeded:', error);
-    return null; // o rilanci l’errore
-  }
-}
-
-/**
- * Carica le carte di una certa pagina e aggiorna la UI.
+ * Carica le carte di una certa pagina e aggiorna la UI,
+ * creando un array di carte possedute e non possedute.
  */
 export async function fetchCardsAndUpdate(pageNumber) {
   try {
     showLoadingSpinner();
-    const data = await getCards(pageNumber); // {cards, credits, ...}
-    updateCards(data.cards);
+
+    // Risposta dal server: { credits, cards: [ { id, quantity }, ... ] }
+    const data = await getCards(pageNumber);
+
+    // Recupero dal localStorage le info globali (id, name, thumbnail) 
+    // già salvate all’avvio con fetchFigurineDataIfNeeded().
+    const figurineData = JSON.parse(localStorage.getItem('figurineData'));
+
+    // Creo il nuovo array con la logica “posseduta”/“non posseduta”.
+    const mergedCards = data.cards.map(card => {
+      // Se la carta è posseduta (quantity > 0), cerco i dettagli nel localStorage
+      if (card.quantity > 0) {
+        const matchedFig = figurineData.find(fig => fig.id === card.id);
+
+        if (!matchedFig) {
+          // Fallback se non trovo la corrispondenza
+          return {
+            id: card.id,
+            name: 'Carta sconosciuta',
+            thumbnail: { path: 'placeholder-image', extension: 'jpeg' },
+            state: 'posseduta',
+            quantity: card.quantity
+          };
+        }
+
+        // matchedFig = { id, name, thumbnail: "http://..." }
+        // Convertiamo la stringa thumbnail in { path, extension }
+        const thumbObj = convertThumbnailStringToObj(matchedFig.thumbnail);
+
+        return {
+          id: card.id,
+          name: matchedFig.name,
+          thumbnail: thumbObj,
+          state: 'posseduta',
+          quantity: card.quantity
+        };
+      } 
+      else {
+        // Carta non posseduta
+        return {
+          id: card.id,
+          name: 'Carta sconosciuta',
+          thumbnail: { path: 'placeholder-image', extension: 'jpeg' },
+          state: 'non posseduta',
+          quantity: 0
+        };
+      }
+    });
+
+    // Invio l’array di carte (possedute e non) all’UI
+    updateCards(mergedCards);
     updateCredits(data.credits);
     updatePaginationButtons(pageNumber);
   } catch (error) {
@@ -68,6 +89,28 @@ export async function fetchCardsAndUpdate(pageNumber) {
     hideLoadingSpinner();
   }
 }
+
+/**
+ * Converte la thumbnail in stringa (es. "http://.../image.jpg")
+ * in un oggetto { path, extension } compatibile con la UI.
+ */
+function convertThumbnailStringToObj(thumbnailUrl) {
+  if (!thumbnailUrl) {
+    return { path: 'placeholder-image', extension: 'jpeg' };
+  }
+
+  const lastDot = thumbnailUrl.lastIndexOf('.');
+  if (lastDot === -1) {
+    // Se non trovo un punto, metto tutto come path
+    return { path: thumbnailUrl, extension: 'jpeg' };
+  }
+
+  const path = thumbnailUrl.substring(0, lastDot);
+  const extension = thumbnailUrl.substring(lastDot + 1);
+
+  return { path, extension };
+}
+
 
 /**
  * Esegue una ricerca per nome e aggiorna la UI con i risultati.

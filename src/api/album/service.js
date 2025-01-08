@@ -23,54 +23,27 @@ class AlbumService {
     return figurineData;
   }
 
-  // Funzione per ottenere le carte per la pagina dell'album
-  async getCardsForPage(userId, pageNumber, cardsPerPage, onlyOwned) {
+  async getCardsForPage(userId, pageNumber, cardsPerPage) {
     const startIndex = (pageNumber - 1) * cardsPerPage;
     const endIndex = startIndex + cardsPerPage;
-
-    // Ottieni l'utente e il suo album
+  
+    // 1. Trova l'utente
     const user = await User.findById(userId);
     if (!user) throw new Error('User not found');
-
-    // Ottieni le carte per la pagina selezionata dall'album dell'utente
+  
+    // 2. Estraggo le carte dal suo album, relative a quella pagina
     const pageCards = user.album.slice(startIndex, endIndex);
-
-    // Scorriamo tutte le carte nella pagina per segnarle come possedute o non possedute
-    const cardsWithState = await Promise.all(pageCards.map(async (card) => {
-      // Se `onlyOwned` è true, restituisce solo le carte possedute
-      if (onlyOwned && card.quantity <= 0) {
-        return null; // Ignora le carte non possedute
-      }
-
-      if (card.quantity > 0) {
-        const [detailedCard] = await this.getCharacterDetails([card.card_id]);
-
-        // Restituisci la carta con lo stato "posseduta" e i dettagli
-        return {
-          id: card.card_id,
-          name: detailedCard.name,
-          thumbnail: detailedCard.thumbnail,
-          state: 'posseduta', // Carta posseduta
-          quantity: card.quantity
-        };
-      } else {
-        // Carta non posseduta
-        return {
-          id: card.card_id,
-          name: "Carta sconosciuta",
-          thumbnail: { path: "placeholder-image", extension: "jpeg" }, // Placeholder per le carte non possedute
-          state: 'non posseduta', // Carta non posseduta
-          quantity: 0
-        };
-      }
+  
+    // 3. Mappa le carte in un array di { id, quantity } senza controllare se possedute o no
+    const cardsForPage = pageCards.map(card => ({
+      id: card.card_id,
+      quantity: card.quantity
     }));
-
-    // Filtra le carte null (quelle non possedute quando `onlyOwned` è true)
-    const filteredCards = cardsWithState.filter(card => card !== null);
-    // Includi i crediti dell'utente nella risposta
+  
+    // 4. Restituisco i crediti e l'array cards
     return {
-      credits: user.credits, // Includi i crediti dell'utente
-      cards: filteredCards  // Le carte filtrate
+      credits: user.credits,
+      cards: cardsForPage
     };
   }
 

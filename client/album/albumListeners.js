@@ -1,8 +1,8 @@
 // albumListeners.js
 
 import { loadNavbar } from '../shared/navbar.js';  // ipotetico file comune
+import { fetchFigurineDataIfNeeded } from '../shared/initialData.js';
 import {
-  fetchFigurineDataIfNeeded,
   fetchCardsAndUpdate,
   fetchNameCardsAndUpdate,
   sellCard
@@ -14,19 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 1. Carica la navbar
   loadNavbar('album');
 
-  // 2. Verifica/recupera dati figurine
-  try {
-    const figurineData = await fetchFigurineDataIfNeeded();
-
-    if (figurineData) {
-      // Stampo in console il contenuto, come da richiesta
-      console.log('Contenuto figurineData:', figurineData);
-    } else {
-      console.warn('Nessun figurineData ottenuto dal server e/o localStorage');
-    }
-  } catch (error) {
-    console.error('Errore in fase di caricamento figurineData:', error);
-  }
+  const figurineData = await fetchFigurineDataIfNeeded();
 
   // 2. Referenze ai nodi DOM
   const albumPage = document.getElementById('albumPage');

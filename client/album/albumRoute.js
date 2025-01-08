@@ -64,17 +64,3 @@ export async function sellCardAPI(cardId) {
   return response.json();
 }
 
-/**
-* GET /api/album/initialData
-* @returns {Promise<object>} Ritorna un oggetto con tutte le info principali (figurine, etc.)
-*/
-export async function getInitialData() {
-  const response = await fetch('http://localhost:3000/api/album/initialData', {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-  });
-  if (!response.ok) {
-    throw new Error(`Errore nella richiesta al server (initialData). Status code: ${response.status}`);
-  }
-  return response.json();
-}
