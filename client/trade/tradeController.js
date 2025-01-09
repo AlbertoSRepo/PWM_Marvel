@@ -6,15 +6,15 @@ import {
     fetchUserOffersAPI,
     deleteOfferAPI,
     postTradeProposalAPI,
-    getCardsByNameAPI,
-    getUserCardsAPI,
     deleteTradeAPI,
     putAcceptOfferAPI,
     getUserProposalWithOffersAPI,
-    getOfferedCardsAPI,
+    getPossessedCardsAPI,
     postOfferAPI
   } from './tradeRoute.js';
-  
+
+import { getCardsByIds } from '../album/albumRoute.js';  
+
   import {
     showOverlayUI,
     hideOverlayUI,
@@ -73,30 +73,140 @@ import {
     }
   }
   
-  /**
-   * Ricerca carte per nome
-   */
-  export async function searchCardsByName(name) {
+/**
+ * Ricerca locale per nome e mostra solo le carte possedute che matchano la stringa.
+ */
+export async function searchCardsLocallyAndUpdate(name) {
+  try {
+    // 1) Recupera figurineData dal localStorage
+    const figurineData = JSON.parse(localStorage.getItem('figurineData'));
+    if (!figurineData) {
+      throw new Error('figurineData non presente in Local Storage');
+    }
+
+    // 2) Filtro locale: carte che “iniziano con name”
+    const matchedLocalCards = figurineData.filter(fig =>
+      fig.name.toLowerCase().startsWith(name.toLowerCase())
+    );
+
+    // Se non trovo corrispondenze, mostro UI vuota
+    if (matchedLocalCards.length === 0) {
+      updateCardSelectionUI([]); // l’UI dirà "Nessuna carta trovata."
+      return;
+    }
+
+    // 3) Estraggo solo gli ID
+    const matchedIds = matchedLocalCards.map(fig => fig.id);
+
+    // 4) Chiamo il server (POST /api/album/cardsByIds) per sapere la quantity dell’utente
+    const serverData = await getCardsByIds(matchedIds);
+    // serverData = { credits, cards: [ { id, quantity }, ... ] }
+
+    // 5) Filtra solo le carte possedute (quantity > 0), se vuoi mostrare solo le possedute
+    const possessedOnly = serverData.cards.filter(sc => sc.quantity > 0);
+    if (possessedOnly.length === 0) {
+      // L’utente non possiede nessuna delle carte corrispondenti
+      updateCardSelectionUI([]);
+      return;
+    }
+
+    // 6) “Fondi” i dati: 
+    // Se quantity>0 => 'posseduta', prendi nome e thumbnail dal figurineData
+    const mergedResults = possessedOnly.map(sc => {
+      const localFig = matchedLocalCards.find(fig => fig.id === sc.id);
+      if (!localFig) {
+        // fallback
+        return {
+          id: sc.id,
+          name: 'Carta sconosciuta',
+          thumbnail: { path: 'placeholder-image', extension: 'jpeg' },
+          state: 'posseduta',
+          quantity: sc.quantity
+        };
+      }
+
+      const thumbObj = convertThumbnailStringToObj(localFig.thumbnail);
+      return {
+        id: sc.id,
+        name: localFig.name,
+        thumbnail: thumbObj,
+        state: 'posseduta',
+        quantity: sc.quantity
+      };
+    });
+
+    // 7) Aggiorna l’UI
+    updateCardSelectionUI(mergedResults);
+
+  } catch (error) {
+    console.error('Errore durante la ricerca carte per nome:', error);
+    alert('Si è verificato un errore durante la ricerca delle carte.');
+  }
+}
+
+  export async function loadUserCards(pageNumber) {
     try {
-      const data = await getCardsByNameAPI(name);
-      updateCardSelectionUI(data);
+      const limit = 28;
+      const offset = (pageNumber - 1) * limit;
+  
+      // 1. Chiamo l'endpoint
+      const { total, cards } = await getPossessedCardsAPI(limit, offset);
+      // cards = [ { id, quantity }, ... ]
+  
+      // 2. Unisco i dati con "figurineData" dal localStorage
+      const figurineData = JSON.parse(localStorage.getItem('figurineData'));
+      if (!figurineData) {
+        throw new Error('figurineData non presente in localStorage');
+      }
+  
+      // 3. Mappo in un array di {id, name, thumbnail, quantity, state:'posseduta'}
+      //   (perché se siamo in "possessed", quantity>0)
+      const merged = cards.map(sc => {
+        const localFig = figurineData.find(f => f.id === sc.id);
+        if (!localFig) {
+          return {
+            id: sc.id,
+            name: 'Carta sconosciuta',
+            thumbnail: { path: 'placeholder-image', extension: 'jpeg' },
+            state: 'posseduta',
+            quantity: sc.quantity
+          };
+        }
+        const thumbObj = convertThumbnailStringToObj(localFig.thumbnail);
+        return {
+          id: sc.id,
+          name: localFig.name,
+          thumbnail: thumbObj,
+          state: 'posseduta',
+          quantity: sc.quantity
+        };
+      });
+  
+      // 4. Aggiorno la UI
+      updateCardSelectionUI(merged);
+      // updatePaginationButtonsUI => calcolo quante “pagine” totali in base a `total`
+      const totalPages = Math.ceil(total / limit);
+      // Se pageNumber < totalPages => next abilitato, etc...
+      updatePaginationButtonsUI(pageNumber, merged.length, totalPages);
+  
     } catch (error) {
+      console.error('Errore loadUserPossessedCards:', error);
       alert(`Errore: ${error.message}`);
     }
   }
   
-  /**
-   * Carica le carte dell'utente (paginazione) per la selezione.
-   */
-  export async function loadUserCards(pageNumber) {
-    try {
-      const cards = await getUserCardsAPI(pageNumber);
-      updateCardSelectionUI(cards);
-      updatePaginationButtonsUI(pageNumber, cards.length);
-    } catch (error) {
-      console.error('Errore durante il caricamento delle carte:', error);
-      alert(`Errore: ${error.message}`);
+  function convertThumbnailStringToObj(thumbnailUrl) {
+    if (!thumbnailUrl) {
+      return { path: 'placeholder-image', extension: 'jpeg' };
     }
+    const lastDot = thumbnailUrl.lastIndexOf('.');
+    if (lastDot === -1) {
+      return { path: thumbnailUrl, extension: 'jpeg' };
+    }
+    return {
+      path: thumbnailUrl.substring(0, lastDot),
+      extension: thumbnailUrl.substring(lastDot + 1),
+    };
   }
   
   /**

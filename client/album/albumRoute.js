@@ -1,33 +1,18 @@
 // albumRoute.js
 
 /**
- * GET /api/album/cards?page_number=:page
- * @param {number} pageNumber
- * @returns {Promise<object>} Ritorna un oggetto con { cards, credits, ...}
+ * POST /api/album/cardsByIds
+ * @param {number[]} idArray  array di ID (es. [101, 102, 103])
+ * @returns {Promise<object>} { credits, cards: [ { id, quantity }, ... ] }
  */
-export async function getCards(pageNumber) {
-  const response = await fetch(`http://localhost:3000/api/album/cards?page_number=${pageNumber}`, {
-    method: 'GET',
+export async function getCardsByIds(idArray) {
+  const response = await fetch('http://localhost:3000/api/album/cardsByIds', {
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ cardIds: idArray })
   });
   if (!response.ok) {
-    throw new Error(`Errore nella richiesta al server. Status code: ${response.status}`);
-  }
-  return response.json();
-}
-
-/**
- * GET /api/album/search?name_starts_with=:name
- * @param {string} name
- * @returns {Promise<Array>} Ritorna un array di carte
- */
-export async function searchCardsByName(name) {
-  const response = await fetch(`http://localhost:3000/api/album/search?name_starts_with=${name}`, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-  });
-  if (!response.ok) {
-    throw new Error(`Errore nella richiesta al server (search). Status code: ${response.status}`);
+    throw new Error(`Errore nella richiesta al server (cardsByIds). Status code: ${response.status}`);
   }
   return response.json();
 }
@@ -64,3 +49,34 @@ export async function sellCardAPI(cardId) {
   return response.json();
 }
 
+/**
+ * GET /api/album/cards?page_number=:page
+ * @param {number} pageNumber
+ * @returns {Promise<object>} Ritorna un oggetto con { cards, credits, ...}
+ 
+export async function getCards(pageNumber) {
+  const response = await fetch(`http://localhost:3000/api/album/cards?page_number=${pageNumber}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!response.ok) {
+    throw new Error(`Errore nella richiesta al server. Status code: ${response.status}`);
+  }
+  return response.json();
+}
+
+/**
+ * GET /api/album/search?name_starts_with=:name
+ * @param {string} name
+ * @returns {Promise<Array>} Ritorna un array di carte
+ 
+export async function searchCardsByName(name) {
+  const response = await fetch(`http://localhost:3000/api/album/search?name_starts_with=${name}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!response.ok) {
+    throw new Error(`Errore nella richiesta al server (search). Status code: ${response.status}`);
+  }
+  return response.json();
+}*/

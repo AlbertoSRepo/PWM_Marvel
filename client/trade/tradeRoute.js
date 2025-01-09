@@ -15,6 +15,22 @@ export async function fetchCommunityTradesAPI() {
 }
 
 /**
+ * GET /api/album/possessed?limit=:limit&offset=:offset
+ * Ritorna { total, cards: [ {id, quantity}, ... ] }
+ */
+export async function getPossessedCardsAPI(limit, offset) {
+  const url = `http://localhost:3000/api/album/possessed?limit=${limit}&offset=${offset}`;
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!response.ok) {
+    throw new Error(`Errore fetch possessed cards. Status: ${response.status}`);
+  }
+  return response.json(); // { total, cards }
+}
+
+/**
  * GET /api/trade/user/proposals (Proposte dell'utente)
  */
 export async function fetchUserProposalsAPI() {

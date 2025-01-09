@@ -1,9 +1,10 @@
 // tradeListeners.js
 import { loadNavbar } from '../shared/navbar.js';
+import { fetchFigurineDataIfNeeded } from '../shared/initialData.js'; 
 import {
   loadInitialData,
   createTradeProposal,
-  searchCardsByName,
+  searchCardsLocallyAndUpdate,
   loadUserCards,
   deleteTrade,
   deleteOffer,
@@ -21,6 +22,18 @@ import {
 document.addEventListener('DOMContentLoaded', async () => {
   // Carica la navbar
   loadNavbar('trade');
+
+  // 2. Verifica/recupera il file JSON dal server, se non presente in localStorage
+  try {
+    const figurineData = await fetchFigurineDataIfNeeded();
+    if (figurineData) {
+      console.log('Figurine data caricato o già presente:', figurineData);
+    } else {
+      console.warn('Nessun figurineData ottenuto dal server e/o localStorage');
+    }
+  } catch (error) {
+    console.error('Errore in fase di caricamento figurineData:', error);
+  }
 
   // Stato interno (potresti metterlo altrove, p.es. in un “store” dedicato)
   const selectedCards = {
@@ -76,7 +89,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   searchButton.addEventListener('click', () => {
     const searchQuery = document.getElementById('search-input').value.trim();
     if (searchQuery) {
-      searchCardsByName(searchQuery);
+      searchCardsLocallyAndUpdate(searchQuery);
     }
   });
 

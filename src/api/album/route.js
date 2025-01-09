@@ -38,80 +38,82 @@ router.get('/initialData',authenticateJWTMiddleware, albumController.getInitialD
 
 /**
  * @swagger
- * /album/cards:
- *   get:
- *     summary: Retrieve cards for a specific album page
+ * /album/cardsByIds:
+ *   post:
+ *     summary: Given an array of card IDs, returns the user quantity/credits
  *     tags: [Album]
  *     security:
- *       - bearerAuth: []  # JWT token is required
- *     parameters:
- *       - in: query
- *         name: page_number
- *         schema:
- *           type: integer
- *         required: true
- *         description: The page number of the album to retrieve cards from
- *       - in: query
- *         name: cards_per_page
- *         schema:
- *           type: integer
- *         required: false
- *         description: The number of cards to retrieve per page (default is 15)
- *       - in: query
- *         name: only_owned
- *         schema:
- *           type: boolean
- *         required: false
- *         description: If true, only return owned cards (quantity > 0). Default is false
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               cardIds:
+ *                 type: array
+ *                 items:
+ *                   type: integer
  *     responses:
  *       200:
- *         description: A list of cards for the specified page
+ *         description: Array of { id, quantity } plus user credits
+ *       400:
+ *         description: Bad request
+ *       500:
+ *         description: Server error
+ */
+router.post('/cardsByIds', authenticateJWTMiddleware, albumController.getCardsByIds);
+
+/**
+ * @swagger
+ * /album/possessed:
+ *   get:
+ *     summary: Return a limited set of possessed cards in ascending order
+ *     tags: [Album]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Number of cards to return
+ *         required: false
+ *         default: 28
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *         description: Pagination offset (0 means start from first)
+ *         required: false
+ *         default: 0
+ *     responses:
+ *       200:
+ *         description: Array of possessed cards
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 page:
- *                   type: integer
- *                   description: The page number
+ *                 total:
+ *                   type: number
  *                 cards:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
  *                       id:
- *                         type: integer
- *                         description: The ID of the card
- *                       name:
- *                         type: string
- *                         description: The name of the character associated with the card
+ *                         type: number
  *                       quantity:
- *                         type: integer
- *                         description: The quantity of this card in the user's album
- *                       available_quantity:
- *                         type: integer
- *                         description: The available quantity of this card in the user's album
- *                       state:
- *                         type: string
- *                         description: The ownership state of the card (e.g., "posseduta", "non posseduta")
- *                       thumbnail:
- *                         type: object
- *                         properties:
- *                           path:
- *                             type: string
- *                             description: The URL path of the card's thumbnail
- *                           extension:
- *                             type: string
- *                             description: The file extension for the card's thumbnail image
- *                       details:
- *                         type: object
- *                         description: Additional details about the character, fetched from the Marvel API
- *       400:
- *         description: Bad request
- *       404:
- *         description: User not found or no cards available on the specified page
+ *                         type: number
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
  */
-router.get('/cards', authenticateJWTMiddleware, albumController.getAlbumPage);
+router.get('/possessed', authenticateJWTMiddleware, albumController.getPossessedCards);
+
 
 /**
  * @swagger
@@ -167,53 +169,6 @@ router.get('/cards', authenticateJWTMiddleware, albumController.getAlbumPage);
  *         description: Server error
  */
 router.get('/trade/cards', authenticateJWTMiddleware, albumController.getCardsForPageTrade);
-
-/**
- * @swagger
- * /album/search:
- *   get:
- *     summary: Search for cards by character name
- *     tags: [Album]
- *     security:
- *       - bearerAuth: []  # JWT token is required
- *     parameters:
- *       - in: query
- *         name: name_starts_with
- *         schema:
- *           type: string
- *         required: true
- *         description: The string that the character names start with
- *     responses:
- *       200:
- *         description: A list of cards matching the search string that the user owns
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: integer
- *                     description: The ID of the card
- *                   name:
- *                     type: string
- *                     description: The name of the character associated with the card
- *                   quantity:
- *                     type: integer
- *                     description: The quantity of this card in the user's album
- *                   available_quantity:
- *                     type: integer
- *                     description: The available quantity of this card in the user's album
- *                   details:
- *                     type: object
- *                     description: Additional details about the character, fetched from the Marvel API
- *       400:
- *         description: Bad request
- *       404:
- *         description: User not found or no matching characters available
- */
-router.get('/search', authenticateJWTMiddleware, albumController.searchCards);
 
 /**
  * @swagger
