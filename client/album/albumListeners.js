@@ -4,7 +4,7 @@ import { loadNavbar } from '../shared/navbar.js';  // ipotetico file comune
 import { fetchFigurineDataIfNeeded } from '../shared/initialData.js';
 import {
   fetchCardsAndUpdate,
-  fetchNameCardsAndUpdate,
+  searchCardsLocallyAndUpdate,
   sellCard
 } from './albumController.js';
 
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   searchButton.addEventListener('click', () => {
     const searchQuery = searchInput.value.trim();
     if (searchQuery) {
-      fetchNameCardsAndUpdate(searchQuery);
+      searchCardsLocallyAndUpdate(searchQuery);
     }
   });
 

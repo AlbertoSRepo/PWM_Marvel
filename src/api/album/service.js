@@ -41,97 +41,40 @@ class AlbumService {
     };
   }
 
-  /**
-   * Ritorna un set di carte possedute dall'utente (quantity > 0), in ordine di card_id
-   * limit = quante carte restituire
-   * offset = da quale indice partire
-   */
-  async getPossessedCards(userId, limit, offset) {
-    const user = await User.findById(userId);
-    if (!user) {
-      throw new Error('Utente non trovato');
-    }
-
-    // Filtra le carte possedute
-    const possessed = user.album
-      .filter(c => c.quantity > 0)
-      .sort((a, b) => a.card_id - b.card_id); // ordina in base a card_id (o come preferisci)
-
-    const total = possessed.length;
-
-    // slice per limit e offset
-    const sliced = possessed.slice(offset, offset + limit);
-
-    // mappa in { id, quantity }
-    const cards = sliced.map(c => ({
-      id: c.card_id,
-      quantity: c.quantity
-    }));
-
-    return {
-      total,
-      cards
-    };
+/**
+ * Ritorna un set di carte possedute dall'utente (available_quantity > 0), 
+ * in ordine di card_id
+ * limit = quante carte restituire
+ * offset = da quale indice partire
+ */
+async getPossessedCards(userId, limit, offset) {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new Error('Utente non trovato');
   }
 
-  // Funzione per ottenere le carte possedute per una pagina specifica nel trade
-  async getCardsForPageTrade(userId, pageNumber) {
-    const cardsPerPage = 28;
+  // Filtra le carte effettivamente disponibili per il trade
+  const possessed = user.album
+    .filter(c => c.available_quantity > 0)
+    .sort((a, b) => a.card_id - b.card_id); // ordina in base a card_id o come preferisci
 
-    // Ottieni l'utente e il suo album
-    const user = await User.findById(userId);
-    if (!user) throw new Error('User not found');
+  const total = possessed.length;
 
-    // Filtra solo le carte possedute (quantity > 0)
-    const ownedCards = user.album.filter(card => card.available_quantity > 0);
+  // slice per limit e offset
+  const sliced = possessed.slice(offset, offset + limit);
 
-    // Se non ci sono carte possedute, restituisci una lista vuota
-    if (ownedCards.length === 0) {
-      return [];
-    }
+  // mappa in { id, quantity }
+  const cards = sliced.map(c => ({
+    id: c.card_id,
+    quantity: c.available_quantity // o se vuoi mostrare la differenza tra quantity e available_quantity
+  }));
 
-    // Calcola il numero totale di pagine basato sulle carte possedute
-    const totalPages = Math.ceil(ownedCards.length / cardsPerPage);
+  return {
+    total,
+    cards
+  };
+}
 
-    // Verifica se la pagina richiesta è valida
-    if (pageNumber < 1 || pageNumber > totalPages) {
-      throw new Error('Numero di pagina non valido.');
-    }
-
-    // Determina l'indice di inizio e fine per la pagina corrente
-    const startIndex = (pageNumber - 1) * cardsPerPage;
-    const endIndex = startIndex + cardsPerPage;
-
-    // Ottieni le carte per la pagina selezionata
-    const pageCards = ownedCards.slice(startIndex, endIndex);
-
-    // Scorriamo tutte le carte nella pagina e otteniamo i dettagli
-    const cardsWithState = await Promise.all(pageCards.map(async (card) => {
-      const [detailedCard] = await this.getCharacterDetails([card.card_id]);
-
-      // Verifica che i dettagli della carta siano validi
-      if (!detailedCard || !detailedCard.name) {
-        return {
-          id: card.card_id,
-          name: "Dettagli non disponibili",
-          thumbnail: { path: "placeholder-image", extension: "jpeg" }, // Placeholder
-          state: 'posseduta', // Carta posseduta
-          quantity: card.quantity
-        };
-      }
-
-      // Restituisci la carta con i dettagli e lo stato "posseduta"
-      return {
-        id: card.card_id,
-        name: detailedCard.name,
-        thumbnail: detailedCard.thumbnail,
-        state: 'posseduta',
-        quantity: card.quantity
-      };
-    }));
-
-    return cardsWithState;
-  }
 
   // Funzione per ottenere i dettagli delle carte dal Marvel API
   async getCharacterDetails(characterIds) {
@@ -264,105 +207,6 @@ class AlbumService {
       throw new Error('Errore durante la vendita della carta.');
     }
   };
-
-  /*async getCardsForPage(userId, pageNumber, cardsPerPage) {
-    const startIndex = (pageNumber - 1) * cardsPerPage;
-    const endIndex = startIndex + cardsPerPage;
-  
-    // 1. Trova l'utente
-    const user = await User.findById(userId);
-    if (!user) throw new Error('User not found');
-  
-    // 2. Estraggo le carte dal suo album, relative a quella pagina
-    const pageCards = user.album.slice(startIndex, endIndex);
-  
-    // 3. Mappa le carte in un array di { id, quantity } senza controllare se possedute o no
-    const cardsForPage = pageCards.map(card => ({
-      id: card.card_id,
-      quantity: card.quantity
-    }));
-  
-    // 4. Restituisco i crediti e l'array cards
-    return {
-      credits: user.credits,
-      cards: cardsForPage
-    };
-  }*/
- 
-  /*
-  // Funzione per cercare esclusivamente le carte possedute per nome del supereroe
-  async searchCardsByName(userId, nameStartsWith) {
-    const baseUrl = process.env.CHARACTERS_URL;
-    const publicApiKey = process.env.MARVELAPI_PUBLICKEY;
-    const privateApiKey = process.env.MARVELAPI_PRIVATEKEY;
-
-    // Genera i parametri di autenticazione
-    const timestamp = Date.now();
-    const hash = MD5(timestamp + privateApiKey + publicApiKey);
-    const authParams = `ts=${timestamp}&apikey=${publicApiKey}&hash=${hash}`;
-
-    try {
-      // Variabili per la paginazione
-      let allResults = [];
-      let offset = 0;
-      const limit = 100;
-      let total = 0;
-
-      do {
-        // Richiedi al Marvel API i personaggi con l'offset corrente
-        const response = await fetch(`${baseUrl}?nameStartsWith=${nameStartsWith}&${authParams}&limit=${limit}&offset=${offset}`);
-        const data = await response.json();
-
-        // Controlla se ci sono risultati
-        if (!data || !data.data || data.data.results.length === 0) {
-          break; // Nessun personaggio trovato
-        }
-
-        // Imposta il totale al primo passaggio
-        if (total === 0) {
-          total = data.data.total;
-        }
-
-        // Aggiungi i risultati alla lista completa
-        allResults = allResults.concat(data.data.results);
-
-        // Aggiorna l'offset per la prossima iterazione
-        offset += data.data.count;
-
-      } while (offset < total);
-
-      // Mappa per ottenere gli ID dei personaggi trovati
-      const foundCharacterIds = allResults.map(character => character.id);
-
-      // Ottieni le carte possedute dall'utente
-      const user = await User.findById(userId);
-      if (!user) throw new Error('Utente non trovato');
-
-      // Filtra solo le carte possedute con quantity > 0 e corrispondenti ai personaggi trovati
-      const ownedCardsWithDetails = await Promise.all(user.album
-        .filter(card => card.quantity > 0 && foundCharacterIds.includes(card.card_id))
-        .map(async (card) => {
-          const [detailedCard] = await this.getCharacterDetails([card.card_id]);
-
-          // Restituisci solo le carte possedute con i dettagli
-          return {
-            id: card.card_id,
-            name: detailedCard.name,
-            thumbnail: detailedCard.thumbnail,
-            state: 'posseduta', // Carta posseduta
-            quantity: card.quantity,
-          };
-        })
-      );
-
-      console.log('Carte possedute trovate:', ownedCardsWithDetails);
-      return ownedCardsWithDetails;
-
-    } catch (error) {
-      console.error('Errore durante la ricerca delle carte:', error);
-      throw new Error('Errore durante la ricerca delle carte');
-    }
-  }*/
 
 }
 

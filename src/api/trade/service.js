@@ -120,18 +120,23 @@ class TradeService {
   async executeTrade(trade, offer) {
     const proposer = await User.findById(trade.proposer_id);
     const offerer = await User.findById(offer.user_id);
-
+  
     // Scambio delle carte proposte
     trade.proposed_cards.forEach(card => {
       const proposerCard = proposer.album.find(c => c.card_id === card.card_id);
       const offererCard = offerer.album.find(c => c.card_id === card.card_id);
-
-      // Aggiorna la quantità del proponente
+  
+      // Proposer perde quantity
       proposerCard.quantity -= card.quantity;
-
-      // Aggiorna la quantità dell'offerente
+      proposerCard.available_quantity = Math.min(proposerCard.available_quantity, proposerCard.quantity);
+  
+      // Offerer guadagna quantity
       if (offererCard) {
         offererCard.quantity += card.quantity;
+        offererCard.available_quantity = Math.min(
+          offererCard.available_quantity + card.quantity,
+          offererCard.quantity
+        );
       } else {
         offerer.album.push({
           card_id: card.card_id,
@@ -140,18 +145,23 @@ class TradeService {
         });
       }
     });
-
+  
     // Scambio delle carte offerte
     offer.offered_cards.forEach(card => {
       const offererCard = offerer.album.find(c => c.card_id === card.card_id);
       const proposerCard = proposer.album.find(c => c.card_id === card.card_id);
-
-      // Aggiorna la quantità dell'offerente
+  
+      // Offerer perde quantity
       offererCard.quantity -= card.quantity;
-
-      // Aggiorna la quantità del proponente
+      offererCard.available_quantity = Math.min(offererCard.available_quantity, offererCard.quantity);
+  
+      // Proposer guadagna quantity
       if (proposerCard) {
         proposerCard.quantity += card.quantity;
+        proposerCard.available_quantity = Math.min(
+          proposerCard.available_quantity + card.quantity,
+          proposerCard.quantity
+        );
       } else {
         proposer.album.push({
           card_id: card.card_id,
@@ -160,11 +170,11 @@ class TradeService {
         });
       }
     });
-
-    // Salva le modifiche degli utenti
+  
     await proposer.save();
     await offerer.save();
   }
+  
 
   // Ottenere le proposte fatte dall'utente
   async getProposalsByUser(userId) {
@@ -198,52 +208,90 @@ class TradeService {
     }
   }
 
-  // Service: Funzione per cancellare un'offerta fatta dall'utente
   deleteOffer = async (userId, offerId) => {
     try {
-      // Cerca la proposta che contiene l'offerta
+      // 1) Cerca la trade
       const trade = await Trade.findOne({ 'offers._id': offerId });
-
       if (!trade) {
         throw new Error('Proposta non trovata.');
       }
-
-      // Cerca l'offerta specifica all'interno della proposta
+  
+      // 2) Cerca l'offerta
       const offer = trade.offers.id(offerId);
-
-      // Verifica che l'offerta appartenga all'utente loggato
+  
+      // 3) Verifica che l'offerta appartenga all'utente
       if (offer.user_id.toString() !== userId.toString()) {
         throw new Error('Non sei autorizzato a cancellare questa offerta.');
       }
-
-      // Rimuovi l'offerta dall'array delle offerte
+  
+      // 4) Recupera l'utente
+      const user = await User.findById(userId);
+      if (!user) {
+        throw new Error('Utente non trovato.');
+      }
+  
+      // 5) Ripristina la available_quantity per ogni carta
+      offer.offered_cards.forEach(card => {
+        const albumCard = user.album.find(c => Number(c.card_id) === Number(card.card_id));
+        if (albumCard) {
+          albumCard.available_quantity += card.quantity;
+        }
+      });
+  
+      // 6) Salva i cambi dell'utente
+      await user.save();
+  
+      // 7) Rimuovi l'offerta
       trade.offers.pull({ _id: offerId });
-
-      // Salva le modifiche nella proposta
+  
+      // 8) Salva la trade
       await trade.save();
+  
     } catch (error) {
       console.error('Errore durante la cancellazione dell\'offerta:', error);
       throw new Error('Errore durante la cancellazione dell\'offerta.');
     }
   };
-  // Service: Funzione per cancellare una proposta di trade
-  deleteTrade = async (userId, tradeId) => {
-    try {
-      // Cerca la proposta di trade per ID e verifica che appartenga all'utente loggato
-      const trade = await Trade.findOne({ _id: tradeId, proposer_id: userId });
+  
 
-      if (!trade) {
-        throw new Error('Proposta non trovata o non autorizzato a cancellarla.');
-      }
+// service.js (all’interno di TradeService)
+deleteTrade = async (userId, tradeId) => {
+  try {
+    // Cerca la proposta di trade per ID e verifica che appartenga all'utente loggato
+    const trade = await Trade.findOne({ _id: tradeId, proposer_id: userId });
 
-      // Cancella la proposta dal database
-      await Trade.deleteOne({ _id: tradeId }); // Usa `deleteOne()` per cancellare la proposta
-
-    } catch (error) {
-      console.error('Errore durante la cancellazione della proposta:', error);
-      throw new Error('Errore durante la cancellazione della proposta.');
+    if (!trade) {
+      throw new Error('Proposta non trovata o non autorizzato a cancellarla.');
     }
-  };
+
+    // 1) Prima di eliminare la proposta, recupera l'utente proponente
+    const proposer = await User.findById(userId);
+    if (!proposer) {
+      throw new Error('Utente proponente non trovato.');
+    }
+
+    // 2) Per ogni carta in trade.proposed_cards, restituisci la quantity alla available_quantity
+    trade.proposed_cards.forEach(card => {
+      // albumCard è la carta dell'utente nel suo album
+      const albumCard = proposer.album.find(c => Number(c.card_id) === Number(card.card_id));
+      if (albumCard) {
+        albumCard.available_quantity += card.quantity; 
+        // Se in createTrade() avevi sottratto, ora ri-aggiungi
+      }
+    });
+
+    // 3) Salva le modifiche sullo user
+    await proposer.save();
+
+    // 4) Cancella la proposta dal database
+    await Trade.deleteOne({ _id: tradeId });
+
+  } catch (error) {
+    console.error('Errore durante la cancellazione della proposta:', error);
+    throw new Error('Errore durante la cancellazione della proposta.');
+  }
+};
+
 
   getUserProposal = async (userId, tradeId) => {
     try {
@@ -260,56 +308,57 @@ class TradeService {
       throw new Error('Errore durante il recupero della proposta.');
     }
   };
-// Service: Funzione per ottenere i dettagli delle carte offerte
-getOfferedCardsDetails = async (offers) => {
-  try {
-    const offersWithDetails = await Promise.all(
-      offers.map(async (offer) => {
-        const cardDetails = await this.getCharacterDetails(offer.idCarte); // Usa `this.getCharacterDetails`
 
-        // Crea un nuovo oggetto per l'offerta con i dettagli delle carte
-        return {
-          id_offerta: offer.id_offerta,
-          cards: cardDetails.map(card => ({
-            id: card.id,
-            name: card.name,
-            thumbnail: card.thumbnail,
-          }))
-        };
-      })
-    );
+  // Service: Funzione per ottenere i dettagli delle carte offerte
+  getOfferedCardsDetails = async (offers) => {
+    try {
+      const offersWithDetails = await Promise.all(
+        offers.map(async (offer) => {
+          const cardDetails = await this.getCharacterDetails(offer.idCarte); // Usa `this.getCharacterDetails`
 
-    return offersWithDetails;
-  } catch (error) {
-    console.error('Errore durante il recupero dei dettagli delle carte offerte:', error);
-    throw new Error('Errore durante il recupero dei dettagli delle carte offerte.');
-  }
-};
+          // Crea un nuovo oggetto per l'offerta con i dettagli delle carte
+          return {
+            id_offerta: offer.id_offerta,
+            cards: cardDetails.map(card => ({
+              id: card.id,
+              name: card.name,
+              thumbnail: card.thumbnail,
+            }))
+          };
+        })
+      );
 
-// Funzione per ottenere i dettagli delle carte dal Marvel API
-getCharacterDetails = async (characterIds) => {
-  const baseUrl = process.env.CHARACTERS_URL;
-  const publicApiKey = process.env.MARVELAPI_PUBLICKEY;
-  const privateApiKey = process.env.MARVELAPI_PRIVATEKEY;
-
-  // Genera i parametri di autenticazione
-  const timestamp = Date.now();
-  const hash = MD5(timestamp + privateApiKey + publicApiKey);
-  const authParams = `ts=${timestamp}&apikey=${publicApiKey}&hash=${hash}`;
-
-  // Mappa per tutte le richieste parallele
-  const requests = characterIds.map(async (characterId) => {
-    const response = await fetch(`${baseUrl}/${characterId}?${authParams}`);
-    const data = await response.json();
-    if (data && data.data && data.data.results && data.data.results.length > 0) {
-      return data.data.results[0];
+      return offersWithDetails;
+    } catch (error) {
+      console.error('Errore durante il recupero dei dettagli delle carte offerte:', error);
+      throw new Error('Errore durante il recupero dei dettagli delle carte offerte.');
     }
-    return null;
-  });
+  };
 
-  const detailedCharacters = await Promise.all(requests);
-  return detailedCharacters.filter(Boolean);
-}
+  // Funzione per ottenere i dettagli delle carte dal Marvel API
+  getCharacterDetails = async (characterIds) => {
+    const baseUrl = process.env.CHARACTERS_URL;
+    const publicApiKey = process.env.MARVELAPI_PUBLICKEY;
+    const privateApiKey = process.env.MARVELAPI_PRIVATEKEY;
+
+    // Genera i parametri di autenticazione
+    const timestamp = Date.now();
+    const hash = MD5(timestamp + privateApiKey + publicApiKey);
+    const authParams = `ts=${timestamp}&apikey=${publicApiKey}&hash=${hash}`;
+
+    // Mappa per tutte le richieste parallele
+    const requests = characterIds.map(async (characterId) => {
+      const response = await fetch(`${baseUrl}/${characterId}?${authParams}`);
+      const data = await response.json();
+      if (data && data.data && data.data.results && data.data.results.length > 0) {
+        return data.data.results[0];
+      }
+      return null;
+    });
+
+    const detailedCharacters = await Promise.all(requests);
+    return detailedCharacters.filter(Boolean);
+  }
 
 }
 

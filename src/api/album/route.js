@@ -114,62 +114,6 @@ router.post('/cardsByIds', authenticateJWTMiddleware, albumController.getCardsBy
  */
 router.get('/possessed', authenticateJWTMiddleware, albumController.getPossessedCards);
 
-
-/**
- * @swagger
- * /album/trade/cards:
- *   get:
- *     summary: Retrieve 28 owned cards for a specific page for trade proposals
- *     tags: [Album]
- *     security:
- *       - bearerAuth: []  # JWT token is required
- *     parameters:
- *       - in: query
- *         name: page_number
- *         schema:
- *           type: integer
- *         required: true
- *         description: The page number to retrieve owned cards from
- *     responses:
- *       200:
- *         description: A list of 28 owned cards for the specified page
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: integer
- *                     description: The ID of the card
- *                   name:
- *                     type: string
- *                     description: The name of the character associated with the card
- *                   quantity:
- *                     type: integer
- *                     description: The quantity of this card in the user's album
- *                   thumbnail:
- *                     type: object
- *                     properties:
- *                       path:
- *                         type: string
- *                         description: The URL path of the card's thumbnail
- *                       extension:
- *                         type: string
- *                         description: The file extension for the card's thumbnail image
- *                   state:
- *                     type: string
- *                     description: Ownership state (e.g., "posseduta")
- *       400:
- *         description: Invalid request
- *       404:
- *         description: No owned cards found for the specified page
- *       500:
- *         description: Server error
- */
-router.get('/trade/cards', authenticateJWTMiddleware, albumController.getCardsForPageTrade);
-
 /**
  * @swagger
  * /album/characters/{characterId}:

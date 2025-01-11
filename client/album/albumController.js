@@ -19,6 +19,12 @@ import {
   populateCharacterOverlay
 } from './albumUI.js';
 
+import {
+  getFigurineDataOrThrow,
+  convertThumbnailStringToObj,
+  mergeServerAndLocalData
+} from '../shared/cardUtils.js';
+
 /**
  * Carica le carte di una certa pagina e aggiorna la UI,
  * calcolando gli ID della pagina sul client e inviandoli al server.
@@ -116,102 +122,48 @@ export async function fetchCardsAndUpdate(pageNumber) {
 }
 
 /**
- * Esegue una ricerca locale per nome e mostra SOLO le carte possedute (quantity > 0).
+ * Ricerca locale e mostra solo le carte possedute (quantity>0) con un nome che inizia con searchString.
  */
-export async function fetchNameCardsAndUpdate(searchString) {
+export async function searchCardsLocallyAndUpdate(searchString) {
   try {
     showLoadingSpinner();
 
-    // 1. Recupero figurineData dal localStorage (array completo)
-    const figurineData = JSON.parse(localStorage.getItem('figurineData'));
-    if (!figurineData) {
-      throw new Error('figurineData non presente in localStorage');
-    }
+    // 1. Recupero figurineData dal localStorage
+    const figurineData = getFigurineDataOrThrow();
 
-    // 2. Filtra tutte le carte che iniziano con 'searchString'
-    //    Esempio: name.toLowerCase().startsWith(searchString.toLowerCase())
+    // 2. Filtro locale
     const matchedLocalCards = figurineData.filter(fig =>
       fig.name.toLowerCase().startsWith(searchString.toLowerCase())
     );
-
-    // Se localmente non trovo neanche una corrispondenza, basta fare updateNameCards([]) e fermarsi
     if (matchedLocalCards.length === 0) {
       updateNameCards([]);
       return;
     }
 
-    // 3. Estraggo gli ID delle carte trovate
+    // 3. Estraggo ID e chiedo al server
     const matchedIds = matchedLocalCards.map(fig => fig.id);
-
-    // 4. Chiamo getCardsByIds per sapere quantity dall'utente
-    //    serverData = { credits, cards: [ { id, quantity }, ... ] }
     const serverData = await getCardsByIds(matchedIds);
 
-    // (opzionale) Aggiorno i crediti
+    // 4. Aggiorna crediti (opzionale)
     updateCredits(serverData.credits);
 
-    // 5. Filtro i serverCard con quantity <= 0 (non possedute), perché non vogliamo mostrarle
-    const possessedOnly = serverData.cards.filter(sc => sc.quantity > 0);
+    // 5. Unisco i dati, filtrando solo quantity>0
+    const mergedResults = mergeServerAndLocalData(serverData.cards, matchedLocalCards, true);
 
-    // Se l'utente non possiede alcuna di queste carte, mostro un array vuoto
-    if (possessedOnly.length === 0) {
+    if (mergedResults.length === 0) {
       updateNameCards([]);
       return;
     }
 
-    // 6. “Fondiamo” i dati local + server, SOLO per le carte possedute
-    const mergedResults = possessedOnly.map(serverCard => {
-      // Trova la corrispondenza in matchedLocalCards
-      const localFig = matchedLocalCards.find(fig => fig.id === serverCard.id);
-
-      // Se per qualche motivo non la trovo, fallback
-      if (!localFig) {
-        return {
-          id: serverCard.id,
-          name: 'Carta sconosciuta',
-          thumbnail: { path: 'placeholder-image', extension: 'jpeg' },
-          state: 'posseduta', // quantity > 0 => posseduta
-          quantity: serverCard.quantity
-        };
-      }
-
-      // Altrimenti, converto la stringa "http://.../image.jpg" => {path, extension}
-      const thumbObj = convertThumbnailStringToObj(localFig.thumbnail);
-      return {
-        id: serverCard.id,
-        name: localFig.name,
-        thumbnail: thumbObj,
-        state: 'posseduta',
-        quantity: serverCard.quantity
-      };
-    });
-
-    // 7. Mostro i risultati posseduti (con updateNameCards)
+    // 6. Mostro i risultati
     updateNameCards(mergedResults);
 
   } catch (error) {
-    console.error('Errore durante la ricerca delle carte:', error);
+    console.error('Errore durante la ricerca carte:', error);
     alert('Si è verificato un errore durante la ricerca delle carte.');
   } finally {
     hideLoadingSpinner();
   }
-}
-
-/**
- * Helper che trasforma "http://someurl/image.jpg" => { path: "http://someurl/image", extension: "jpg" }
- */
-function convertThumbnailStringToObj(thumbnailUrl) {
-  if (!thumbnailUrl) {
-    return { path: 'placeholder-image', extension: 'jpeg' };
-  }
-  const lastDot = thumbnailUrl.lastIndexOf('.');
-  if (lastDot === -1) {
-    return { path: thumbnailUrl, extension: 'jpeg' };
-  }
-  return {
-    path: thumbnailUrl.substring(0, lastDot),
-    extension: thumbnailUrl.substring(lastDot + 1),
-  };
 }
 
 /**

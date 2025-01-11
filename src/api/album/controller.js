@@ -48,24 +48,6 @@ class AlbumController {
     }
   }
 
-  // Funzione per ottenere le carte possedute per pagina nel contesto di un trade
-  async getCardsForPageTrade(req, res, next) {
-    try {
-      const { page_number } = req.query;
-
-      // Estrai l'userId dal token JWT
-      const userId = req.user.userId;
-
-      // Chiama il service per ottenere le carte possedute per la pagina richiesta
-      const cards = await albumService.getCardsForPageTrade(userId, page_number);
-
-      // Restituisci le carte con un codice 200
-      res.status(200).json(cards);
-    } catch (error) {
-      next(error);
-    }
-  }
-
   // Nuova funzione per ottenere i dettagli completi del personaggio
   async getCharacterDetails(req, res, next) {
     try {
@@ -92,31 +74,5 @@ class AlbumController {
     }
   };
 }
-/*async getAlbumPage(req, res, next) {
-  try {
-    const { page_number, cards_per_page} = req.query;
 
-    const userId = req.user.userId;
-
-    // Passa il valore di onlyOwned al service
-    const cards = await albumService.getCardsForPage(userId, page_number, cards_per_page || 18);
-    res.status(200).json(cards);
-  } catch (error) {
-    next(error);
-  }
-}*/
-/*
- async searchCards(req, res, next) {
-   try {
-     const { name_starts_with } = req.query;
-
-     // Estrai l'userId dal token JWT
-     const userId = req.user.userId;
-
-     const cards = await albumService.searchCardsByName(userId, name_starts_with);
-     res.status(200).json(cards);
-   } catch (error) {
-     next(error);
-   }
- }*/
 export default new AlbumController();

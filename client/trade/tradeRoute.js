@@ -103,21 +103,6 @@ export async function getCardsByNameAPI(name) {
 }
 
 /**
- * GET /api/album/trade/cards?page_number=:page
- * (Carte dell'utente per la selezione, 28 per pagina)
- */
-export async function getUserCardsAPI(pageNumber) {
-  const response = await fetch(`http://localhost:3000/api/album/trade/cards?page_number=${pageNumber}`, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-  });
-  if (!response.ok) {
-    throw new Error('Errore durante il caricamento delle carte.');
-  }
-  return response.json();
-}
-
-/**
  * DELETE /api/trade/:tradeId (Cancella una proposta)
  */
 export async function deleteTradeAPI(tradeId) {
