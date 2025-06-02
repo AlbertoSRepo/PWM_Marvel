@@ -3,12 +3,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import jwt from 'jsonwebtoken';
 import { User } from './model.js';
-import { MD5 } from '../shared/utils/md5.js';
 
 class UserService {
-
   // 1) LOGIN
-  loginUser = async ({ email, password }) => {
+  async loginUser(email, password) {
     const user = await User.findOne({ email });
     if (!user || !(await user.comparePassword(password))) {
       const error = new Error('Credenziali non valide');
@@ -21,25 +19,31 @@ class UserService {
   };
 
   // 2) REGISTER
-  registerUser = async (userData) => {
-    const existingUser = await User.findOne({ email: userData.email });
+  async registerUser({ username, email, password, favorite_superhero }) {
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
       const error = new Error('Email già in uso');
       error.statusCode = 409;
       throw error;
     }
 
-    // Carico tutte le card ID dal file
+    // Carico tutte le card ID dal file, per inizializzare l’album con quantity=0
     const cardIds = this.loadCardIdsFromFile();
     const album = cardIds.map(card_id => ({
-      card_id: card_id,
+      card_id,
       quantity: 0,
       available_quantity: 0,
     }));
 
     // Imposto i valori iniziali
-    userData.credits = 10;
-    userData.album = album;
+    const userData = {
+      username,
+      email,
+      password,
+      favorite_superhero,
+      credits: 10,
+      album
+    };
 
     const user = new User(userData);
     await user.save();
@@ -49,7 +53,7 @@ class UserService {
   };
 
   // 3) GET USER INFO
-  getUserInfo = async (userId) => {
+  async getUserInfo(userId) {
     const user = await User.findById(userId)
       .select('_id username email favorite_superhero credits password');
     if (!user) {
@@ -61,7 +65,7 @@ class UserService {
   };
 
   // 4) UPDATE USER
-  updateUser = async (userId, updateData) => {
+  async updateUser(userId, updateData) {
     const fieldsToUpdate = {};
     if (updateData.email) fieldsToUpdate.email = updateData.email;
     if (updateData.username) fieldsToUpdate.username = updateData.username;
@@ -78,7 +82,7 @@ class UserService {
   };
 
   // 5) DELETE USER
-  deleteUser = async (userId) => {
+  async deleteUser(userId) {
     const user = await User.findByIdAndDelete(userId);
     if (!user) {
       const error = new Error('Utente non trovato');
@@ -89,7 +93,7 @@ class UserService {
   };
 
   // 6) GET CREDITS AMOUNT
-  getCreditsAmount = async (userId) => {
+  async getCreditsAmount(userId) {
     const user = await User.findById(userId);
     if (!user) {
       const error = new Error('Utente non trovato');
@@ -100,11 +104,18 @@ class UserService {
   };
 
   // 7) BUY CREDITS
-  buyCredits = async (userId, amount) => {
+  async buyCredits(userId, amount) {
     const user = await User.findById(userId);
     if (!user) {
       const error = new Error('Utente non trovato');
       error.statusCode = 404;
+      throw error;
+    }
+
+    // Esempio: se l’utente non può comprare quantità negative
+    if (amount <= 0) {
+      const error = new Error('Amount di crediti non valido');
+      error.statusCode = 400;
       throw error;
     }
 
@@ -115,7 +126,7 @@ class UserService {
   };
 
   // 8) BUY CARD PACKET
-  buyCardPacket = async (userId) => {
+  async buyCardPacket(userId) {
     const packetSize = parseInt(process.env.PACKET_SIZE, 10);
     const packetCost = parseInt(process.env.PACKET_COST, 10);
 
@@ -132,92 +143,55 @@ class UserService {
       throw error;
     }
 
-    // Addebito dei crediti
+    // Addebito costi
     user.credits -= packetCost;
 
-    const cardIds = this.loadCardIdsFromFile();
-    const newCards = [];
+    // Caricamento potenziali ID carte da un file o DB
+    const allCardIds = this.loadCardIdsFromFile(); 
+    const purchasedCardIds = [];
 
-    // Genero le carte da inserire
     for (let i = 0; i < packetSize; i++) {
-      const randomIndex = Math.floor(Math.random() * cardIds.length);
-      const card_id = cardIds[randomIndex];
-      newCards.push(card_id);
+      const randomIndex = Math.floor(Math.random() * allCardIds.length);
+      const card_id = allCardIds[randomIndex];
+      purchasedCardIds.push(card_id);
 
-      // Aggiorno l'album
+      // Aggiorna l'album
       const albumCard = user.album.find(c => c.card_id === card_id);
       if (albumCard) {
         albumCard.quantity += 1;
         albumCard.available_quantity += 1;
       } else {
         user.album.push({
-          card_id: card_id,
+          card_id,
           quantity: 1,
-          available_quantity: 1,
+          available_quantity: 1
         });
       }
     }
 
-    // Salvo l’utente con i nuovi dati
     await user.save();
 
-    // Ottengo i dettagli delle carte dal servizio Marvel
-    const cardDetails = await this.getCharacterDetails(newCards);
-
-    // Restituisco i dati in un formato semplificato
-    const simplifiedCardDetails = cardDetails.map(card => ({
-      name: card.name,
-      thumbnail: card.thumbnail,
-    }));
-
+    // Restituiamo solo i card IDs
     return {
       success: true,
       credits: user.credits,
-      newCards: simplifiedCardDetails
+      purchasedCardIds
     };
   };
 
   // Caricamento file JSON con gli ID delle carte
-  loadCardIdsFromFile = () => {
+  loadCardIdsFromFile() {
     try {
       const __filename = fileURLToPath(import.meta.url);
       const __dirname = path.dirname(__filename);
 
       const filePath = path.join(__dirname, '../../../data/marvel_character_ids.json');
       const fileContents = fs.readFileSync(filePath, 'utf-8');
-      const card_ids = JSON.parse(fileContents);
-      return card_ids;
+      return JSON.parse(fileContents); // array di ID
     } catch (error) {
       throw error;
     }
-  };
-
-  // Ottenimento dei dettagli dalla Marvel API
-  getCharacterDetails = async (characterIds) => {
-    try {
-      const baseUrl = process.env.CHARACTERS_URL;
-      const publicApiKey = process.env.MARVELAPI_PUBLICKEY;
-      const privateApiKey = process.env.MARVELAPI_PRIVATEKEY;
-
-      const timestamp = Date.now();
-      const hash = MD5(timestamp + privateApiKey + publicApiKey);
-      const authParams = `ts=${timestamp}&apikey=${publicApiKey}&hash=${hash}`;
-
-      const requests = characterIds.map(async (characterId) => {
-        const response = await fetch(`${baseUrl}/${characterId}?${authParams}`);
-        const data = await response.json();
-        if (data && data.data && data.data.results && data.data.results.length > 0) {
-          return data.data.results[0];
-        }
-        return null;
-      });
-
-      const detailedCharacters = await Promise.all(requests);
-      return detailedCharacters.filter(Boolean);
-    } catch (error) {
-      throw error;
-    }
-  };
+  }
 }
 
 export default new UserService();

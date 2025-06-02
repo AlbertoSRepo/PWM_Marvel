@@ -4,8 +4,10 @@ class UserController {
   // 1) LOGIN
   login = async (req, res, next) => {
     try {
-      const { token, user } = await userService.loginUser(req.body);
+      const { email, password } = req.body;
+      const { token, user } = await userService.loginUser(email, password);
 
+      // Impostiamo il cookie, se serve
       res.cookie('jwtToken', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -24,7 +26,13 @@ class UserController {
   // 2) REGISTER
   register = async (req, res, next) => {
     try {
-      const { user, token } = await userService.registerUser(req.body);
+      const { username, email, password, favorite_superhero } = req.body;
+      const { user, token } = await userService.registerUser({
+        username,
+        email,
+        password,
+        favorite_superhero
+      });
 
       res.cookie('jwtToken', token, {
         httpOnly: true,
@@ -44,7 +52,8 @@ class UserController {
   // 3) GET USER INFO
   getUserInfo = async (req, res, next) => {
     try {
-      const user = await userService.getUserInfo(req.user.userId);
+      const userId = req.user.userId;  // dal token JWT
+      const user = await userService.getUserInfo(userId);
       return res.status(200).json(user);
     } catch (error) {
       next(error);
@@ -54,7 +63,8 @@ class UserController {
   // 4) UPDATE USER
   update = async (req, res, next) => {
     try {
-      await userService.updateUser(req.user.userId, req.body);
+      const userId = req.user.userId;
+      await userService.updateUser(userId, req.body);
       res.status(200).json({ message: 'Informazioni aggiornate con successo' });
     } catch (error) {
       next(error);
@@ -64,7 +74,8 @@ class UserController {
   // 5) DELETE USER
   delete = async (req, res, next) => {
     try {
-      await userService.deleteUser(req.user.userId);
+      const userId = req.user.userId;
+      await userService.deleteUser(userId);
       res.status(200).json({ message: 'Account eliminato con successo' });
     } catch (error) {
       next(error);
@@ -74,7 +85,8 @@ class UserController {
   // 6) GET CREDITS
   getCredits = async (req, res, next) => {
     try {
-      const credits = await userService.getCreditsAmount(req.user.userId);
+      const userId = req.user.userId;
+      const credits = await userService.getCreditsAmount(userId);
       res.status(200).json({
         message: 'Credits retrieved successfully',
         credits
@@ -87,8 +99,10 @@ class UserController {
   // 7) BUY CREDITS
   buyCredits = async (req, res, next) => {
     try {
+      const userId = req.user.userId;
       const { amount } = req.body;
-      const credits = await userService.buyCredits(req.user.userId, amount);
+      const credits = await userService.buyCredits(userId, amount);
+
       res.status(200).json({ message: 'Credits purchased successfully', credits });
     } catch (error) {
       next(error);
@@ -98,13 +112,25 @@ class UserController {
   // 8) BUY CARD PACKET
   buyCardPacket = async (req, res, next) => {
     try {
-      // Nel service carichiamo packetSize e packetCost da .env
-      const result = await userService.buyCardPacket(req.user.userId);
-      res.status(200).json({ message: 'Card packet purchased successfully', ...result });
+      const userId = req.user.userId;
+
+      // Esempio: packet_size se lo passassi dal body (opzionale)
+      // const { packet_size } = req.body; 
+      // In service puoi decidere se ignorarlo o sovrascrivere .env
+
+      const result = await userService.buyCardPacket(userId);
+      // result = { success, credits, purchasedCardIds: [...], ... }
+
+      res.status(200).json({
+        message: 'Card packet purchased successfully',
+        success: result.success,
+        credits: result.credits,
+        purchasedCardIds: result.purchasedCardIds
+      });
     } catch (error) {
       next(error);
     }
-  }
+  };
 }
 
 export default new UserController();
