@@ -1,8 +1,29 @@
 html,
 body {
-    height: 100%;
     margin: 0;
     padding: 0;
+    /* Rimuovi height: 100% che forza la scrollbar */
+}
+
+/* Aggiungi stili base per coerenza */
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+/* Stili per form coerenti */
+.container {
+    /* Cambia da min-height a padding per evitare forzature di altezza */
+    padding: 20px 15px;
+    /* Rimuovi min-height: calc(100vh - 80px) che causa overflow */
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .container {
+        /* Mantieni solo il padding */
+        padding: 15px;
+    }
 }
 
 .content-row {
@@ -17,4 +38,35 @@ body {
 .edit-btn,
 .submit-btn {
     margin-bottom: 20px;
+}
+
+.form-text.text-muted {
+  font-size: 0.875em;
+  margin-top: 0.25rem;
+}
+
+#password::placeholder {
+  color: #6c757d;
+  font-style: italic;
+}
+
+.user-info input:disabled {
+  background-color: #f8f9fa;
+  border-color: #dee2e6;
+}
+
+.user-info input:not(:disabled) {
+  background-color: #fff;
+  border-color: #80bdff;
+}
+
+/* Aggiungi questo per evitare overflow orizzontale */
+body {
+    overflow-x: hidden;
+}
+
+/* Assicurati che il form non crei overflow */
+#userForm {
+    max-width: 100%;
+    overflow: hidden;
 }

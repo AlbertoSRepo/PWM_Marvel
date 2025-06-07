@@ -184,3 +184,17 @@ export async function postOfferAPI(tradeId, offeredCards) {
   }
   return response.json();
 }
+
+/**
+ * GET /api/trade/:tradeId/details (Dettagli di una proposta specifica)
+ */
+export async function getTradeDetailsAPI(tradeId) {
+  const response = await fetch(`http://localhost:3000/api/trade/${tradeId}/details`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!response.ok) {
+    throw new Error('Errore durante il recupero dei dettagli della proposta.');
+  }
+  return response.json();
+}

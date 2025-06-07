@@ -7,19 +7,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Foglio di stile personalizzato -->
+    <!-- Foglio di stile personalizzato - PERCORSO ASSOLUTO -->
     <link rel="stylesheet" href="/buy/buy.css">
+    <link rel="stylesheet" href="/shared/navbar.css">
 </head>
 
 <body>
-    <div id="navbar"></div>>
+    <div id="navbar"></div>
 
     <!-- Contenuto principale -->
-    <div class="container-fluid h-100">
+    <div class="container-fluid main-content">
         <div class="row h-100">
             <!-- Parte Sinistra: Bottoni per l'acquisto dei crediti -->
             <div class="col-md-6 d-flex justify-content-center align-items-center">
                 <div>
+                    <h3 class="text-center mb-4">Acquista Crediti</h3>
                     <div class="d-flex justify-content-center mb-4">
                         <button class="btn btn-primary buy-button me-5" data-credits="1">1 Credito</button>
                         <button class="btn btn-primary buy-button" data-credits="5">5 Crediti</button>
@@ -33,7 +35,23 @@
 
             <!-- Parte Destra: Pulsante per l'acquisto del pacchetto di carte -->
             <div class="col-md-6 d-flex justify-content-center align-items-center">
-                <button id="buyPacketBtn" class="btn btn-success">Compra Pacchetto</button>
+                <div class="text-center">
+                    <h3 class="mb-4">Acquista Pacchetto</h3>
+                    
+                    <!-- Note informative posizionate qui -->
+                    <div class="packet-info mb-3">
+                        <small class="text-muted fst-italic">
+                            <strong>Nota:</strong> 1 Credito = 1 Pacchetto di carte
+                        </small>
+                    </div>
+                    
+                    <button id="buyPacketBtn" class="btn btn-success mb-3">Compra Pacchetto</button>
+                    
+                    <!-- Messaggio di warning per crediti insufficienti -->
+                    <div id="credits-warning" class="alert alert-danger" style="display: none;" role="alert">
+                        <strong>Acquista crediti per poter acquistare pacchetti</strong>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -43,17 +61,17 @@
         <div id="overlay-message"></div>
     </div>
 
-<!-- Template per la visualizzazione delle carte -->
-<template id="card-template">
-    <div class="col-lg-2 col-md-4 col-sm-6 col-12 marvel-card mb-4">
-        <div class="card custom-aspect-ratio">
-            <img class="card-img-top" alt="Superhero Image">
-            <div class="card-body">
-                <h5 class="card-title"></h5>
+    <!-- Template per la visualizzazione delle carte -->
+    <template id="card-template">
+        <div class="col-lg-2 col-md-4 col-sm-6 col-12 marvel-card mb-4">
+            <div class="card custom-aspect-ratio">
+                <img class="card-img-top" alt="Superhero Image">
+                <div class="card-body">
+                    <h5 class="card-title"></h5>
+                </div>
             </div>
         </div>
-    </div>
-</template>
+    </template>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

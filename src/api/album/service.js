@@ -1,10 +1,11 @@
+// src/api/album/service.js
 import { MD5 } from '../shared/utils/md5.js';
 import fetch from 'node-fetch';
 import dotenv from 'dotenv';
-import { User } from '../users/model.js';
+import dbService from '../shared/database/dbService.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import fs from 'fs'; // <-- import del modulo fs
+import fs from 'fs';
 
 dotenv.config();
 
@@ -24,15 +25,16 @@ class AlbumService {
   }
 
   async getCardsForIds(userId, cardIds) {
-    const user = await User.findById(userId);
+    const user = await dbService.findUserById(userId);
     if (!user) throw new Error('User not found');
 
-    // user.album: array di { card_id, quantity, ... }
-    // Mappiamo i cardIds in un array di { id, quantity }:
     const userCards = cardIds.map(cardId => {
       const albumCard = user.album.find(c => c.card_id === cardId);
-      const qty = albumCard ? albumCard.quantity : 0;  // 0 se non esiste
-      return { id: cardId, quantity: qty };
+      return { 
+        id: cardId, 
+        quantity: albumCard ? albumCard.quantity : 0,
+        available_quantity: albumCard ? albumCard.available_quantity : 0
+      };
     });
 
     return {
@@ -41,40 +43,36 @@ class AlbumService {
     };
   }
 
-/**
- * Ritorna un set di carte possedute dall'utente (available_quantity > 0), 
- * in ordine di card_id
- * limit = quante carte restituire
- * offset = da quale indice partire
- */
-async getPossessedCards(userId, limit, offset) {
-  const user = await User.findById(userId);
-  if (!user) {
-    throw new Error('Utente non trovato');
+  /**
+   * Ritorna un set di carte possedute dall'utente (available_quantity > 0), 
+   * in ordine di card_id
+   * limit = quante carte restituire
+   * offset = da quale indice partire
+   */
+  async getPossessedCards(userId, limit, offset) {
+    const user = await dbService.findUserById(userId);
+    if (!user) {
+      throw new Error('Utente non trovato');
+    }
+
+    const possessed = user.album
+      .filter(c => c.quantity > 0 && c.available_quantity > 0)
+      .sort((a, b) => a.card_id - b.card_id);
+
+    const total = possessed.length;
+    const sliced = possessed.slice(offset, offset + limit);
+
+    const cards = sliced.map(c => ({
+      id: c.card_id,
+      quantity: c.quantity,
+      available_quantity: c.available_quantity
+    }));
+
+    return {
+      total,
+      cards
+    };
   }
-
-  // Filtra le carte effettivamente disponibili per il trade
-  const possessed = user.album
-    .filter(c => c.available_quantity > 0)
-    .sort((a, b) => a.card_id - b.card_id); // ordina in base a card_id o come preferisci
-
-  const total = possessed.length;
-
-  // slice per limit e offset
-  const sliced = possessed.slice(offset, offset + limit);
-
-  // mappa in { id, quantity }
-  const cards = sliced.map(c => ({
-    id: c.card_id,
-    quantity: c.available_quantity // o se vuoi mostrare la differenza tra quantity e available_quantity
-  }));
-
-  return {
-    total,
-    cards
-  };
-}
-
 
   // Funzione per ottenere i dettagli delle carte dal Marvel API
   async getCharacterDetails(characterIds) {
@@ -177,7 +175,7 @@ async getPossessedCards(userId, limit, offset) {
   sellCard = async (userId, cardId) => {
     try {
       // Trova l'utente e il suo album
-      const user = await User.findById(userId);
+      const user = await dbService.findUserById(userId);
       if (!user) throw new Error('Utente non trovato.');
 
       // Trova la carta nell'album dell'utente
@@ -186,28 +184,36 @@ async getPossessedCards(userId, limit, offset) {
         throw new Error('Carta non posseduta o quantità insufficiente.');
       }
 
-      // Decrementa la quantità della carta
-      albumCard.quantity -= 1;
-      albumCard.available_quantity = Math.min(albumCard.available_quantity, albumCard.quantity);
-
-      // Se la quantità della carta è 0, imposta available_quantity a 0, ma non rimuoverla dall'album
-      if (albumCard.quantity === 0) {
-        albumCard.available_quantity = 0; // Imposta disponibile a 0, ma la carta resta nell'album
-      }
+      // Crea una copia dell'album per le modifiche
+      const updatedAlbum = user.album.map(card => {
+        if (card.card_id.toString() === cardId) {
+          const newQuantity = card.quantity - 1;
+          const newAvailableQuantity = Math.min(card.available_quantity, newQuantity);
+          
+          return {
+            ...card,
+            quantity: newQuantity,
+            available_quantity: newAvailableQuantity === 0 ? 0 : newAvailableQuantity
+          };
+        }
+        return card;
+      });
 
       // Aggiungi 1 credito all'utente
-      user.credits += 1;
+      const newCredits = user.credits + 1;
 
       // Salva le modifiche dell'utente
-      await user.save();
+      await dbService.updateUser(userId, {
+        credits: newCredits,
+        album: updatedAlbum
+      });
 
-      return { credits: user.credits, cardSold: cardId };
+      return { credits: newCredits, cardSold: cardId };
     } catch (error) {
       console.error('Errore durante la vendita della carta:', error);
       throw new Error('Errore durante la vendita della carta.');
     }
   };
-
 }
 
 export default new AlbumService();

@@ -291,10 +291,10 @@ html, body {
 
 /* Sfondo nero semitrasparente per l'overlay */
 #overlay-background {
-  z-index: 800;
+  z-index: 9998; /* Aggiungi se mancante */
 }
 
 /* Overlay principale */
 #overlay {
-  z-index: 1000;
+  z-index: 9999; /* Aggiungi se mancante */
 }

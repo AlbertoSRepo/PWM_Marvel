@@ -32,7 +32,7 @@ class TradeController {
       const { offered_cards } = req.body;
       const userId = req.user.userId; // Estrai l'userId dal token JWT
       const trade = await tradeService.addOffer(tradeId, userId, offered_cards);
-      res.status(201).json(trade);
+      res.status(201).json({ message: 'Offerta aggiunta con successo', trade });
     } catch (error) {
       next(error);
     }
@@ -138,7 +138,23 @@ class TradeController {
     }
   }
 
+  // Controller: Funzione per ottenere i dettagli di una proposta specifica (accessibile a tutti)
+  getTradeDetails = async (req, res, next) => {
+    try {
+      const { tradeId } = req.params;
 
+      // Chiama il service per ottenere la proposta
+      const trade = await tradeService.getTradeDetails(tradeId);
+
+      if (!trade) {
+        return res.status(404).json({ message: 'Proposta non trovata.' });
+      }
+
+      res.status(200).json(trade);
+    } catch (error) {
+      next(error);
+    }
+  };
 };
 
 export default new TradeController();

@@ -123,10 +123,19 @@ export async function fetchCardsAndUpdate(pageNumber) {
 
 /**
  * Ricerca locale e mostra solo le carte possedute (quantity>0) con un nome che inizia con searchString.
+ * Se searchString è vuoto, carica la pagina corrente dell'album.
  */
 export async function searchCardsLocallyAndUpdate(searchString) {
   try {
     showLoadingSpinner();
+
+    // Se la stringa di ricerca è vuota, torna alla visualizzazione normale dell'album
+    if (!searchString || searchString.trim() === '') {
+      // Recupera la pagina corrente dall'albumPage (ID corretto)
+      const currentPage = parseInt(document.getElementById('albumPage').value || '1', 10);
+      await fetchCardsAndUpdate(currentPage);
+      return;
+    }
 
     // 1. Recupero figurineData dal localStorage
     const figurineData = getFigurineDataOrThrow();

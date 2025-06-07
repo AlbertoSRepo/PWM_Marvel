@@ -1,30 +1,37 @@
 {
-  "name": "pwm_marvel",
+  "name": "marvel-trading-cards",
   "version": "1.0.0",
-  "description": "A web app that uses the Marvel API to display information about Marvel characters",
-  "main": "index.js",
+  "description": "Marvel Trading Cards Application",
   "type": "module",
+  "main": "src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "4.19.2",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.6.0",
+    "marvel-trading-cards": "file:",
+    "mongodb": "^6.3.0",
     "node-fetch": "^3.3.2",
-    "path": "^0.12.7",
-    "pwm_marvel": "file:",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1",
-    "url": "^0.11.4"
-  }
+    "swagger-ui-express": "^5.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  },
+  "keywords": [
+    "marvel",
+    "trading-cards",
+    "nodejs",
+    "express",
+    "mongodb"
+  ],
+  "author": "Your Name",
+  "license": "ISC"
 }

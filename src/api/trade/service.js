@@ -1,15 +1,20 @@
-// src/api/trades/service.js
-import { Trade } from './model.js';
-import { User } from '../users/model.js';
-import { MD5 } from '../shared/utils/md5.js'; // Supponiamo che tu abbia già la funzione MD5
+// src/api/trade/service.js
+import { ObjectId } from 'mongodb';
+import dbService from '../shared/database/dbService.js';
+import validationService from '../shared/validation/validationService.js';
+import { MD5 } from '../shared/utils/md5.js';
+import fetch from 'node-fetch';
+
 class TradeService {
   async getAllTrades(userId) {
     try {
       // Recupera tutte le proposte di trade, escludendo quelle fatte dall'utente loggato
-      const trades = await Trade.find({ proposer_id: { $ne: userId } }) // Escludi le proposte dell'utente
-        .populate('proposer_id', 'username'); // Popola con il campo username dell'utente
+      const trades = await dbService.findTradesExcludingUser(userId);
 
-      return trades.map(trade => ({
+      // Popola manualmente con username degli utenti
+      const populatedTrades = await dbService.populateTradesWithUsers(trades);
+
+      return populatedTrades.map(trade => ({
         _id: trade._id,
         proposer: trade.proposer_id.username,  // Includi l'username
         proposed_cards: trade.proposed_cards,
@@ -24,84 +29,92 @@ class TradeService {
 
   // Funzione per creare una nuova proposta di trade
   async createTrade(proposerId, proposedCards) {
-    const proposer = await User.findById(proposerId);
+    // Validazione dati trade
+    const validation = validationService.validateTradeData({ proposed_cards: proposedCards });
+    if (!validation.isValid) {
+      const error = new Error(validation.errors.join(', '));
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const proposer = await dbService.findUserById(proposerId);
     if (!proposer) throw new Error('User not found');
 
-    // Mostra tutti gli ID delle carte presenti nell'album dell'utente
-    console.log("ID delle carte presenti nell'album dell'utente:", proposer.album.map(c => c.card_id));
-
-    // Verifica e aggiorna l'available_quantity delle carte proposte
+    // Normalizza l'album prima di procedere
+    const updatedAlbum = proposer.album.map(card => ({
+      ...card,
+      card_id: Number(card.card_id)
+    }));
+    
     proposedCards.forEach(card => {
-      // Confronta gli ID come numeri per evitare problemi di tipo
-      const albumCard = proposer.album.find(c => Number(c.card_id) === Number(card.card_id));
-
-      // Debug per vedere se la carta è trovata e qual è il suo stato
-      if (albumCard) {
-        console.log(`Trovata carta: ${albumCard.card_id}, available_quantity: ${albumCard.available_quantity}`);
-      } else {
-        console.log(`Carta con ID ${card.card_id} non trovata nell'album`);
+      const cardId = Number(card.card_id); // Normalizza anche le carte proposte
+      const albumCardIndex = updatedAlbum.findIndex(c => c.card_id === cardId);
+      
+      if (albumCardIndex === -1 || updatedAlbum[albumCardIndex].available_quantity < card.quantity) {
+        throw new Error(`Insufficient available quantity for card ID ${cardId}`);
       }
-
-      // Verifica se la carta non esiste o non ha quantità disponibile sufficiente
-      if (!albumCard || albumCard.available_quantity < card.quantity) {
-        throw new Error(`Insufficient available quantity for card ID ${card.card_id}`);
-      }
-      albumCard.available_quantity -= card.quantity;
+      
+      updatedAlbum[albumCardIndex].available_quantity -= card.quantity;
     });
 
     // Salva le modifiche dell'utente
-    await proposer.save();
+    await dbService.updateUser(proposerId, { album: updatedAlbum });
 
     // Crea la proposta di trade
-    const trade = new Trade({
-      proposer_id: proposerId,
+    const trade = await dbService.createTrade({
+      proposer_id: new ObjectId(proposerId),
       proposed_cards: proposedCards
     });
-    await trade.save();
 
     return trade;
   }
 
   // Aggiungi un'offerta a una proposta di trade esistente
   async addOffer(tradeId, userId, offeredCards) {
-    const trade = await Trade.findById(tradeId);
+    // Validazione dati offerta
+    const validation = validationService.validateOfferData({ offered_cards: offeredCards });
+    if (!validation.isValid) {
+      const error = new Error(validation.errors.join(', '));
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const trade = await dbService.findTradeById(tradeId);
     if (!trade) throw new Error('Trade not found');
 
-    const offerer = await User.findById(userId);
+    const offerer = await dbService.findUserById(userId);
     if (!offerer) throw new Error('User not found');
-    console.log("utete trovato:", offerer);
 
-    // Verifica e aggiorna l'available_quantity delle carte offerte
+    // Pulisci l'album prima di procedere
+    let updatedAlbum = validationService.cleanupAlbum([...offerer.album]);
+    
     offeredCards.forEach(card => {
-      const albumCard = offerer.album.find(c => Number(c.card_id) === Number(card.card_id));
-      console.log(`albumCard: ${albumCard}`);
-      if (!albumCard || albumCard.available_quantity < card.quantity) {
+      const albumCardIndex = updatedAlbum.findIndex(c => Number(c.card_id) === Number(card.card_id));
+      console.log(`albumCardIndex: ${albumCardIndex}`);
+      if (albumCardIndex === -1 || updatedAlbum[albumCardIndex].available_quantity < card.quantity) {
         throw new Error(`Insufficient available quantity for card ID ${card.card_id}`);
       }
-      albumCard.available_quantity -= card.quantity;
+      updatedAlbum[albumCardIndex].available_quantity -= card.quantity;
     });
 
-    // Salva le modifiche dell'utente
-    await offerer.save();
+    // Salva l'album pulito
+    await dbService.updateUser(userId, { album: updatedAlbum });
 
     // Aggiungi l'offerta alla proposta di trade
-    trade.offers.push({
-      user_id: userId,
+    const updatedTrade = await dbService.addOfferToTrade(tradeId, {
+      user_id: new ObjectId(userId),
       offered_cards: offeredCards
     });
 
-    trade.updated_at = new Date();
-    await trade.save();
-
-    return trade;
+    return updatedTrade;
   }
 
   // Accetta un'offerta e completa lo scambio
   async acceptOffer(tradeId, offerId) {
-    const trade = await Trade.findById(tradeId);
+    const trade = await dbService.findTradeById(tradeId);
     if (!trade) throw new Error('Trade not found');
 
-    const offer = trade.offers.id(offerId);
+    const offer = trade.offers.find(o => o._id.toString() === offerId);
     if (!offer) throw new Error('Offer not found');
 
     if (offer.status !== 'pending') {
@@ -112,84 +125,117 @@ class TradeService {
     await this.executeTrade(trade, offer);
 
     // Cancella la proposta e tutte le offerte correlate
-    await Trade.deleteOne({ _id: tradeId });  // Usa deleteOne per eliminare il trade
+    await dbService.deleteTrade(tradeId);
     return { message: 'Trade completed and removed from the system' };
   }
 
   // Logica dello scambio tra le due parti
   async executeTrade(trade, offer) {
-    const proposer = await User.findById(trade.proposer_id);
-    const offerer = await User.findById(offer.user_id);
-  
-    // Scambio delle carte proposte
+    const proposer = await dbService.findUserById(trade.proposer_id);
+    const offerer = await dbService.findUserById(offer.user_id);
+
+    const proposerAlbum = [...proposer.album];
+    const offererAlbum = [...offerer.album];
+
+    // Scambio delle carte proposte (dal proposer all'offerer)
     trade.proposed_cards.forEach(card => {
-      const proposerCard = proposer.album.find(c => c.card_id === card.card_id);
-      const offererCard = offerer.album.find(c => c.card_id === card.card_id);
-  
-      // Proposer perde quantity
-      proposerCard.quantity -= card.quantity;
-      proposerCard.available_quantity = Math.min(proposerCard.available_quantity, proposerCard.quantity);
-  
-      // Offerer guadagna quantity
-      if (offererCard) {
-        offererCard.quantity += card.quantity;
-        offererCard.available_quantity = Math.min(
-          offererCard.available_quantity + card.quantity,
-          offererCard.quantity
+      // NORMALIZZA card_id come numero
+      const cardId = Number(card.card_id);
+      
+      const offererCardIndex = offererAlbum.findIndex(c => Number(c.card_id) === cardId);
+      const proposerCardIndex = proposerAlbum.findIndex(c => Number(c.card_id) === cardId);
+
+      // Proposer PERDE quantity
+      if (proposerCardIndex !== -1) {
+        proposerAlbum[proposerCardIndex].quantity -= card.quantity;
+        proposerAlbum[proposerCardIndex].available_quantity = Math.min(
+          proposerAlbum[proposerCardIndex].available_quantity,
+          proposerAlbum[proposerCardIndex].quantity
         );
+      }
+
+      // Offerer GUADAGNA quantity
+      if (offererCardIndex !== -1) {
+        offererAlbum[offererCardIndex].quantity += card.quantity;
+        offererAlbum[offererCardIndex].available_quantity += card.quantity;
       } else {
-        offerer.album.push({
-          card_id: card.card_id,
+        // IMPORTANTE: Salva card_id come numero
+        offererAlbum.push({
+          card_id: cardId, // Numero, non stringa
           quantity: card.quantity,
           available_quantity: card.quantity
         });
       }
     });
-  
-    // Scambio delle carte offerte
+
+    // Scambio delle carte offerte (dall'offerer al proposer)
     offer.offered_cards.forEach(card => {
-      const offererCard = offerer.album.find(c => c.card_id === card.card_id);
-      const proposerCard = proposer.album.find(c => c.card_id === card.card_id);
-  
-      // Offerer perde quantity
-      offererCard.quantity -= card.quantity;
-      offererCard.available_quantity = Math.min(offererCard.available_quantity, offererCard.quantity);
-  
-      // Proposer guadagna quantity
-      if (proposerCard) {
-        proposerCard.quantity += card.quantity;
-        proposerCard.available_quantity = Math.min(
-          proposerCard.available_quantity + card.quantity,
-          proposerCard.quantity
+      // NORMALIZZA card_id come numero
+      const cardId = Number(card.card_id);
+      
+      const offererCardIndex = offererAlbum.findIndex(c => Number(c.card_id) === cardId);
+      const proposerCardIndex = proposerAlbum.findIndex(c => Number(c.card_id) === cardId);
+
+      // Offerer PERDE quantity
+      if (offererCardIndex !== -1) {
+        offererAlbum[offererCardIndex].quantity -= card.quantity;
+        offererAlbum[offererCardIndex].available_quantity = Math.min(
+          offererAlbum[offererCardIndex].available_quantity,
+          offererAlbum[offererCardIndex].quantity
         );
+      }
+
+      // Proposer GUADAGNA quantity
+      if (proposerCardIndex !== -1) {
+        proposerAlbum[proposerCardIndex].quantity += card.quantity;
+        proposerAlbum[proposerCardIndex].available_quantity += card.quantity;
       } else {
-        proposer.album.push({
-          card_id: card.card_id,
+        // IMPORTANTE: Salva card_id come numero
+        proposerAlbum.push({
+          card_id: cardId, // Numero, non stringa
           quantity: card.quantity,
           available_quantity: card.quantity
         });
       }
     });
-  
-    await proposer.save();
-    await offerer.save();
+
+    // Rimuovi carte con quantity 0 e normalizza tutti i card_id
+    const cleanProposerAlbum = proposerAlbum
+      .filter(card => card.quantity > 0)
+      .map(card => ({
+        ...card,
+        card_id: Number(card.card_id) // Assicura che sia sempre un numero
+      }));
+      
+    const cleanOffererAlbum = offererAlbum
+      .filter(card => card.quantity > 0)
+      .map(card => ({
+        ...card,
+        card_id: Number(card.card_id) // Assicura che sia sempre un numero
+      }));
+
+    // Salva entrambi gli utenti
+    await dbService.updateUser(trade.proposer_id, { album: cleanProposerAlbum });
+    await dbService.updateUser(offer.user_id, { album: cleanOffererAlbum });
+
+    // Elimina la trade e tutte le sue offerte
+    await dbService.deleteTrade(trade._id);
   }
-  
 
   // Ottenere le proposte fatte dall'utente
   async getProposalsByUser(userId) {
-    const userProposals = await Trade.find({ proposer_id: userId });
+    const userProposals = await dbService.findTradesByProposer(userId);
     return userProposals;
   }
 
   async getOffersByUser(userId) {
     try {
       // Recupera tutte le proposte che contengono offerte fatte dall'utente loggato
-      const userOffers = await Trade.find({ 'offers.user_id': userId });
+      const userOffers = await dbService.findTradesWithUserOffers(userId);
 
       // Filtra le offerte per includere solo quelle fatte dall'utente loggato
       const filteredTrades = userOffers.map(trade => {
-        const filteredOffers = trade.offers.filter(offer => offer.user_id.toString() === userId.toString()); // Confronta gli ID come stringhe
+        const filteredOffers = trade.offers.filter(offer => offer.user_id.toString() === userId.toString());
 
         return {
           _id: trade._id,
@@ -210,14 +256,19 @@ class TradeService {
 
   deleteOffer = async (userId, offerId) => {
     try {
-      // 1) Cerca la trade
-      const trade = await Trade.findOne({ 'offers._id': offerId });
-      if (!trade) {
+      // 1) Cerca la trade che contiene l'offerta
+      const trades = await dbService.getCollection('trades').find({ 'offers._id': new ObjectId(offerId) }).toArray();
+      if (trades.length === 0) {
         throw new Error('Proposta non trovata.');
       }
-  
+      
+      const trade = trades[0];
+      
       // 2) Cerca l'offerta
-      const offer = trade.offers.id(offerId);
+      const offer = trade.offers.find(o => o._id.toString() === offerId);
+      if (!offer) {
+        throw new Error('Offerta non trovata.');
+      }
   
       // 3) Verifica che l'offerta appartenga all'utente
       if (offer.user_id.toString() !== userId.toString()) {
@@ -225,80 +276,74 @@ class TradeService {
       }
   
       // 4) Recupera l'utente
-      const user = await User.findById(userId);
+      const user = await dbService.findUserById(userId);
       if (!user) {
         throw new Error('Utente non trovato.');
       }
   
       // 5) Ripristina la available_quantity per ogni carta
+      const updatedAlbum = [...user.album];
       offer.offered_cards.forEach(card => {
-        const albumCard = user.album.find(c => Number(c.card_id) === Number(card.card_id));
-        if (albumCard) {
-          albumCard.available_quantity += card.quantity;
+        const albumCardIndex = updatedAlbum.findIndex(c => Number(c.card_id) === Number(card.card_id));
+        if (albumCardIndex !== -1) {
+          updatedAlbum[albumCardIndex].available_quantity += card.quantity;
         }
       });
   
       // 6) Salva i cambi dell'utente
-      await user.save();
+      await dbService.updateUser(userId, { album: updatedAlbum });
   
-      // 7) Rimuovi l'offerta
-      trade.offers.pull({ _id: offerId });
-  
-      // 8) Salva la trade
-      await trade.save();
+      // 7) Rimuovi l'offerta dalla trade
+      await dbService.removeOfferFromTrade(trade._id, offerId);
   
     } catch (error) {
       console.error('Errore durante la cancellazione dell\'offerta:', error);
       throw new Error('Errore durante la cancellazione dell\'offerta.');
     }
   };
-  
 
-// service.js (all’interno di TradeService)
-deleteTrade = async (userId, tradeId) => {
-  try {
-    // Cerca la proposta di trade per ID e verifica che appartenga all'utente loggato
-    const trade = await Trade.findOne({ _id: tradeId, proposer_id: userId });
+  deleteTrade = async (userId, tradeId) => {
+    try {
+      // Cerca la proposta di trade per ID e verifica che appartenga all'utente loggato
+      const trade = await dbService.findTradeById(tradeId);
 
-    if (!trade) {
-      throw new Error('Proposta non trovata o non autorizzato a cancellarla.');
-    }
-
-    // 1) Prima di eliminare la proposta, recupera l'utente proponente
-    const proposer = await User.findById(userId);
-    if (!proposer) {
-      throw new Error('Utente proponente non trovato.');
-    }
-
-    // 2) Per ogni carta in trade.proposed_cards, restituisci la quantity alla available_quantity
-    trade.proposed_cards.forEach(card => {
-      // albumCard è la carta dell'utente nel suo album
-      const albumCard = proposer.album.find(c => Number(c.card_id) === Number(card.card_id));
-      if (albumCard) {
-        albumCard.available_quantity += card.quantity; 
-        // Se in createTrade() avevi sottratto, ora ri-aggiungi
+      if (!trade || trade.proposer_id.toString() !== userId.toString()) {
+        throw new Error('Proposta non trovata o non autorizzato a cancellarla.');
       }
-    });
 
-    // 3) Salva le modifiche sullo user
-    await proposer.save();
+      // 1) Prima di eliminare la proposta, recupera l'utente proponente
+      const proposer = await dbService.findUserById(userId);
+      if (!proposer) {
+        throw new Error('Utente proponente non trovato.');
+      }
 
-    // 4) Cancella la proposta dal database
-    await Trade.deleteOne({ _id: tradeId });
+      // 2) Per ogni carta in trade.proposed_cards, restituisci la quantity alla available_quantity
+      const updatedAlbum = [...proposer.album];
+      trade.proposed_cards.forEach(card => {
+        const albumCardIndex = updatedAlbum.findIndex(c => Number(c.card_id) === Number(card.card_id));
+        if (albumCardIndex !== -1) {
+          updatedAlbum[albumCardIndex].available_quantity += card.quantity; 
+        }
+      });
 
-  } catch (error) {
-    console.error('Errore durante la cancellazione della proposta:', error);
-    throw new Error('Errore durante la cancellazione della proposta.');
-  }
-};
+      // 3) Salva le modifiche sullo user
+      await dbService.updateUser(userId, { album: updatedAlbum });
 
+      // 4) Cancella la proposta dal database
+      await dbService.deleteTrade(tradeId);
+
+    } catch (error) {
+      console.error('Errore durante la cancellazione della proposta:', error);
+      throw new Error('Errore durante la cancellazione della proposta.');
+    }
+  };
 
   getUserProposal = async (userId, tradeId) => {
     try {
       // Cerca la proposta di trade per ID e verifica che appartenga all'utente loggato
-      const trade = await Trade.findOne({ _id: tradeId, proposer_id: userId });
+      const trade = await dbService.findTradeById(tradeId);
 
-      if (!trade) {
+      if (!trade || trade.proposer_id.toString() !== userId.toString()) {
         throw new Error('Proposta non trovata o non autorizzato a visualizzarla.');
       }
 
@@ -314,7 +359,7 @@ deleteTrade = async (userId, tradeId) => {
     try {
       const offersWithDetails = await Promise.all(
         offers.map(async (offer) => {
-          const cardDetails = await this.getCharacterDetails(offer.idCarte); // Usa `this.getCharacterDetails`
+          const cardDetails = await this.getCharacterDetails(offer.idCarte);
 
           // Crea un nuovo oggetto per l'offerta con i dettagli delle carte
           return {
@@ -360,6 +405,21 @@ deleteTrade = async (userId, tradeId) => {
     return detailedCharacters.filter(Boolean);
   }
 
+  // Service: Funzione per ottenere i dettagli di una proposta specifica (accessibile a tutti)
+  getTradeDetails = async (tradeId) => {
+    try {
+      const trade = await dbService.findTradeById(tradeId);
+      
+      if (!trade) {
+        throw new Error('Proposta non trovata.');
+      }
+
+      return trade;
+    } catch (error) {
+      console.error('Errore durante il recupero della proposta:', error);
+      throw new Error('Errore durante il recupero della proposta.');
+    }
+  };
 }
 
 export default new TradeService();

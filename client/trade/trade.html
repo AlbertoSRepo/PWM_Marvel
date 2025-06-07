@@ -13,12 +13,13 @@
 
   <!-- Il tuo CSS personalizzato -->
   <link rel="stylesheet" href="trade.css" />
+  <link rel="stylesheet" href="/shared/navbar.css">
 </head>
 <body>
   <!-- Navbar -->
   <div id="navbar"></div>
 
-  <div class="container mt-4">
+  <div class="container-fluid mt-4 h-100">
     <!-- Bottone per creare una nuova proposta -->
     <div class="d-flex justify-content-end mb-3">
       <button id="create-trade-btn" class="btn btn-success" type="button">
@@ -26,54 +27,61 @@
       </button>
     </div>
 
-    <div class="row">
+    <div class="row h-100">
       <!-- Colonna sinistra: Proposte della Community -->
-      <div class="col-lg-6">
+      <div class="col-lg-6 h-100 d-flex flex-column">
         <h3>Proposte della Community</h3>
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>Carte</th>
-              <th>Data</th>
-              <th>Azioni</th>
-            </tr>
-          </thead>
-          <tbody id="community-trades"></tbody>
-        </table>
-      </div>
-
-      <!-- Colonna destra: Proposte e Offerte dell'Utente -->
-      <div class="col-lg-6">
-        <!-- Proposte fatte dall'utente -->
-        <div class="mb-4">
-          <h3>Le tue Proposte</h3>
+        <div class="table-container flex-grow-1">
           <table class="table table-striped">
             <thead>
               <tr>
+                <th>Nome</th>
                 <th>Carte</th>
                 <th>Data</th>
                 <th>Azioni</th>
               </tr>
             </thead>
-            <tbody id="user-proposals"></tbody>
+            <tbody id="community-trades"></tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- Colonna destra: Proposte e Offerte dell'Utente -->
+      <div class="col-lg-6 h-100 d-flex flex-column">
+        <!-- Proposte fatte dall'utente -->
+        <div class="proposals-section flex-grow-1 d-flex flex-column">
+          <h3>Le tue Proposte</h3>
+          <div class="table-container flex-grow-1">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Carte</th>
+                  <th>Data</th>
+                  <th>Azioni</th>
+                </tr>
+              </thead>
+              <tbody id="user-proposals">
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <!-- Offerte fatte dall'utente -->
-        <div>
+        <div class="offers-section flex-grow-1 d-flex flex-column">
           <h3>Le tue Offerte</h3>
-          <table class="table table-striped">
-            <thead>
-              <tr>
-                <th>Proposta</th>
-                <th>Carte Offerte</th>
-                <th>Data</th>
-                <th>Azioni</th>
-              </tr>
-            </thead>
-            <tbody id="user-offers"></tbody>
-          </table>
+          <div class="table-container flex-grow-1">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Proposta</th>
+                  <th>Carte Offerte</th>
+                  <th>Data</th>
+                  <th>Azioni</th>
+                </tr>
+              </thead>
+              <tbody id="user-offers"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

@@ -1,0 +1,16 @@
+/* Stili condivisi per la navbar */
+.navbar-brand {
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+}
+
+.navbar-brand:hover {
+    color: #007bff !important;
+    text-decoration: none !important;
+    transform: scale(1.05) !important;
+}
+
+.navbar-brand:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25) !important;
+}

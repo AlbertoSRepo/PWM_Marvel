@@ -64,8 +64,18 @@ class UserController {
   update = async (req, res, next) => {
     try {
       const userId = req.user.userId;
-      await userService.updateUser(userId, req.body);
-      res.status(200).json({ message: 'Informazioni aggiornate con successo' });
+      const updatedUser = await userService.updateUser(userId, req.body);
+      
+      // Il service ora dovrebbe restituire l'utente aggiornato o lanciare un errore se non trovato
+      res.status(200).json({ 
+        message: 'Informazioni aggiornate con successo',
+        user: {
+          _id: updatedUser._id,
+          username: updatedUser.username,
+          email: updatedUser.email,
+          favorite_superhero: updatedUser.favorite_superhero
+        }
+      });
     } catch (error) {
       next(error);
     }

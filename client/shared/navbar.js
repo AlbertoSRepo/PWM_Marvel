@@ -1,5 +1,6 @@
 // Funzione per inserire la navbar
 export const loadNavbar = (activePage) => {
+    console.log('Loading navbar for page:', activePage); // Debug log
 
     // Definisci le  classi dei bottoni, modificando la classe del bottone attivo
     const albumClass = activePage === 'album' ? 'btn btn-primary me-2' : 'btn btn-secondary me-2';
@@ -24,7 +25,15 @@ export const loadNavbar = (activePage) => {
     `;
 
     // Seleziona un elemento HTML dove vuoi inserire la navbar
-    document.getElementById('navbar').innerHTML = navbarHTML;
+    const navbarElement = document.getElementById('navbar');
+    if (!navbarElement) {
+        console.error('Navbar element not found!');
+        return;
+    }
+    
+    navbarElement.innerHTML = navbarHTML;
+    console.log('Navbar HTML set successfully'); // Debug log
+    
     sendRegisterRequest();
 }
 
@@ -33,6 +42,12 @@ const updateCredits = (credits) => {
     const creditsElement = document.getElementById('user-credits');
     if (creditsElement) {
         creditsElement.textContent = `Crediti: ${credits}`; // Aggiorna il testo con i crediti
+    }
+    
+    // Aggiorna anche il count specifico se esiste
+    const creditCount = document.getElementById('credit-count');
+    if (creditCount) {
+        creditCount.textContent = credits;
     }
 }
 
@@ -54,3 +69,6 @@ const sendRegisterRequest = async() => {
       throw error;
     }
 }
+
+// Assicurati che questa funzione sia esportata se necessario
+export { updateCredits };

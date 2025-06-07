@@ -63,10 +63,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Pulsante “Cerca”
+  // Pulsante "Cerca"
   searchButton.addEventListener('click', () => {
     const searchQuery = searchInput.value.trim();
-    if (searchQuery) {
+    // Rimuovi la condizione if(searchQuery) per permettere ricerche vuote
+    searchCardsLocallyAndUpdate(searchQuery);
+  });
+
+  // Aggiungi anche l'evento per il tasto "Enter"
+  searchInput.addEventListener('keypress', (event) => {
+    if (event.key === 'Enter') {
+      const searchQuery = event.target.value.trim();
       searchCardsLocallyAndUpdate(searchQuery);
     }
   });

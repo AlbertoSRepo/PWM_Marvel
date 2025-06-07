@@ -13,6 +13,7 @@
   
   <!-- Il tuo CSS (corretto in href) -->
   <link rel="stylesheet" href="/user/user.css" />
+  <link rel="stylesheet" href="/shared/navbar.css">
 </head>
 <body>
   <!-- Navbar -->
@@ -68,11 +69,16 @@
       <div class="col-md-6 mb-3">
         <label for="password" class="form-label">Password</label>
         <input
-          type="text"
+          type="password"
           id="password"
+          name="password"
           class="form-control"
+          placeholder="Lascia vuoto per non modificare"
           disabled
         />
+        <small class="form-text text-muted">
+          Lascia vuoto se non vuoi modificare la password
+        </small>
       </div>
     </div>
 

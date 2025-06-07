@@ -25,27 +25,62 @@ export function hideManageProposalOverlayUI() {
 }
 
 /* Aggiorna la tabella "Proposte della Community" */
-export function updateCommunityTradesUI(communityTrades) {
+export async function updateCommunityTradesUI(communityTrades) {
   const container = document.getElementById('community-trades');
   container.innerHTML = '';
-  communityTrades.forEach(trade => {
+  
+  // Ottieni l'album dell'utente corrente per verificare le carte possedute
+  const userId = localStorage.getItem('userId'); // Assumendo che l'ID utente sia salvato
+  
+  for (const trade of communityTrades) {
     const row = document.createElement('tr');
     const offeredCards = trade.proposed_cards
       ? trade.proposed_cards.map(card => `ID: ${card.card_id}, Qta: ${card.quantity}`).join(', ')
       : 'N/A';
     const proposer = trade.proposer || 'Anonimo';
+    
+    // Verifica se l'utente possiede già tutte le carte proposte
+    const userOwnsAllCards = await checkIfUserOwnsAllCards(trade.proposed_cards);
+    
+    let actionButton;
+    if (userOwnsAllCards) {
+      actionButton = `
+        <button class="btn btn-secondary" disabled>
+          Carte già possedute
+        </button>
+      `;
+    } else {
+      actionButton = `
+        <button class="btn btn-primary" data-trade-id="${trade._id}">
+          Invia Offerta
+        </button>
+      `;
+    }
+    
     row.innerHTML = `
       <td>${proposer}</td>
       <td>${offeredCards}</td>
       <td>${new Date(trade.created_at).toLocaleString()}</td>
-      <td>
-        <button class="btn btn-primary" data-trade-id="${trade._id}">
-          Invia Offerta
-        </button>
-      </td>
+      <td>${actionButton}</td>
     `;
     container.appendChild(row);
-  });
+  }
+}
+
+/**
+ * Verifica se l'utente possiede già tutte le carte proposte
+ */
+async function checkIfUserOwnsAllCards(proposedCards) {
+  try {
+    const cardIds = proposedCards.map(card => Number(card.card_id));
+    const { cards } = await getCardsByIds(cardIds);
+    
+    // Verifica se tutte le carte hanno quantity > 0
+    return cards.every(card => card.quantity > 0);
+  } catch (error) {
+    console.error('Errore nella verifica delle carte possedute:', error);
+    return false;
+  }
 }
 
 /* Aggiorna la tabella "Le tue Proposte" */
@@ -112,9 +147,19 @@ function createCardHTML(card) {
   const template = document.getElementById('card-template').content.cloneNode(true);
   template.querySelector('.card-title').textContent = card.name || 'Carta sconosciuta';
   template.querySelector('.card-id').textContent = `ID: ${card.id}`;
-  template.querySelector('.card-quantity').textContent = card.quantity
-    ? `Quantità: ${card.quantity}`
-    : 'Quantità: 0';
+  
+  // Mostra entrambe le quantità se disponibili
+  let quantityText = '';
+  if (card.available_quantity !== undefined) {
+    quantityText = `Disponibili: ${card.available_quantity}`;
+    if (card.quantity !== undefined && card.quantity !== card.available_quantity) {
+      quantityText += ` (Totali: ${card.quantity})`;
+    }
+  } else {
+    quantityText = card.quantity ? `Quantità: ${card.quantity}` : 'Quantità: 0';
+  }
+  
+  template.querySelector('.card-quantity').textContent = quantityText;
 
   const img = template.querySelector('.card-img-top');
   if (card.thumbnail) {

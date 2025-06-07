@@ -5,7 +5,9 @@ import {
   loadInitialData,
   createTradeProposal,
   searchCardsLocallyAndUpdate,
+  searchCardsLocallyAndUpdateForOffer,  // AGGIUNGI QUESTO IMPORT
   loadUserCards,
+  loadUserCardsForOffer,  // AGGIUNGI QUESTO IMPORT
   deleteTrade,
   deleteOffer,
   showOfferOverlay,
@@ -88,8 +90,32 @@ document.addEventListener('DOMContentLoaded', async () => {
   const searchButton = document.getElementById('search-button');
   searchButton.addEventListener('click', () => {
     const searchQuery = document.getElementById('search-input').value.trim();
-    if (searchQuery) {
+    
+    // Verifica se siamo in modalità "offerta" controllando il titolo dell'overlay
+    const overlayTitle = document.getElementById('overlay-title');
+    const isOfferMode = overlayTitle.textContent === 'Seleziona le carte da offrire';
+    
+    if (isOfferMode && window.currentTradeId) {
+      searchCardsLocallyAndUpdateForOffer(searchQuery, window.currentTradeId);
+    } else {
       searchCardsLocallyAndUpdate(searchQuery);
+    }
+  });
+
+  // Aggiungi anche l'evento per il tasto "Enter" nell'input di ricerca
+  const searchInput = document.getElementById('search-input');
+  searchInput.addEventListener('keypress', (event) => {
+    if (event.key === 'Enter') {
+      const searchQuery = event.target.value.trim();
+      
+      const overlayTitle = document.getElementById('overlay-title');
+      const isOfferMode = overlayTitle.textContent === 'Seleziona le carte da offrire';
+      
+      if (isOfferMode && window.currentTradeId) {
+        searchCardsLocallyAndUpdateForOffer(searchQuery, window.currentTradeId);
+      } else {
+        searchCardsLocallyAndUpdate(searchQuery);
+      }
     }
   });
 
@@ -100,13 +126,31 @@ document.addEventListener('DOMContentLoaded', async () => {
   prevPageBtn.addEventListener('click', () => {
     if (currentPage > 1) {
       currentPage--;
-      loadUserCards(currentPage);
+      
+      // Verifica se siamo in modalità offerta
+      const overlayTitle = document.getElementById('overlay-title');
+      const isOfferMode = overlayTitle.textContent === 'Seleziona le carte da offrire';
+      
+      if (isOfferMode && window.currentTradeId) {
+        loadUserCardsForOffer(currentPage, window.currentTradeId);
+      } else {
+        loadUserCards(currentPage);
+      }
     }
   });
+
   nextPageBtn.addEventListener('click', () => {
-    // Nessuna condizione "max" definita qui, dipende dalla logica interna
     currentPage++;
-    loadUserCards(currentPage);
+    
+    // Verifica se siamo in modalità offerta
+    const overlayTitle = document.getElementById('overlay-title');
+    const isOfferMode = overlayTitle.textContent === 'Seleziona le carte da offrire';
+    
+    if (isOfferMode && window.currentTradeId) {
+      loadUserCardsForOffer(currentPage, window.currentTradeId);
+    } else {
+      loadUserCards(currentPage);
+    }
   });
 
   // 5. Selezione carte (event delegation)
@@ -139,14 +183,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateSelectedCardsListUI(selectedCards.value);
   }
 
-  // 6. Community trades: event delegation su “Invia Offerta”
+  // 6. Community trades: event delegation su "Invia Offerta"
   const communityTrades = document.getElementById('community-trades');
   communityTrades.addEventListener('click', (event) => {
     const offerBtn = event.target.closest('.btn-primary');
-    if (!offerBtn) return;
+    if (!offerBtn || offerBtn.disabled) return;
+    
     const tradeId = offerBtn.getAttribute('data-trade-id');
     if (tradeId) {
-      // Apri overlay in modalità “invia offerta”
+      // Salva l'ID della trade corrente per la ricerca
+      window.currentTradeId = tradeId;
       showOfferOverlay(tradeId, selectedCards);
     }
   });

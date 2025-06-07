@@ -10,7 +10,8 @@ import {
   putAcceptOfferAPI,
   getUserProposalWithOffersAPI,
   getPossessedCardsAPI,
-  postOfferAPI
+  postOfferAPI,
+  getTradeDetailsAPI  // AGGIUNGI QUESTO IMPORT
 } from './tradeRoute.js';
 
 import { getCardsByIds } from '../album/albumRoute.js';
@@ -87,14 +88,22 @@ export async function createTradeProposal(proposedCards) {
 /**
  * Ricerca locale delle carte che iniziano con "name",
  * e mostra SOLO quelle possedute (quantity>0) nella UI trade.
+ * Se name è vuoto, mostra tutte le carte disponibili.
  */
 export async function searchCardsLocallyAndUpdate(name) {
   try {
+    // Se la stringa di ricerca è vuota, carica tutte le carte (pagina 1)
+    if (!name || name.trim() === '') {
+      await loadUserCards(1);
+      return;
+    }
+
     const figurineData = getFigurineDataOrThrow();
 
     const matchedLocalCards = figurineData.filter(fig =>
       fig.name.toLowerCase().startsWith(name.toLowerCase())
     );
+    
     if (matchedLocalCards.length === 0) {
       updateCardSelectionUI([]);
       return;
@@ -114,6 +123,50 @@ export async function searchCardsLocallyAndUpdate(name) {
 
   } catch (error) {
     console.error('Errore durante la ricerca:', error);
+    alert('Si è verificato un errore durante la ricerca delle carte.');
+  }
+}
+
+/**
+ * Ricerca locale per offerte, escludendo carte già presenti nella proposta
+ */
+export async function searchCardsLocallyAndUpdateForOffer(name, tradeId) {
+  try {
+    if (!name || name.trim() === '') {
+      await loadUserCardsForOffer(1, tradeId);
+      return;
+    }
+
+    // 1. Ottieni le carte della proposta da escludere usando il nuovo endpoint
+    const trade = await getTradeDetailsAPI(tradeId);
+    const proposedCardIds = trade.proposed_cards.map(card => Number(card.card_id));
+
+    const figurineData = getFigurineDataOrThrow();
+
+    const matchedLocalCards = figurineData.filter(fig =>
+      fig.name.toLowerCase().startsWith(name.toLowerCase()) &&
+      !proposedCardIds.includes(Number(fig.id)) // Escludi carte già proposte
+    );
+    
+    if (matchedLocalCards.length === 0) {
+      updateCardSelectionUI([]);
+      return;
+    }
+
+    const matchedIds = matchedLocalCards.map(fig => fig.id);
+    const serverData = await getCardsByIds(matchedIds);
+
+    const merged = mergeServerAndLocalData(serverData.cards, matchedLocalCards, true);
+    
+    if (merged.length === 0) {
+      updateCardSelectionUI([]);
+      return;
+    }
+
+    updateCardSelectionUI(merged);
+
+  } catch (error) {
+    console.error('Errore durante la ricerca per offerta:', error);
     alert('Si è verificato un errore durante la ricerca delle carte.');
   }
 }
@@ -232,31 +285,81 @@ export function showOfferOverlay(tradeId, selectedCardsRef) {
       await postOfferAPI(tradeId, offeredCards);
       alert('Offerta inviata con successo!');
 
-      // (1) Svuota le carte selezionate e nascondi overlay
       selectedCardsRef.value = [];
       updateSelectedCardsListUI(selectedCardsRef.value);
       hideOverlayUI();
 
-      // (2) Ricarica “Le tue Offerte”, cosi’ vedi subito la nuova offerta
+      // Reset del tradeId corrente
+      window.currentTradeId = null;
+
       const userOffers = await fetchUserOffersAPI();
       updateUserOffersUI(userOffers);
 
-      // (3) Ricarica le carte disponibili (l’utente ha appena “bloccato” quelle carte)
       await loadUserCards(1);
 
-      // (4) (Opzionale) Ricarica eventuali “Proposte della Community”
-      // se vuoi che l’utente veda immediatamente la proposta e la possibilità di offrire altre carte
-      // const communityTrades = await fetchCommunityTradesAPI();
-      // updateCommunityTradesUI(communityTrades);
-
     } catch (error) {
-      console.error('Errore durante l’invio dell’offerta:', error);
+      console.error('Errore durante l\'invio dell\'offerta:', error);
       alert(`Errore: ${error.message}`);
     }
   };
 
-  // Carichiamo le carte dell'utente (pagina 1)
-  loadUserCards(1);
+  // Carica le carte filtrate per l'offerta
+  loadUserCardsForOffer(1, tradeId);
+}
+
+/**
+ * Carica le carte dell'utente escludendo quelle già presenti nella proposta
+ */
+export async function loadUserCardsForOffer(pageNumber, tradeId) {
+  try {
+    const limit = 28;
+    const offset = (pageNumber - 1) * limit;
+
+    // 1. Ottieni i dettagli della proposta usando il nuovo endpoint
+    const trade = await getTradeDetailsAPI(tradeId);
+    const proposedCardIds = trade.proposed_cards.map(card => Number(card.card_id));
+
+    // 2. Chiama l'endpoint per le carte possedute
+    const { total, cards } = await getPossessedCardsAPI(limit, offset);
+
+    // 3. Filtra le carte escludendo quelle già presenti nella proposta
+    const filteredCards = cards.filter(card => !proposedCardIds.includes(Number(card.id)));
+
+    // 4. Unisci i dati con figurineData
+    const figurineData = JSON.parse(localStorage.getItem('figurineData'));
+    if (!figurineData) {
+      throw new Error('figurineData non presente in localStorage');
+    }
+
+    const merged = filteredCards.map(sc => {
+      const localFig = figurineData.find(f => f.id === sc.id);
+      if (!localFig) {
+        return {
+          id: sc.id,
+          name: 'Carta sconosciuta',
+          thumbnail: { path: 'placeholder-image', extension: 'jpeg' },
+          state: 'posseduta',
+          quantity: sc.quantity
+        };
+      }
+      const thumbObj = convertThumbnailStringToObj(localFig.thumbnail);
+      return {
+        id: sc.id,
+        name: localFig.name,
+        thumbnail: thumbObj,
+        state: 'posseduta',
+        quantity: sc.quantity
+      };
+    });
+
+    updateCardSelectionUI(merged);
+    const totalPages = Math.ceil(total / limit);
+    updatePaginationButtonsUI(pageNumber, merged.length, totalPages);
+
+  } catch (error) {
+    console.error('Errore loadUserCardsForOffer:', error);
+    alert(`Errore: ${error.message}`);
+  }
 }
 
 

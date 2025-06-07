@@ -1,11 +1,18 @@
 html, body {
-    height: 100%;
+    height: 100%; /* Mantieni come già presente */
     margin: 0;
     padding: 0;
 }
+
+/* Aggiungi z-index se ci sono elementi che ne hanno bisogno */
+.modal {
+    z-index: 1050; /* Bootstrap standard */
+}
+
 .content-row {
     height: 30vh; /* Ogni riga occupa il 30% dell'altezza della viewport */
     padding: 20px;
     align-items: center;
     text-align: center;
 }
+

@@ -6,111 +6,132 @@ const router = express.Router();
 
 /**
  * @swagger
- * /album/initialData:
+ * /album/initial-data:
  *   get:
- *     summary: Retrieve main figurine data from a JSON file
+ *     summary: Get initial data for the album
  *     tags: [Album]
  *     security:
- *       - bearerAuth: []  # JWT token is required
+ *       - cookieAuth: []
  *     responses:
  *       200:
- *         description: Returns the main figurine data in JSON format
+ *         description: Initial data retrieved successfully
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 figurines:
+ *                 figurineData:
  *                   type: array
  *                   items:
- *                     type: object
- *                     properties:
- *                       id:
- *                         type: integer
- *                       name:
- *                         type: string
- *                       description:
- *                         type: string
+ *                     $ref: '#/components/schemas/Card'
+ *                   description: Complete list of Marvel characters
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
  *       500:
- *         description: Server error
+ *         $ref: '#/components/responses/ServerError'
  */
-router.get('/initialData',authenticateJWTMiddleware, albumController.getInitialData);
+router.get('/initialData', authenticateJWTMiddleware, albumController.getInitialData);
 
 /**
  * @swagger
- * /album/cardsByIds:
+ * /album/cards:
  *   post:
- *     summary: Given an array of card IDs, returns the user quantity/credits
+ *     summary: Get cards by IDs with user ownership information
  *     tags: [Album]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - cardIds
  *             properties:
  *               cardIds:
  *                 type: array
  *                 items:
  *                   type: integer
+ *                 minItems: 1
+ *                 maxItems: 100
+ *                 description: Array of Marvel character IDs
+ *                 example: [1009368, 1009220, 1009146]
  *     responses:
  *       200:
- *         description: Array of { id, quantity } plus user credits
- *       400:
- *         description: Bad request
- *       500:
- *         description: Server error
- */
-router.post('/cardsByIds', authenticateJWTMiddleware, albumController.getCardsByIds);
-
-/**
- * @swagger
- * /album/possessed:
- *   get:
- *     summary: Return a limited set of possessed cards in ascending order
- *     tags: [Album]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *         description: Number of cards to return
- *         required: false
- *         default: 28
- *       - in: query
- *         name: offset
- *         schema:
- *           type: integer
- *         description: Pagination offset (0 means start from first)
- *         required: false
- *         default: 0
- *     responses:
- *       200:
- *         description: Array of possessed cards
+ *         description: Cards information retrieved successfully
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 total:
- *                   type: number
+ *                 credits:
+ *                   type: integer
+ *                   description: User's current credits
+ *                   example: 150
  *                 cards:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
  *                       id:
- *                         type: number
+ *                         type: integer
+ *                         description: Character ID
  *                       quantity:
- *                         type: number
+ *                         type: integer
+ *                         description: Number of cards owned
+ *                   example:
+ *                     - id: 1009368
+ *                       quantity: 3
+ *                     - id: 1009220
+ *                       quantity: 0
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
  *       401:
- *         description: Unauthorized
+ *         $ref: '#/components/responses/UnauthorizedError'
  *       500:
- *         description: Internal server error
+ *         $ref: '#/components/responses/ServerError'
+ */
+
+/**
+ * @swagger
+ * /album/possessed:
+ *   get:
+ *     summary: Get paginated list of possessed cards
+ *     tags: [Album]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - $ref: '#/components/parameters/Limit'
+ *       - $ref: '#/components/parameters/Offset'
+ *     responses:
+ *       200:
+ *         description: Possessed cards retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total:
+ *                   type: integer
+ *                   description: Total number of possessed cards
+ *                   example: 45
+ *                 cards:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         description: Character ID
+ *                       quantity:
+ *                         type: integer
+ *                         minimum: 1
+ *                         description: Number of cards owned
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       500:
+ *         $ref: '#/components/responses/ServerError'
  */
 router.get('/possessed', authenticateJWTMiddleware, albumController.getPossessedCards);
 
@@ -203,5 +224,74 @@ router.get('/characters/:characterId', authenticateJWTMiddleware, albumControlle
  */
 // Route per vendere una carta posseduta
 router.put('/sell/:cardId', authenticateJWTMiddleware, albumController.sellCard);
+
+
+/**
+ * @swagger
+ * /album/cardsByIds:
+ *   post:
+ *     summary: Get cards by IDs with user ownership information
+ *     tags: [Album]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - cardIds
+ *             properties:
+ *               cardIds:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *                 minItems: 1
+ *                 maxItems: 100
+ *                 description: Array of Marvel character IDs
+ *                 example: [1009368, 1009220, 1009146]
+ *     responses:
+ *       200:
+ *         description: Cards information retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 credits:
+ *                   type: integer
+ *                   description: User's current credits
+ *                   example: 150
+ *                 cards:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         description: Character ID
+ *                       quantity:
+ *                         type: integer
+ *                         description: Number of cards owned
+ *                       available_quantity:
+ *                         type: integer
+ *                         description: Available quantity for trading
+ *                   example:
+ *                     - id: 1009368
+ *                       quantity: 3
+ *                       available_quantity: 2
+ *                     - id: 1009220
+ *                       quantity: 0
+ *                       available_quantity: 0
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       500:
+ *         $ref: '#/components/responses/ServerError'
+ */
+router.post('/cardsByIds', authenticateJWTMiddleware, albumController.getCardsByIds);
+
 
 export default router;
