@@ -5,6 +5,7 @@ import validationService from '../shared/validation/validationService.js';
 import { MD5 } from '../shared/utils/md5.js';
 import fetch from 'node-fetch';
 
+
 class TradeService {
   async getAllTrades(userId) {
     try {
@@ -14,7 +15,10 @@ class TradeService {
       // Popola manualmente con username degli utenti
       const populatedTrades = await dbService.populateTradesWithUsers(trades);
 
-      return populatedTrades.map(trade => ({
+      // Popola le carte con i nomi dal database delle carte
+      const populatedTradesWithCardNames = await this.populateTradesWithCardNames(populatedTrades);
+
+      return populatedTradesWithCardNames.map(trade => ({
         _id: trade._id,
         proposer: trade.proposer_id.username,  // Includi l'username
         proposed_cards: trade.proposed_cards,
@@ -24,6 +28,47 @@ class TradeService {
       }));
     } catch (error) {
       throw new Error('Errore durante il recupero delle proposte di trade.');
+    }
+  }
+
+  // Nuovo metodo per popolare i nomi delle carte
+  async populateTradesWithCardNames(trades) {
+    try {
+      // Estrai tutti gli ID unici delle carte da tutte le proposte
+      const allCardIds = new Set();
+      trades.forEach(trade => {
+        trade.proposed_cards.forEach(card => {
+          allCardIds.add(Number(card.card_id));
+        });
+      });
+
+      // Ottieni i dettagli delle carte dall'API Marvel
+      const cardDetails = await this.getCharacterDetails(Array.from(allCardIds));
+      
+      // Crea una mappa ID -> nome per accesso rapido
+      const cardNameMap = new Map();
+      cardDetails.forEach(card => {
+        cardNameMap.set(card.id, card.name);
+      });
+
+      // Popola le trade con i nomi delle carte
+      return trades.map(trade => ({
+        ...trade,
+        proposed_cards: trade.proposed_cards.map(card => ({
+          ...card,
+          name: cardNameMap.get(Number(card.card_id)) || 'Carta sconosciuta'
+        }))
+      }));
+    } catch (error) {
+      console.error('Errore durante il popolamento dei nomi delle carte:', error);
+      // Ritorna le trade originali con nomi di fallback
+      return trades.map(trade => ({
+        ...trade,
+        proposed_cards: trade.proposed_cards.map(card => ({
+          ...card,
+          name: 'Carta sconosciuta'
+        }))
+      }));
     }
   }
 
@@ -405,21 +450,45 @@ class TradeService {
     return detailedCharacters.filter(Boolean);
   }
 
-  // Service: Funzione per ottenere i dettagli di una proposta specifica (accessibile a tutti)
-  getTradeDetails = async (tradeId) => {
-    try {
-      const trade = await dbService.findTradeById(tradeId);
-      
-      if (!trade) {
-        throw new Error('Proposta non trovata.');
-      }
-
-      return trade;
-    } catch (error) {
-      console.error('Errore durante il recupero della proposta:', error);
-      throw new Error('Errore durante il recupero della proposta.');
+// Aggiungi o modifica questa funzione
+getTradeDetails = async (tradeId) => {
+  try {
+    console.log('Service: getting trade details for ID:', tradeId);
+    
+    const trade = await dbService.findTradeById(tradeId);
+    
+    if (!trade) {
+      throw new Error('Trade not found');
     }
-  };
+
+    // Assicurati che proposed_cards sia sempre un array
+    if (!trade.proposed_cards) {
+      trade.proposed_cards = [];
+    }
+
+    // Normalizza i card_id
+    trade.proposed_cards = trade.proposed_cards.map(card => ({
+      ...card,
+      card_id: String(card.card_id)
+    }));
+
+    // AGGIUNGI: Ottieni il nome dell'utente che ha fatto la proposta
+    const proposerUser = await dbService.findUserById(trade.proposer_id);
+    const proposerName = proposerUser ? proposerUser.username : 'Utente sconosciuto';
+
+    console.log('Service: trade details prepared:', trade);
+    
+    // Ritorna la trade con il nome del proposer
+    return {
+      ...trade,
+      proposer: proposerName  // Aggiungi il nome dell'utente
+    };
+    
+  } catch (error) {
+    console.error('Errore nel service getTradeDetails:', error);
+    throw error;
+  }
+};
 }
 
 export default new TradeService();

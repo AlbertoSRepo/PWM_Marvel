@@ -11,7 +11,7 @@ import {
   getUserProposalWithOffersAPI,
   getPossessedCardsAPI,
   postOfferAPI,
-  getTradeDetailsAPI  // AGGIUNGI QUESTO IMPORT
+  getTradeDetailsAPI
 } from './tradeRoute.js';
 
 import { getCardsByIds } from '../album/albumRoute.js';
@@ -33,8 +33,29 @@ import {
   updateCardSelectionUI,
   updateSelectedCardsListUI,
   updatePaginationButtonsUI,
-  updateManageProposalOffersUI
+  updateManageProposalOffersUI,
+  showViewCardsOverlayUI,
+  hideViewCardsOverlayUI,
+  updateViewCardsOverlayUI  // AGGIUNGI QUESTO IMPORT
 } from './tradeUI.js';
+
+/**
+ * Verifica se l'utente possiede tutte le carte specificate
+ */
+export async function checkUserOwnsCards(cardIds) {
+  try {
+    const response = await getCardsByIds(cardIds);
+    if (!response || !response.cards) {
+      return false;
+    }
+    
+    // Verifica che tutte le carte abbiano quantity > 0
+    return response.cards.every(card => card.quantity > 0);
+  } catch (error) {
+    console.error('Errore nella verifica delle carte possedute:', error);
+    return false;
+  }
+}
 
 /**
  * Carica inizialmente:
@@ -409,6 +430,114 @@ export async function acceptOffer(tradeId, offerId) {
 
   } catch (error) {
     alert(`Errore: ${error.message}`);
+  }
+}
+
+/**
+ * Mostra l'overlay con le carte di una proposta specifica
+ */
+export async function showViewCardsOverlay(tradeId) {
+  try {
+    showViewCardsOverlayUI();
+    
+    // Ottieni i dettagli della proposta
+    console.log('Richiesta dettagli per trade ID:', tradeId);
+    const trade = await getTradeDetailsAPI(tradeId);
+    console.log('Dettagli trade ricevuti:', trade);
+    
+    if (!trade) {
+      throw new Error('Proposta non trovata.');
+    }
+
+    // Verifica che trade.proposed_cards esista
+    if (!trade.proposed_cards || !Array.isArray(trade.proposed_cards)) {
+      throw new Error('Dati delle carte proposte non validi.');
+    }
+
+    // Popola le carte con i dettagli (nome e immagine)
+    const populatedTrade = await populateTradeWithCardDetails(trade);
+    
+    // Aggiorna l'overlay con le carte
+    updateViewCardsOverlayUI(populatedTrade);
+    
+  } catch (error) {
+    console.error('Errore durante il caricamento delle carte della proposta:', error);
+    console.error('Stack trace completo:', error.stack);
+    alert(`Errore durante il caricamento delle carte della proposta: ${error.message}`);
+    hideViewCardsOverlayUI();
+  }
+}
+
+/**
+ * Popola una trade con i dettagli delle carte (nome e immagine)
+ */
+async function populateTradeWithCardDetails(trade) {
+  try {
+    console.log('Popolamento dettagli per trade:', trade);
+    
+    const figurineData = JSON.parse(localStorage.getItem('figurineData'));
+    if (!figurineData) {
+      throw new Error('figurineData non presente in localStorage');
+    }
+
+    // Verifica che proposed_cards sia un array valido
+    if (!trade.proposed_cards || !Array.isArray(trade.proposed_cards)) {
+      throw new Error('Le carte proposte non sono in un formato valido');
+    }
+
+    // Ottieni i dettagli delle carte dall'API Marvel se necessario
+    const cardIds = trade.proposed_cards.map(card => {
+      const cardId = Number(card.card_id);
+      if (isNaN(cardId)) {
+        console.warn('Card ID non valido:', card.card_id);
+        return null;
+      }
+      return cardId;
+    }).filter(id => id !== null);
+
+    console.log('Card IDs da processare:', cardIds);
+
+    if (cardIds.length === 0) {
+      throw new Error('Nessun ID carta valido trovato');
+    }
+
+    const serverData = await getCardsByIds(cardIds);
+    console.log('Dati server ricevuti:', serverData);
+    
+    // Unisci i dati server con quelli locali
+    const populatedCards = trade.proposed_cards.map(card => {
+      const cardId = Number(card.card_id);
+      
+      if (isNaN(cardId)) {
+        console.warn('Skipping invalid card ID:', card.card_id);
+        return {
+          ...card,
+          name: 'Carta non valida',
+          thumbnail: { path: 'placeholder-image', extension: 'jpeg' }
+        };
+      }
+
+      const localCard = figurineData.find(f => f.id === cardId);
+      const serverCard = serverData.cards ? serverData.cards.find(c => c.id === cardId) : null;
+      
+      return {
+        ...card,
+        name: localCard?.name || serverCard?.name || 'Carta sconosciuta',
+        thumbnail: localCard ? convertThumbnailStringToObj(localCard.thumbnail) : 
+                   (serverCard?.thumbnail || { path: 'placeholder-image', extension: 'jpeg' })
+      };
+    });
+
+    console.log('Carte popolate:', populatedCards);
+
+    return {
+      ...trade,
+      proposed_cards: populatedCards
+    };
+    
+  } catch (error) {
+    console.error('Errore durante il popolamento dei dettagli delle carte:', error);
+    throw error;
   }
 }
 

@@ -7,9 +7,8 @@ html, body {
 
 /* Contenitore principale delle carte */
 .card-container {
-  margin-top: 20px;
-  margin-bottom: 20px;
-  position: relative;
+  min-height: calc(100vh - 80px); /* 100vh meno navbar (80px) */
+  position: relative; /* Necessario per posizionamento assoluto dei figli */
   transition: opacity 0.3s ease;
 }
 
@@ -106,11 +105,14 @@ html, body {
 }
 
 .fixed-bottom-bar {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
+  position: absolute; 
+  bottom: 20px; /* Posiziona la barra in basso */
+  left: 50%; /* Posiziona il bordo sinistro al centro */
+  transform: translateX(-50%); /* Sposta la barra indietro del 50% della sua larghezza */
+  justify-content: center; /* Centra i pulsanti */
   background-color: rgba(136, 0, 0, 0.9);
-  padding: 10px 0;
+  padding: 10px 10px;
+  border-radius: 20px; /* Aggiunge bordi arrotondati */
 }
 
 #albumForm {

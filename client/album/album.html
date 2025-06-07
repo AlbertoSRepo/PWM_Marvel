@@ -1,43 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Marvel Cards</title>
 
   <!-- CSS di Bootstrap -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  />
-  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+
   <!-- Il tuo CSS personalizzato -->
   <link rel="stylesheet" href="/album/album.css" />
   <link rel="stylesheet" href="/shared/navbar.css">
 </head>
+
 <body>
   <!-- Navbar -->
   <div id="navbar"></div>
 
   <!-- Container principale -->
-  <div class="container card-container">
+  <div class="container card-container my-4 position-relative">
     <div class="row justify-content-center mb-5">
       <!-- Barra di ricerca -->
       <div class="offset-2 col-md-3">
-        <input
-          type="text"
-          id="search-input"
-          class="form-control"
-          placeholder="Cerca un supereroe..."
-        />
+        <input type="text" id="search-input" class="form-control" placeholder="Cerca un supereroe..." />
       </div>
       <div class="col-md-2">
         <!-- type="button" per evitare submit -->
-        <button 
-          class="btn btn-primary"
-          id="search-button"
-          type="button"
-        >
+        <button class="btn btn-primary" id="search-button" type="button">
           Cerca
         </button>
       </div>
@@ -47,169 +37,111 @@
     <div id="row-1" class="row justify-content-center mb-2"></div>
     <div id="row-2" class="row justify-content-center mb-2"></div>
     <div id="row-3" class="row justify-content-center mb-2"></div>
+    <div class="fixed-bottom-bar">
+      <!-- Form per gestire "Vai alla Pagina" -->
+      <form id="albumForm" class="d-flex align-items-center justify-content-center">
+        <div class="button-group-left">
+          <button type="button" id="prevPageBtn" class="btn btn-secondary">
+            Pagina Precedente
+          </button>
+        </div>
+
+        <input type="number" id="albumPage" class="form-control mx-2" placeholder="Inserisci pagina album" min="1"
+          max="105" required />
+
+        <div class="button-group-right">
+          <button type="button" id="nextPageBtn" class="btn btn-secondary">
+            Pagina Successiva
+          </button>
+          <!-- type="submit" per usare l’evento "submit" -->
+          <button type="submit" class="btn btn-primary mx-2">
+            Vai alla Pagina
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- Loading spinner (nascosto di default) -->
-  <div 
-    id="loading-spinner" 
-    class="spinner-border text-primary" 
-    role="status" 
-    style="display: none;"
-  >
+  <div id="loading-spinner" class="spinner-border text-primary" role="status" style="display: none;">
     <span class="sr-only">Loading...</span>
   </div>
 
   <!-- Overlay per i dettagli -->
-  <div 
-    id="overlay-background" 
-    style="display: none;"
-  ></div>
-  <div 
-    id="overlay" 
-    style="display: none;"
-  >
+  <div id="overlay-background" style="display: none;"></div>
+  <div id="overlay" style="display: none;">
     <span class="close-icon" id="close-overlay">&times;</span>
     <div class="overlay-content">
       <!-- Parte destra (immagine + nome) -->
       <div class="overlay-right">
-        <img
-          id="overlay-img"
-          src="placeholder-image.jpeg"
-          alt="Superhero Image"
-          class="img-fluid"
-        />
+        <img id="overlay-img" src="placeholder-image.jpeg" alt="Superhero Image" class="img-fluid" />
         <h5 id="overlay-title"></h5>
         <p id="overlay-description"></p>
-        <button 
-          id="sell-card-btn" 
-          class="btn btn-danger"
-          type="button"
-        >
+        <button id="sell-card-btn" class="btn btn-danger" type="button">
           Vendi Carta
         </button>
       </div>
 
       <!-- Parte sinistra (accordion con comics, series, ecc.) -->
       <div class="overlay-left">
-        <div
-          id="loading-spinner-overlay"
-          class="spinner-border text-primary"
-          role="status"
-          style="display: none;"
-        >
+        <div id="loading-spinner-overlay" class="spinner-border text-primary" role="status" style="display: none;">
           <span class="sr-only">Loading...</span>
         </div>
 
-        <div 
-          class="accordion" 
-          id="detailsAccordion" 
-          style="display: none;"
-        >
+        <div class="accordion" id="detailsAccordion" style="display: none;">
           <!-- Comics -->
           <div class="accordion-item">
             <h2 class="accordion-header" id="headingComics">
-              <button
-                class="accordion-button collapsed"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#collapseComics"
-                aria-expanded="false"
-                aria-controls="collapseComics"
-              >
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseComics" aria-expanded="false" aria-controls="collapseComics">
                 Comics
               </button>
             </h2>
-            <div
-              id="collapseComics"
-              class="accordion-collapse collapse"
-              aria-labelledby="headingComics"
-              data-bs-parent="#detailsAccordion"
-            >
-              <div 
-                class="accordion-body" 
-                id="overlay-comics"
-              ></div>
+            <div id="collapseComics" class="accordion-collapse collapse" aria-labelledby="headingComics"
+              data-bs-parent="#detailsAccordion">
+              <div class="accordion-body" id="overlay-comics"></div>
             </div>
           </div>
 
           <!-- Series -->
           <div class="accordion-item">
             <h2 class="accordion-header" id="headingSeries">
-              <button
-                class="accordion-button collapsed"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#collapseSeries"
-                aria-expanded="false"
-                aria-controls="collapseSeries"
-              >
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseSeries" aria-expanded="false" aria-controls="collapseSeries">
                 Series
               </button>
             </h2>
-            <div
-              id="collapseSeries"
-              class="accordion-collapse collapse"
-              aria-labelledby="headingSeries"
-              data-bs-parent="#detailsAccordion"
-            >
-              <div 
-                class="accordion-body" 
-                id="overlay-series"
-              ></div>
+            <div id="collapseSeries" class="accordion-collapse collapse" aria-labelledby="headingSeries"
+              data-bs-parent="#detailsAccordion">
+              <div class="accordion-body" id="overlay-series"></div>
             </div>
           </div>
 
           <!-- Stories -->
           <div class="accordion-item">
             <h2 class="accordion-header" id="headingStories">
-              <button
-                class="accordion-button collapsed"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#collapseStories"
-                aria-expanded="false"
-                aria-controls="collapseStories"
-              >
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseStories" aria-expanded="false" aria-controls="collapseStories">
                 Stories
               </button>
             </h2>
-            <div
-              id="collapseStories"
-              class="accordion-collapse collapse"
-              aria-labelledby="headingStories"
-              data-bs-parent="#detailsAccordion"
-            >
-              <div
-                class="accordion-body"
-                id="overlay-stories"
-              ></div>
+            <div id="collapseStories" class="accordion-collapse collapse" aria-labelledby="headingStories"
+              data-bs-parent="#detailsAccordion">
+              <div class="accordion-body" id="overlay-stories"></div>
             </div>
           </div>
 
           <!-- Events -->
           <div class="accordion-item">
             <h2 class="accordion-header" id="headingEvents">
-              <button
-                class="accordion-button collapsed"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#collapseEvents"
-                aria-expanded="false"
-                aria-controls="collapseEvents"
-              >
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseEvents" aria-expanded="false" aria-controls="collapseEvents">
                 Events
               </button>
             </h2>
-            <div
-              id="collapseEvents"
-              class="accordion-collapse collapse"
-              aria-labelledby="headingEvents"
-              data-bs-parent="#detailsAccordion"
-            >
-              <div 
-                class="accordion-body" 
-                id="overlay-events"
-              ></div>
+            <div id="collapseEvents" class="accordion-collapse collapse" aria-labelledby="headingEvents"
+              data-bs-parent="#detailsAccordion">
+              <div class="accordion-body" id="overlay-events"></div>
             </div>
           </div>
         </div>
@@ -230,56 +162,8 @@
       </div>
     </div>
   </template>
-
-  <!-- Barra fissa in basso per la paginazione -->
-  <div class="fixed-bottom-bar">
-    <!-- Form per gestire "Vai alla Pagina" -->
-    <form id="albumForm" class="d-flex align-items-center justify-content-center">
-      <div class="button-group-left">
-        <button 
-          type="button" 
-          id="prevPageBtn" 
-          class="btn btn-secondary"
-        >
-          Pagina Precedente
-        </button>
-      </div>
-
-      <input
-        type="number"
-        id="albumPage"
-        class="form-control mx-2"
-        placeholder="Inserisci pagina album"
-        min="1"
-        max="105"
-        required
-      />
-
-      <div class="button-group-right">
-        <button 
-          type="button" 
-          id="nextPageBtn" 
-          class="btn btn-secondary"
-        >
-          Pagina Successiva
-        </button>
-        <!-- type="submit" per usare l’evento "submit" -->
-        <button 
-          type="submit"
-          class="btn btn-primary mx-2"
-        >
-          Vai alla Pagina
-        </button>
-      </div>
-    </form>
-  </div>
-
-  <!-- JS di Bootstrap -->
-  <script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
-  ></script>
-
   <!-- Punto di ingresso: albumListeners.js -->
   <script type="module" src="/album/albumListeners.js"></script>
 </body>
+
 </html>

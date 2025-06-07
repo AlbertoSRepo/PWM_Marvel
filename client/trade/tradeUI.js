@@ -1,6 +1,7 @@
 // tradeUI.js
 
-import { showManageProposalOverlay, acceptOffer } from './tradeController.js';
+import { showManageProposalOverlay, acceptOffer, checkUserOwnsCards } from './tradeController.js';
+import { getCardsByIds } from '../album/albumRoute.js'; // AGGIUNGI QUESTO IMPORT
 
 /* Overlay Principale (Selezione carte) */
 export function showOverlayUI() {
@@ -24,62 +25,71 @@ export function hideManageProposalOverlayUI() {
   document.getElementById('manage-proposal-overlay').style.display = 'none';
 }
 
+/* Overlay per visualizzare le carte di una proposta */
+export function showViewCardsOverlayUI() {
+  document.getElementById('view-cards-overlay-background').style.display = 'block';
+  document.getElementById('view-cards-overlay').style.display = 'block';
+}
+
+export function hideViewCardsOverlayUI() {
+  document.getElementById('view-cards-overlay-background').style.display = 'none';
+  document.getElementById('view-cards-overlay').style.display = 'none';
+}
+
 /* Aggiorna la tabella "Proposte della Community" */
-export async function updateCommunityTradesUI(communityTrades) {
-  const container = document.getElementById('community-trades');
-  container.innerHTML = '';
-  
-  // Ottieni l'album dell'utente corrente per verificare le carte possedute
-  const userId = localStorage.getItem('userId'); // Assumendo che l'ID utente sia salvato
-  
-  for (const trade of communityTrades) {
+export function updateCommunityTradesUI(trades) {
+  const tbody = document.getElementById('community-trades');
+  tbody.innerHTML = '';
+
+  trades.forEach(trade => {
     const row = document.createElement('tr');
-    const offeredCards = trade.proposed_cards
-      ? trade.proposed_cards.map(card => `ID: ${card.card_id}, Qta: ${card.quantity}`).join(', ')
-      : 'N/A';
-    const proposer = trade.proposer || 'Anonimo';
     
-    // Verifica se l'utente possiede già tutte le carte proposte
-    const userOwnsAllCards = await checkIfUserOwnsAllCards(trade.proposed_cards);
-    
-    let actionButton;
-    if (userOwnsAllCards) {
-      actionButton = `
-        <button class="btn btn-secondary" disabled>
-          Carte già possedute
-        </button>
-      `;
-    } else {
-      actionButton = `
-        <button class="btn btn-primary" data-trade-id="${trade._id}">
+    // Formatta le carte proposte mostrando il nome invece dell'ID
+    const cardsText = trade.proposed_cards
+      .map(card => `${card.name}, Qta: ${card.quantity}`)
+      .join('; ');
+
+    row.innerHTML = `
+      <td>${trade.proposer}</td>
+      <td>${cardsText}</td>
+      <td>${trade.created_at}</td>
+      <td>
+        <button class="btn btn-primary me-2" data-trade-id="${trade._id}">
           Invia Offerta
         </button>
-      `;
-    }
-    
-    row.innerHTML = `
-      <td>${proposer}</td>
-      <td>${offeredCards}</td>
-      <td>${new Date(trade.created_at).toLocaleString()}</td>
-      <td>${actionButton}</td>
+        <button class="btn btn-info" data-trade-id="${trade._id}" data-action="view">
+          View
+        </button>
+      </td>
     `;
-    container.appendChild(row);
-  }
+    tbody.appendChild(row);
+  });
+
+  // Verifica se l'utente possiede già tutte le carte di ogni proposta
+  checkIfUserOwnsAllCards(trades);
 }
 
 /**
  * Verifica se l'utente possiede già tutte le carte proposte
  */
-async function checkIfUserOwnsAllCards(proposedCards) {
-  try {
-    const cardIds = proposedCards.map(card => Number(card.card_id));
-    const { cards } = await getCardsByIds(cardIds);
-    
-    // Verifica se tutte le carte hanno quantity > 0
-    return cards.every(card => card.quantity > 0);
-  } catch (error) {
-    console.error('Errore nella verifica delle carte possedute:', error);
-    return false;
+async function checkIfUserOwnsAllCards(trades) {
+  for (const trade of trades) {
+    try {
+      const proposedCardIds = trade.proposed_cards.map(card => Number(card.card_id));
+      
+      // Usa la funzione importata dal controller
+      const userOwnsAll = await checkUserOwnsCards(proposedCardIds);
+      
+      const button = document.querySelector(`button[data-trade-id="${trade._id}"]`);
+      if (button && userOwnsAll) {
+        button.disabled = true;
+        button.textContent = 'Carte già possedute';
+        button.classList.remove('btn-primary');
+        button.classList.add('btn-secondary');
+      }
+    } catch (error) {
+      console.error('Errore nella verifica delle carte possedute per trade:', trade._id, error);
+    }
   }
 }
 
@@ -88,9 +98,15 @@ export function updateUserProposalsUI(userProposals) {
   const container = document.getElementById('user-proposals');
   container.innerHTML = '';
   userProposals.forEach(proposal => {
-    const offeredCards = proposal.proposed_cards.map(
-      card => `ID: ${card.card_id}, Qta: ${card.quantity}`
-    ).join(', ');
+    // Ottieni i nomi delle carte dal localStorage
+    const figurineData = JSON.parse(localStorage.getItem('figurineData')) || [];
+    
+    const offeredCards = proposal.proposed_cards.map(card => {
+      const figurine = figurineData.find(f => f.id === Number(card.card_id));
+      const cardName = figurine ? figurine.name : 'Carta sconosciuta';
+      return `${cardName}, Qta: ${card.quantity}`;
+    }).join(', ');
+    
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>${offeredCards}</td>
@@ -111,9 +127,15 @@ export function updateUserOffersUI(userOffers) {
   userOffers.forEach(trade => {
     // Ci sono più offerte per la singola trade
     trade.offers.forEach(offer => {
-      const offeredCards = offer.offered_cards.map(
-        c => `ID: ${c.card_id}, Qta: ${c.quantity}`
-      ).join(', ');
+      // Ottieni i nomi delle carte dal localStorage
+      const figurineData = JSON.parse(localStorage.getItem('figurineData')) || [];
+      
+      const offeredCards = offer.offered_cards.map(card => {
+        const figurine = figurineData.find(f => f.id === Number(card.card_id));
+        const cardName = figurine ? figurine.name : 'Carta sconosciuta';
+        return `${cardName}, Qta: ${card.quantity}`;
+      }).join(', ');
+      
       const row = document.createElement('tr');
       row.innerHTML = `
         <td>${trade._id}</td>
@@ -174,12 +196,43 @@ function createCardHTML(card) {
 export function updateSelectedCardsListUI(selectedCards) {
   const container = document.getElementById('selected-cards');
   container.innerHTML = '';
+  
   selectedCards.forEach(card => {
     const div = document.createElement('div');
     div.classList.add('selected-card');
-    div.innerHTML = `<p>${card.name}</p><p>ID: ${card.id}</p>`;
+    div.setAttribute('data-card-id', card.id);
+    
+    // Costruisci l'URL dell'immagine
+    let imageUrl = 'placeholder-image.jpeg';
+    if (card.thumbnail && card.thumbnail.path && card.thumbnail.extension) {
+      imageUrl = `${card.thumbnail.path}.${card.thumbnail.extension}`;
+      // Converti http in https se necessario
+      imageUrl = imageUrl.replace('http://', 'https://');
+    }
+    
+    div.innerHTML = `
+      <img 
+        src="${imageUrl}" 
+        alt="${card.name}" 
+        class="selected-card-image"
+        onerror="this.src='placeholder-image.jpeg'"
+      />
+      <div class="selected-card-info">
+        <p>${card.name}</p>
+        <p>ID: ${card.id}</p>
+      </div>
+      <button 
+        class="remove-selected-btn" 
+        onclick="removeSelectedCard('${card.id}')"
+        title="Rimuovi carta"
+      >
+        ×
+      </button>
+    `;
+    
     container.appendChild(div);
   });
+  
   document.querySelector('#selected-cards-container h5').textContent =
     `Carte Selezionate (${selectedCards.length}/5)`;
 }
@@ -234,4 +287,66 @@ export async function updateManageProposalOffersUI(trade) {
     }
   }
   // Gestione del clic su "Accetta Offerta" la faremo con event delegation in listeners o in controller
+}
+
+/* Popola l'overlay con le carte della proposta */
+export function updateViewCardsOverlayUI(trade) {
+  const container = document.getElementById('view-cards-container');
+  container.innerHTML = '';
+
+  const title = document.getElementById('view-cards-overlay-title');
+  title.textContent = `Carte proposte da ${trade.proposer || 'Utente sconosciuto'}`;
+
+  // Verifica che proposed_cards esista e sia un array
+  if (!trade.proposed_cards || !Array.isArray(trade.proposed_cards)) {
+    container.innerHTML = '<p class="text-center">Nessuna carta trovata per questa proposta.</p>';
+    return;
+  }
+
+  if (trade.proposed_cards.length === 0) {
+    container.innerHTML = '<p class="text-center">Questa proposta non contiene carte.</p>';
+    return;
+  }
+
+  trade.proposed_cards.forEach(card => {
+    try {
+      const cardElement = createViewCardHTML(card);
+      container.appendChild(cardElement);
+    } catch (error) {
+      console.error('Errore durante la creazione del card HTML:', error, card);
+      // Continua con le altre carte
+    }
+  });
+}
+
+/* Crea un elemento card per la visualizzazione */
+function createViewCardHTML(card) {
+  const cardDiv = document.createElement('div');
+  cardDiv.classList.add('col-lg-3', 'col-md-4', 'col-sm-6', 'col-12', 'mb-3');
+  
+  // Costruisci l'URL dell'immagine
+  let imageUrl = 'placeholder-image.jpeg';
+  if (card.thumbnail && card.thumbnail.path && card.thumbnail.extension) {
+    imageUrl = `${card.thumbnail.path}.${card.thumbnail.extension}`;
+    imageUrl = imageUrl.replace('http://', 'https://');
+  }
+  
+  cardDiv.innerHTML = `
+    <div class="card h-100">
+      <img 
+        src="${imageUrl}" 
+        class="card-img-top view-card-image" 
+        alt="${card.name}"
+        onerror="this.src='placeholder-image.jpeg'"
+      />
+      <div class="card-body text-center">
+        <h6 class="card-title">${card.name || 'Carta sconosciuta'}</h6>
+        <p class="card-text">
+          <span class="badge bg-primary">Quantità: ${card.quantity}</span>
+        </p>
+      </div>
+    </div>
+  `;
+  
+  return cardDiv;
 }
