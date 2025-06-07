@@ -1,16 +1,13 @@
-/* Stili condivisi per la navbar */
-.navbar-brand {
-    cursor: pointer !important;
-    transition: all 0.3s ease !important;
+/* ===== NAVBAR SPECIFIC OVERRIDES ===== */
+/* Tutti gli stili principali della navbar sono ora in styles.css */
+/* Questo file rimane per eventuali personalizzazioni future */
+
+/* Logo animation enhancement */
+.navbar-brand svg {
+  filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+  transition: filter var(--transition-normal), transform var(--transition-normal);
 }
 
-.navbar-brand:hover {
-    color: #007bff !important;
-    text-decoration: none !important;
-    transform: scale(1.05) !important;
-}
-
-.navbar-brand:focus {
-    outline: none !important;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25) !important;
+.navbar-brand:hover svg {
+  filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.3));
 }

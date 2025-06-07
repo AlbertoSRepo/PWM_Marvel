@@ -1,224 +1,92 @@
-/* Rimuovi completamente gli stili commentati della navbar */
+/* ===== BUY SPECIFIC STYLES ===== */
 
-/* Stili base unificati */
-html, body {
-    height: 100%; /* Già corretto */
-    margin: 0;
-    padding: 0;
-}
-
-/* Contenuto principale */
+/* Main content layout */
 .main-content {
-    height: calc(100vh - 80px); /* Aggiungi questa riga */
-    min-height: calc(100vh - 80px);
-    padding-top: 20px;
+  min-height: calc(100vh - 80px);
+  padding-top: var(--spacing-xl);
 }
 
-/* Unifica z-index con altre pagine */
-.card-img-top {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: 100; /* Aggiungi per coerenza con album.css */
-}
-
-.card-body {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 10px;
-    z-index: 200; /* Aggiungi per coerenza con album.css */
-}
-
-/* Unifica stili delle carte con album.css */
-.card {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    border-radius: 10px;
-    overflow: hidden;
-    max-width: 180px;
-}
-
-.card-title {
-    margin: 0;
-    font-size: 0.9rem;
-    font-weight: bold;
-    /* Aggiungi stili per coerenza con album */
-    position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    text-align: center;
-    border: 2px solid white;
-    padding: 5px;
-    border-radius: 5px;
-    width: 90%;
-    background-color: black;
-    color: white;
-}
-
-/* Unifica z-index degli overlay */
-#overlay-background {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: none;
-    z-index: 9998; /* Mantieni coerente con trade.css */
-    overflow-y: auto;
-}
-
-#overlay-message {
-    position: relative;
-    margin: 40px auto;
-    background-color: #fff;
-    color: #000;
-    padding: 30px;
-    border-radius: 8px;
-    /* Rimuovi min-height e max-height fissi */
-    max-width: 90%;
-    width: fit-content; /* Adatta la larghezza al contenuto */
-    text-align: center;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    z-index: 9999;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: center; /* Centra verticalmente il contenuto */
-    align-items: center; /* Centra orizzontalmente il contenuto */
-}
-
-/* Contenitore delle carte nell'overlay */
-.card-container {
-    margin-top: 20px;
-    margin-bottom: 20px;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 20px;
-    /* Rimuovi flex: 1 per permettere dimensioni naturali */
-    width: 100%;
-    align-items: flex-start;
-}
-
-/* Rimuovi le regole precedenti per row.card-container */
-#overlay-message .row.card-container {
-    align-items: flex-start;
-    justify-content: center;
-}
-
-/* Altezza per le carte Marvel nell'overlay */
-.marvel-card {
-    min-height: 250px; /* Altezza minima per le carte */
-    height: auto;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Aspect ratio personalizzato per le carte */
-.custom-aspect-ratio {
-    aspect-ratio: 3/4; /* Rapporto larghezza/altezza tipico delle carte */
-    min-height: 200px; /* Altezza minima */
-    height: 100%;
-}
-
-/* Assicurati che le carte nell'overlay abbiano dimensioni appropriate */
-#overlay-message .marvel-card {
-    min-height: 280px; /* Altezza maggiore nell'overlay */
-    max-height: 350px; /* Altezza massima per evitare carte troppo grandi */
-}
-
-#overlay-message .custom-aspect-ratio {
-    min-height: 220px;
-    height: 100%;
-}
-
-/* Assicurati che le immagini delle carte si adattino correttamente */
-#overlay-message .card-img-top {
-    height: 70%; /* L'immagine occupa il 70% della carta */
-    object-fit: cover;
-}
-
-#overlay-message .card-body {
-    height: 30%; /* Il body occupa il 30% della carta */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Stili per i bottoni di acquisto crediti */
+/* Buy buttons grid */
 .buy-button {
-    width: 120px; /* Larghezza fissa per tutti i bottoni */
-    height: 60px; /* Altezza fissa */
-    font-size: 1rem;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    white-space: nowrap; /* Evita che il testo vada a capo */
-    border-radius: 8px;
-    transition: all 0.3s ease;
+  width: 120px;
+  height: 60px;
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  background-color: var(--color-info);
+  color: white;
 }
 
 .buy-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  background-color: #2563eb;
 }
 
-/* Contenitori dei bottoni per miglior allineamento */
 .button-row {
-    display: flex;
-    justify-content: center;
-    gap: 20px; /* Spazio uniforme tra i bottoni */
-    margin-bottom: 1rem;
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-xl);
+  margin-bottom: var(--spacing-lg);
 }
 
-/* Responsive design unificato */
+/* Packet info */
+.packet-info {
+  max-width: 300px;
+  margin: 0 auto var(--spacing-md);
+}
+
+/* Credits warning */
+#credits-warning {
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+/* Buy overlay specific */
+#overlay-message {
+  position: relative;
+  margin: 40px auto;
+  background-color: white;
+  color: var(--color-dark);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-md);
+  max-width: 90%;
+  width: fit-content;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  z-index: 9999;
+  overflow-y: auto;
+}
+
+#overlay-message h2 {
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Cards in overlay */
+#overlay-message .card-container {
+  margin-top: var(--spacing-lg);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-lg);
+}
+
+#overlay-message .marvel-card {
+  min-height: 280px;
+  max-height: 350px;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-    .main-content {
-        min-height: calc(100vh - 70px);
-    }
-    
-    .main-content .row {
-        min-height: 300px;
-    }
-    
-    .col-md-6 {
-        padding: 30px 15px;
-    }
-    
-    .buy-button {
-        width: 100px; /* Riduci larghezza su mobile */
-        height: 80px; /* Aumenta altezza su mobile per compensare */
-        font-size: 0.9rem;
-    }
-    
-    .button-row {
-        gap: 15px; /* Riduci gap su mobile */
-    }
-    
-    .packet-info {
-        max-width: 250px;
-    }
-}
-
-@media (max-width: 576px) {
-    .buy-button {
-        width: 90px;
-        height: 70px;
-        font-size: 0.8rem;
-    }
-    
-    .button-row {
-        gap: 10px;
-    }
+  .buy-button {
+    width: 100px;
+    height: 50px;
+    font-size: 0.9rem;
+  }
+  
+  .button-row {
+    gap: var(--spacing-md);
+  }
 }

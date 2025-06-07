@@ -1,18 +1,43 @@
-html, body {
-    height: 100%; /* Mantieni come già presente */
-    margin: 0;
-    padding: 0;
-}
+/* ===== HOME SPECIFIC STYLES ===== */
 
-/* Aggiungi z-index se ci sono elementi che ne hanno bisogno */
-.modal {
-    z-index: 1050; /* Bootstrap standard */
-}
-
+/* Content rows layout */
 .content-row {
-    height: 30vh; /* Ogni riga occupa il 30% dell'altezza della viewport */
-    padding: 20px;
-    align-items: center;
-    text-align: center;
+  height: 30vh;
+  padding: var(--spacing-xl);
+  display: flex;
+  align-items: center;
+  text-align: center;
+  border-bottom: 1px solid var(--color-light);
 }
 
+.content-row:last-child {
+  border-bottom: none;
+}
+
+.content-row h2 {
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+.content-row p {
+  color: var(--color-muted);
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* Modal overrides for home */
+.modal-content {
+  border-radius: var(--radius-md);
+  border: none;
+}
+
+.modal-header {
+  background-color: var(--color-light);
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.modal-title {
+  color: var(--color-primary);
+  font-weight: 600;
+}

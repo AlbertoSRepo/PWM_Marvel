@@ -1,176 +1,107 @@
-/* Impostazioni di base per l'HTML e il body */
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
+/* ===== ALBUM SPECIFIC STYLES ===== */
 
-/* Contenitore principale delle carte */
-.card-container {
-  margin-top: 20px;
-  margin-bottom: 20px;
-  position: relative;
-  transition: opacity 0.3s ease;
-}
-
+/* Card container transparent effect */
 .card-container.transparent {
-  opacity: 0.3; /* Semitrasparenza quando l'overlay è attivo */
+  opacity: 0.3;
+  transition: opacity var(--transition-normal);
 }
 
-/* Stile per i dettagli della carta */
-.card-details {
-  font-size: 0.9rem;
-  color: #555;
-  text-align: center;
-}
-
-.card{
-  position: relative;
-  width: 100%;
-  height: 100%;
-  border-radius: 10px; /* Imposta il border-radius sulla carta */
-  overflow: hidden; /* Assicura che l'immagine rispetti il border-radius della carta */
-}
-
-.custom-aspect-ratio {
-  position: relative;
-  width: 100%;
-  padding-bottom: 133.33%; /* Rapporto 3:4 (4 / 3 = 1.333) */
-}
-
-.card-body {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  color: white;
-}
-
-.card-img-top {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 10px 10px 0 0; /* Applica il border-radius solo agli angoli superiori */
-  object-fit: cover;
-}
-
-.card-title {
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  margin: 0;
-  text-align: center;
-  border: 2px solid white;
-  padding: 5px;
-  border-radius: 5px;
-  width: 90%; /* Imposta la larghezza del titolo al 90% della carta */
-  font-size: 0.9rem; /* Rende il testo più piccolo */
-  background-color: black;
-}
-
-.card-id {
-  display: none;
+/* Album specific card states */
+.non-posseduta {
+  pointer-events: none;
+  opacity: 0.5;
 }
 
 .posseduta .card-quantity {
   position: absolute;
-  top: 10px; /* Posiziona il cerchio 10px dall'alto */
-  right: 10px; /* Posiziona il cerchio 10px da destra */
-  width: 40px; /* Larghezza del cerchio */
-  height: 40px; /* Altezza del cerchio (uguale alla larghezza per fare un cerchio) */
-  border-radius: 50%; /* Trasforma il contenitore in un cerchio */
-  border: 2px solid rgba(139, 0, 0); /* Bordo bianco attorno al cerchio */
-  display: flex; /* Usa Flexbox per centrare il contenuto */
-  justify-content: center; /* Centra orizzontalmente il contenuto */
-  align-items: center; /* Centra verticalmente il contenuto */
-  background-color: rgba(139, 0, 0); /* Sfondo semitrasparente per contrasto */
-  color: white; /* Colore del testo */
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--color-primary);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--color-primary);
+  color: white;
+  font-weight: bold;
+  z-index: 300;
 }
 
-.marvel-card:hover {
-  transform: scale(1.1); /* Ingrandimento quando il cursore è sopra la carta */
-}
-
-/* Carta posseduta */
-.posseduta:hover {
-  transform: scale(1.1);
-}
-
-/* Carta non posseduta */
-.non-posseduta {
-  pointer-events: none;
-}
-
+/* Fixed bottom navigation bar */
 .fixed-bottom-bar {
   position: fixed;
   bottom: 0;
   width: 100%;
-  background-color: rgba(136, 0, 0, 0.9);
-  padding: 10px 0;
+  background-color: rgba(220, 38, 38, 0.95);
+  padding: var(--spacing-md) 0;
+  z-index: 300;
+  box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
 }
 
 #albumForm {
   display: flex;
-  justify-content: space-between; /* Distribuisce gli elementi con spazio tra di loro */
+  justify-content: space-between;
   align-items: center;
   width: 100%;
-  max-width: 600px; /* Limita la larghezza totale del form per evitare che gli elementi si allontanino troppo */
+  max-width: 600px;
   margin: 0 auto;
 }
 
 #albumPage {
   width: 100px;
   text-align: center;
-  margin: 0 auto;
 }
 
 .button-group-left, .button-group-right {
   display: flex;
-  gap: 20px; /* Spazio tra i pulsanti */
+  gap: var(--spacing-lg);
 }
 
-.button-group-right {
-  display: flex;
-  gap: 20px;
-}
-
-/* Style for the loading spinner */
+/* Loading spinner positioning */
 #loading-spinner {
   position: fixed;
   top: 50%;
   left: 50%;
-  display: none;
+  transform: translate(-50%, -50%);
+  z-index: 900;
 }
 
-/* Sfondo nero semitrasparente per l'overlay */
-#overlay-background {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
+/* Album overlay specific styles */
+#overlay {
+  display: flex;
+  flex-direction: column;
+}
+
+.overlay-content {
+  display: flex;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
+  gap: var(--spacing-xl);
 }
 
-/* Overlay principale */
-#overlay {
-  display: none;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-  width: 80vw;
-  height: 80vh;
+.overlay-right {
+  flex: 0 0 30%;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: var(--spacing-lg);
+}
+
+.overlay-right img {
+  max-width: 100%;
+  height: auto;
+  margin-bottom: var(--spacing-lg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.overlay-left {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 var(--spacing-lg);
 }
 
 #loading-spinner-overlay {
@@ -180,121 +111,38 @@ html, body {
   position: absolute;
   top: 50%;
   left: 50%;
-  z-index: 2000; /* Mantiene lo spinner davanti a tutti gli altri elementi */
+  transform: translate(-50%, -50%);
+  z-index: 2000;
 }
 
-/* Stile per il titolo nell'overlay */
-#overlay h5 {
-  margin-bottom: 20px;
-  font-size: 1.5rem;
-}
-
-/* Impostazioni per dividere l'overlay in due parti */
-.overlay-content {
-  display: flex;
-  width: 100%;
-  height: 100%;
-  justify-content: space-between;
-}
-
-/* Parte destra con immagine e nome del personaggio */
-.overlay-right {
-  flex: 30%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-}
-
-.overlay-right img {
-  max-width: 100%;
-  height: auto;
-  margin-bottom: 20px;
-}
-
-/* Parte sinistra con collezioni e barra di scorrimento */
-.overlay-left {
-  flex: 70%;
-  overflow-y: auto;
-  padding-left: 20px;
-  padding-right: 20px;
-}
-
-/* Impostazioni per il contenitore accordion */
+/* Accordion styles */
 #detailsAccordion {
   max-height: 100%;
   overflow-y: auto;
 }
-.accordion-body div {
-  margin-bottom: 1rem;
-}
-/* Mantieni gli stili predefiniti per .accordion-body *
 
-/* Applica display: flex al nuovo wrapper .accordion-content */
 .accordion-content {
   display: flex;
   align-items: flex-start;
+  gap: var(--spacing-md);
 }
 
-/* Stili per l'immagine */
 .accordion-image {
-  flex: 0 0 auto;
-  width: 20%;
-  margin-right: 15px;
+  flex: 0 0 20%;
   object-fit: cover;
   min-width: 50px;
+  border-radius: var(--radius-sm);
 }
 
-/* Stili per il testo */
 .accordion-text {
   flex: 1;
 }
 
 .accordion-text p {
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--spacing-sm);
 }
 
-.accordion-text a {
-  display: inline-block;
-  margin-top: 0.5rem;
-}
-
-
-/* Icona X per chiudere l'overlay */
-.close-icon {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  cursor: pointer;
-  font-size: 40px;
-  color: red;
-}
-
-/* Z INDEX */
-
-.card-img-top {
-  z-index: 100;
-}
-
-.card-body {
-  z-index: 200;
-}
-
-.fixed-bottom-bar {
-  z-index: 300; /* Imposta un alto valore di z-index per assicurare che sia sempre davanti */
-}
-
-/* Style for the loading spinner */
-#loading-spinner {
-  z-index: 900;
-}
-
-/* Sfondo nero semitrasparente per l'overlay */
-#overlay-background {
-  z-index: 9998; /* Aggiungi se mancante */
-}
-
-/* Overlay principale */
-#overlay {
-  z-index: 9999; /* Aggiungi se mancante */
+/* Sell button */
+#sell-card-btn {
+  margin-top: var(--spacing-md);
 }
