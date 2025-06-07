@@ -12,13 +12,15 @@ import {
   deleteOffer,
   showOfferOverlay,
   showManageProposalOverlay,
-  acceptOffer
+  acceptOffer,
+  showViewCardsOverlay
 } from './tradeController.js';
 
 import {
   hideOverlayUI,
   hideManageProposalOverlayUI,
-  updateSelectedCardsListUI
+  updateSelectedCardsListUI,
+  hideViewCardsOverlayUI
 } from './tradeUI.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -177,25 +179,88 @@ document.addEventListener('DOMContentLoaded', async () => {
         alert('Puoi selezionare solo 5 carte.');
         return;
       }
-      selectedCards.value.push({ id: cardId, name: cardName });
+      
+      // Estrai i dati dell'immagine dall'elemento della carta
+      const cardImg = element.querySelector('.card-img-top');
+      const imageSrc = cardImg ? cardImg.src : '';
+      
+      // Crea l'oggetto thumbnail
+      let thumbnail = null;
+      if (imageSrc && !imageSrc.includes('placeholder-image')) {
+        const lastDotIndex = imageSrc.lastIndexOf('.');
+        if (lastDotIndex > 0) {
+          const path = imageSrc.substring(0, lastDotIndex);
+          const extension = imageSrc.substring(lastDotIndex + 1);
+          thumbnail = { path, extension };
+        }
+      }
+      
+      selectedCards.value.push({ 
+        id: cardId, 
+        name: cardName,
+        thumbnail: thumbnail
+      });
       element.classList.add('selected-card');
     }
     updateSelectedCardsListUI(selectedCards.value);
   }
 
+  // Aggiungi funzione globale per rimuovere carte selezionate
+  window.removeSelectedCard = function(cardId) {
+    selectedCards.value = selectedCards.value.filter(sc => sc.id !== cardId);
+    
+    // Trova e rimuovi la classe 'selected-card' dalla griglia
+    const allCards = document.querySelectorAll('#card-selection .marvel-card .card-id');
+    allCards.forEach(cardIdElement => {
+      if (cardIdElement.textContent.includes(cardId)) {
+        const cardElement = cardIdElement.closest('.card');
+        if (cardElement) {
+          cardElement.classList.remove('selected-card');
+        }
+      }
+    });
+    
+    updateSelectedCardsListUI(selectedCards.value);
+  };
+
   // 6. Community trades: event delegation su "Invia Offerta"
   const communityTrades = document.getElementById('community-trades');
   communityTrades.addEventListener('click', (event) => {
     const offerBtn = event.target.closest('.btn-primary');
-    if (!offerBtn || offerBtn.disabled) return;
+    const viewBtn = event.target.closest('.btn-info');
     
-    const tradeId = offerBtn.getAttribute('data-trade-id');
-    if (tradeId) {
-      // Salva l'ID della trade corrente per la ricerca
-      window.currentTradeId = tradeId;
-      showOfferOverlay(tradeId, selectedCards);
+    if (offerBtn && !offerBtn.disabled) {
+      const tradeId = offerBtn.getAttribute('data-trade-id');
+      if (tradeId) {
+        window.currentTradeId = tradeId;
+        showOfferOverlay(tradeId, selectedCards);
+      }
+    }
+    
+    if (viewBtn) {
+      const tradeId = viewBtn.getAttribute('data-trade-id');
+      if (tradeId) {
+        showViewCardsOverlay(tradeId);
+      }
     }
   });
+
+  // Event listener per chiudere l'overlay di visualizzazione carte
+  const closeViewCardsBtn = document.getElementById('close-view-cards');
+  if (closeViewCardsBtn) {
+    closeViewCardsBtn.addEventListener('click', () => {
+      hideViewCardsOverlayUI();
+    });
+  }
+  
+  const viewCardsOverlayBg = document.getElementById('view-cards-overlay-background');
+  if (viewCardsOverlayBg) {
+    viewCardsOverlayBg.addEventListener('click', (event) => {
+      if (event.target === viewCardsOverlayBg) {
+        hideViewCardsOverlayUI();
+      }
+    });
+  }
 
   // 7. Gestione proposte utente: “Elimina” e “Gestisci Proposta”
   const userProposals = document.getElementById('user-proposals');

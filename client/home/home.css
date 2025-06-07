@@ -1,4 +1,21 @@
+<<<<<<< HEAD
 /* ===== HOME SPECIFIC STYLES ===== */
+=======
+html, body {
+    height: 100%; /* Mantieni come già presente */
+    margin: 0;
+    padding: 0;
+}
+
+.home-container {
+    min-height: calc(100vh - 80px); /* 100vh meno navbar (80px) */
+}
+
+/* Aggiungi z-index se ci sono elementi che ne hanno bisogno */
+.modal {
+    z-index: 1050; /* Bootstrap standard */
+}
+>>>>>>> 92ba650
 
 /* Content rows layout */
 .content-row {

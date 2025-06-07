@@ -1,4 +1,16 @@
-/* ===== ALBUM SPECIFIC STYLES ===== */
+/* Impostazioni di base per l'HTML e il body */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Contenitore principale delle carte */
+.card-container {
+  min-height: calc(100vh - 80px); /* 100vh meno navbar (80px) */
+  position: relative; /* Necessario per posizionamento assoluto dei figli */
+  transition: opacity 0.3s ease;
+}
 
 /* Card container transparent effect */
 .card-container.transparent {
@@ -31,13 +43,14 @@
 
 /* Fixed bottom navigation bar */
 .fixed-bottom-bar {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  background-color: rgba(220, 38, 38, 0.95);
-  padding: var(--spacing-md) 0;
-  z-index: 300;
-  box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+  position: absolute; 
+  bottom: 20px; /* Posiziona la barra in basso */
+  left: 50%; /* Posiziona il bordo sinistro al centro */
+  transform: translateX(-50%); /* Sposta la barra indietro del 50% della sua larghezza */
+  justify-content: center; /* Centra i pulsanti */
+  background-color: rgba(136, 0, 0, 0.9);
+  padding: 10px 10px;
+  border-radius: 20px; /* Aggiunge bordi arrotondati */
 }
 
 #albumForm {

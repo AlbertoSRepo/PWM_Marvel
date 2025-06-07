@@ -139,22 +139,32 @@ class TradeController {
   }
 
   // Controller: Funzione per ottenere i dettagli di una proposta specifica (accessibile a tutti)
-  getTradeDetails = async (req, res, next) => {
-    try {
-      const { tradeId } = req.params;
-
-      // Chiama il service per ottenere la proposta
-      const trade = await tradeService.getTradeDetails(tradeId);
-
-      if (!trade) {
-        return res.status(404).json({ message: 'Proposta non trovata.' });
-      }
-
-      res.status(200).json(trade);
-    } catch (error) {
-      next(error);
+// Controller: Funzione per ottenere i dettagli di una proposta specifica (accessibile a tutti)
+getTradeDetails = async (req, res, next) => {
+  try {
+    const { tradeId } = req.params;
+    
+    console.log('Richiesta dettagli per trade ID:', tradeId);
+    
+    // Verifica che tradeId sia valido
+    if (!tradeId || tradeId.length !== 24) {
+      return res.status(400).json({ message: 'ID proposta non valido.' });
     }
-  };
+
+    // Chiama il service per ottenere la proposta
+    const trade = await tradeService.getTradeDetails(tradeId);
+
+    if (!trade) {
+      return res.status(404).json({ message: 'Proposta non trovata.' });
+    }
+
+    console.log('Trade details trovati:', trade);
+    res.status(200).json(trade);
+  } catch (error) {
+    console.error('Errore in getTradeDetails:', error);
+    next(error);
+  }
+};
 };
 
 export default new TradeController();

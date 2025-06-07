@@ -1,9 +1,22 @@
 /* ===== BUY SPECIFIC STYLES ===== */
 
+<<<<<<< HEAD
 /* Main content layout */
 .main-content {
   min-height: calc(100vh - 80px);
   padding-top: var(--spacing-xl);
+=======
+/* Stili base unificati */
+html, body {
+    height: 100%; /* Già corretto */
+    margin: 0;
+    padding: 0;
+}
+
+/* Contenuto principale */
+.buy-container {
+    min-height: calc(100vh - 80px);
+>>>>>>> 92ba650
 }
 
 /* Buy buttons grid */
