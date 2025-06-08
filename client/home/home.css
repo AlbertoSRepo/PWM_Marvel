@@ -5,7 +5,7 @@ html, body {
 }
 
 .home-container {
-    min-height: calc(100vh - 80px); /* 100vh meno navbar (80px) */
+    min-height: calc(100vh - 120px);
 }
 
 /* Aggiungi z-index se ci sono elementi che ne hanno bisogno */
@@ -16,7 +16,7 @@ html, body {
 .content-row {
     height: 30vh; /* Ogni riga occupa il 30% dell'altezza della viewport */
     padding: 20px;
-    align-items: center;
-    text-align: center;
+  align-items: center;
+  text-align: center;
 }
 

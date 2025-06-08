@@ -1,21 +1,13 @@
 html,
 body {
+    height: 100%; /* Mantieni come già presente */
     margin: 0;
     padding: 0;
     /* Rimuovi height: 100% che forza la scrollbar */
 }
 
-/* Aggiungi stili base per coerenza */
-html, body {
-    margin: 0;
-    padding: 0;
-}
-
 /* Stili per form coerenti */
 .container {
-    /* Cambia da min-height a padding per evitare forzature di altezza */
-    padding: 20px 15px;
-    /* Rimuovi min-height: calc(100vh - 80px) che causa overflow */
 }
 
 /* Responsive design */

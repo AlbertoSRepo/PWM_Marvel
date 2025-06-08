@@ -27,8 +27,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error('Errore nel caricamento dei crediti:', error);
   }
 
-  // 4) Attacca listener ai pulsanti "buy-button" per i crediti
-  document.querySelectorAll('.buy-button').forEach(button => {
+  // 4) Attacca listener ai pulsanti "coin-button" per i crediti
+  document.querySelectorAll('.coin-button').forEach(button => {
     button.addEventListener('click', () => {
       const credits = parseInt(button.getAttribute('data-credits'), 10);
       buyCredits(credits);

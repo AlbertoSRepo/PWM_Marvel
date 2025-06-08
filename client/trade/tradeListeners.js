@@ -5,15 +5,17 @@ import {
   loadInitialData,
   createTradeProposal,
   searchCardsLocallyAndUpdate,
-  searchCardsLocallyAndUpdateForOffer,  // AGGIUNGI QUESTO IMPORT
+  searchCardsLocallyAndUpdateForOffer,
   loadUserCards,
-  loadUserCardsForOffer,  // AGGIUNGI QUESTO IMPORT
+  loadUserCardsForOffer,
   deleteTrade,
   deleteOffer,
   showOfferOverlay,
   showManageProposalOverlay,
   acceptOffer,
-  showViewCardsOverlay
+  showViewCardsOverlay,
+  showViewProposalCardsOverlay,
+  showViewOfferCardsOverlay
 } from './tradeController.js';
 
 import {
@@ -24,10 +26,10 @@ import {
 } from './tradeUI.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Carica la navbar
+  // 1. Carica la navbar
   loadNavbar('trade');
 
-  // 2. Verifica/recupera il file JSON dal server, se non presente in localStorage
+  // 2. Verifica/recupera il file JSON dal server
   try {
     const figurineData = await fetchFigurineDataIfNeeded();
     if (figurineData) {
@@ -39,41 +41,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error('Errore in fase di caricamento figurineData:', error);
   }
 
-  // Stato interno (potresti metterlo altrove, p.es. in un “store” dedicato)
+  // Stato interno
   const selectedCards = {
-    // usage: selectedCards.value = [...]
-    // è un oggetto perché vogliamo passarlo per riferimento ad altre funzioni
     value: []
   };
   let currentPage = 1;
 
-  // 1. Carica dati iniziali: proposte community, proposte utente, offerte utente
+  // 3. Carica dati iniziali
   await loadInitialData();
 
-  // 2. Event listener: click su "Crea Nuova Proposta"
+  // 4. Event listener: click su "Crea Nuova Proposta"
   const createTradeBtn = document.getElementById('create-trade-btn');
   createTradeBtn.addEventListener('click', () => {
-    // Apri overlay
-    // Reimposta i testi
     showOverlayUIForNewProposal();
-    loadUserCards(1); // Carica la pagina 1 di carte
+    loadUserCards(1);
   });
 
   // Funzione di supporto per aprire overlay in modalità "nuova proposta"
   function showOverlayUIForNewProposal() {
-    // Mostra l’overlay
     const overlayBackground = document.getElementById('overlay-background');
     const overlay = document.getElementById('overlay');
     overlayBackground.style.display = 'block';
     overlay.style.display = 'block';
 
-    // Titoli e bottone
     const overlayTitle = document.getElementById('overlay-title');
     overlayTitle.textContent = 'Seleziona le tue carte';
     const submitBtn = document.getElementById('submit-trade-offer-btn');
     submitBtn.textContent = 'Invia Proposta';
     submitBtn.onclick = () => {
-      // Costruisco l’array di carte proposte
       if (selectedCards.value.length === 0) {
         alert('Devi selezionare almeno una carta per inviare la proposta.');
         return;
@@ -88,12 +83,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
   }
 
-  // 3. Event listener: cercare carte per nome
+  // 5. Event listener: cercare carte per nome
   const searchButton = document.getElementById('search-button');
   searchButton.addEventListener('click', () => {
     const searchQuery = document.getElementById('search-input').value.trim();
     
-    // Verifica se siamo in modalità "offerta" controllando il titolo dell'overlay
     const overlayTitle = document.getElementById('overlay-title');
     const isOfferMode = overlayTitle.textContent === 'Seleziona le carte da offrire';
     
@@ -121,7 +115,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // 4. Paginazione (prev / next)
+  // 6. Paginazione (prev / next)
   const prevPageBtn = document.getElementById('prev-page-btn');
   const nextPageBtn = document.getElementById('next-page-btn');
 
@@ -129,7 +123,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (currentPage > 1) {
       currentPage--;
       
-      // Verifica se siamo in modalità offerta
       const overlayTitle = document.getElementById('overlay-title');
       const isOfferMode = overlayTitle.textContent === 'Seleziona le carte da offrire';
       
@@ -144,7 +137,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   nextPageBtn.addEventListener('click', () => {
     currentPage++;
     
-    // Verifica se siamo in modalità offerta
     const overlayTitle = document.getElementById('overlay-title');
     const isOfferMode = overlayTitle.textContent === 'Seleziona le carte da offrire';
     
@@ -155,7 +147,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // 5. Selezione carte (event delegation)
+  // 7. Selezione carte (event delegation)
   const cardSelection = document.getElementById('card-selection');
   cardSelection.addEventListener('click', (event) => {
     const cardElement = event.target.closest('.card');
@@ -168,23 +160,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   function toggleCardSelection(cardId, cardName, element) {
-    // se già selezionato, rimuovo
     const isAlreadySelected = selectedCards.value.some(sc => sc.id === cardId);
     if (isAlreadySelected) {
       selectedCards.value = selectedCards.value.filter(sc => sc.id !== cardId);
       element.classList.remove('selected-card');
     } else {
-      // se non selezionato, aggiungo
       if (selectedCards.value.length >= 5) {
         alert('Puoi selezionare solo 5 carte.');
         return;
       }
       
-      // Estrai i dati dell'immagine dall'elemento della carta
       const cardImg = element.querySelector('.card-img-top');
       const imageSrc = cardImg ? cardImg.src : '';
       
-      // Crea l'oggetto thumbnail
       let thumbnail = null;
       if (imageSrc && !imageSrc.includes('placeholder-image')) {
         const lastDotIndex = imageSrc.lastIndexOf('.');
@@ -209,7 +197,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.removeSelectedCard = function(cardId) {
     selectedCards.value = selectedCards.value.filter(sc => sc.id !== cardId);
     
-    // Trova e rimuovi la classe 'selected-card' dalla griglia
     const allCards = document.querySelectorAll('#card-selection .marvel-card .card-id');
     allCards.forEach(cardIdElement => {
       if (cardIdElement.textContent.includes(cardId)) {
@@ -223,7 +210,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateSelectedCardsListUI(selectedCards.value);
   };
 
-  // 6. Community trades: event delegation su "Invia Offerta"
+  // 8. Community trades: event delegation per "Invia Offerta" e "View"
   const communityTrades = document.getElementById('community-trades');
   communityTrades.addEventListener('click', (event) => {
     const offerBtn = event.target.closest('.btn-primary');
@@ -252,7 +239,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       hideViewCardsOverlayUI();
     });
   }
-  
+
   const viewCardsOverlayBg = document.getElementById('view-cards-overlay-background');
   if (viewCardsOverlayBg) {
     viewCardsOverlayBg.addEventListener('click', (event) => {
@@ -262,11 +249,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // 7. Gestione proposte utente: “Elimina” e “Gestisci Proposta”
+  // 9. Gestione proposte utente: "Elimina", "Gestisci Proposta", e "View"
   const userProposals = document.getElementById('user-proposals');
   userProposals.addEventListener('click', (event) => {
     const deleteBtn = event.target.closest('.btn-danger');
     const manageBtn = event.target.closest('.btn-primary');
+    const viewBtn = event.target.closest('.btn-info');
 
     if (deleteBtn) {
       const tradeId = deleteBtn.getAttribute('data-trade-id');
@@ -276,51 +264,87 @@ document.addEventListener('DOMContentLoaded', async () => {
       const tradeId = manageBtn.getAttribute('data-trade-id');
       showManageProposalOverlay(tradeId);
     }
+    if (viewBtn) {
+      const tradeId = viewBtn.getAttribute('data-trade-id');
+      if (tradeId) {
+        showViewProposalCardsOverlay(tradeId);
+      }
+    }
   });
 
-  // 8. Gestione offerte utente: “Elimina”
+  // 10. Gestione offerte utente: "Elimina" e "View"
   const userOffers = document.getElementById('user-offers');
   userOffers.addEventListener('click', (event) => {
     const deleteBtn = event.target.closest('.btn-danger');
-    if (!deleteBtn) return;
-    const offerId = deleteBtn.getAttribute('data-offer-id');
-    if (offerId) {
-      deleteOffer(offerId);
+    const viewBtn = event.target.closest('.btn-info');
+    
+    if (deleteBtn) {
+      const offerId = deleteBtn.getAttribute('data-offer-id');
+      if (offerId) {
+        deleteOffer(offerId);
+      }
+    }
+    if (viewBtn) {
+      const offerId = viewBtn.getAttribute('data-offer-id');
+      if (offerId) {
+        showViewOfferCardsOverlay(offerId);
+      }
     }
   });
 
-  // 9. Gestione overlay “close” (sia overlay principale sia overlay manage-proposal)
+  // 11. Gestione bottoni overlay: "Chiudi" overlay principale
   const closeOverlayBtn = document.getElementById('close-overlay');
-  closeOverlayBtn.addEventListener('click', () => {
-    hideOverlayUI();
-  });
-  const overlayBackground = document.getElementById('overlay-background');
-  overlayBackground.addEventListener('click', (event) => {
-    if (event.target === overlayBackground) {
+  if (closeOverlayBtn) {
+    closeOverlayBtn.addEventListener('click', () => {
       hideOverlayUI();
-    }
-  });
+      selectedCards.value = [];
+      updateSelectedCardsListUI(selectedCards.value);
+    });
+  }
 
+  // 12. Chiusura overlay cliccando sul background
+  const overlayBackground = document.getElementById('overlay-background');
+  if (overlayBackground) {
+    overlayBackground.addEventListener('click', (event) => {
+      if (event.target === overlayBackground) {
+        hideOverlayUI();
+        selectedCards.value = [];
+        updateSelectedCardsListUI(selectedCards.value);
+      }
+    });
+  }
+
+  // 13. Gestione bottoni overlay "Gestisci Proposta": "Chiudi"
   const closeManageProposalBtn = document.getElementById('close-manage-proposal');
-  closeManageProposalBtn.addEventListener('click', () => {
-    hideManageProposalOverlayUI();
-  });
-  const manageProposalOverlayBg = document.getElementById('manage-proposal-overlay-background');
-  manageProposalOverlayBg.addEventListener('click', (event) => {
-    if (event.target === manageProposalOverlayBg) {
+  if (closeManageProposalBtn) {
+    closeManageProposalBtn.addEventListener('click', () => {
       hideManageProposalOverlayUI();
-    }
-  });
+    });
+  }
 
-  // 10. “Accetta Offerta” event delegation
+  // 14. Chiusura overlay "Gestisci Proposta" cliccando sul background
+  const manageProposalOverlayBg = document.getElementById('manage-proposal-overlay-background');
+  if (manageProposalOverlayBg) {
+    manageProposalOverlayBg.addEventListener('click', (event) => {
+      if (event.target === manageProposalOverlayBg) {
+        hideManageProposalOverlayUI();
+      }
+    });
+  }
+
+  // 15. Gestione bottoni "Accetta Offerta" nell'overlay "Gestisci Proposta"
   const offerList = document.getElementById('offer-list');
-  offerList.addEventListener('click', (event) => {
-    const acceptBtn = event.target.closest('.accept-offer-btn');
-    if (!acceptBtn) return;
-    const tradeId = acceptBtn.getAttribute('data-trade-id');
-    const offerId = acceptBtn.getAttribute('data-offer-id');
-    if (tradeId && offerId) {
-      acceptOffer(tradeId, offerId);
-    }
-  });
-});
+  if (offerList) {
+    offerList.addEventListener('click', (event) => {
+      const acceptBtn = event.target.closest('.accept-offer-btn');
+      if (acceptBtn) {
+        const tradeId = acceptBtn.getAttribute('data-trade-id');
+        const offerId = acceptBtn.getAttribute('data-offer-id');
+        if (tradeId && offerId) {
+          acceptOffer(tradeId, offerId);
+        }
+      }
+    });
+  }
+
+}); // FINE DEL BLOCCO DOMContentLoaded

@@ -2,23 +2,25 @@
 export const loadNavbar = (activePage) => {
     console.log('Loading navbar for page:', activePage); // Debug log
 
-    // Definisci le  classi dei bottoni, modificando la classe del bottone attivo
-    const albumClass = activePage === 'album' ? 'btn btn-primary me-2' : 'btn btn-secondary me-2';
-    const buyClass = activePage === 'buy' ? 'btn btn-primary me-2' : 'btn btn-secondary me-2';
-    const tradeClass = activePage === 'trade' ? 'btn btn-primary me-2' : 'btn btn-secondary me-2';
-    const userClass = activePage === 'user' ? 'btn btn-primary me-2' : 'btn btn-secondary me-2';
+    // Definisci le classi dei bottoni (ora tutti uguali, il colore sarà gestito dal CSS)
+    const albumClass = 'btn me-2';
+    const buyClass = 'btn me-2';
+    const tradeClass = 'btn me-2';
+    const userClass = 'btn me-2';
 
     const navbarHTML = `
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <nav class="navbar navbar-expand-lg">
             <div class="container-fluid">
-                <a class="navbar-brand" onclick="window.location.href = '../home/home.html';">PWM Marvel</a>
+                <a class="navbar-brand" onclick="window.location.href = '../home/home.html';">
+                    <img src="./logo.svg" alt="PWM Marvel" height="100" class="d-inline-block align-text-top">
+                </a>
                 <div class="d-flex ms-auto">
                     <button class="${albumClass}" type="button" onclick="window.location.href = '../album/album.html';">Album</button>
                     <button class="${buyClass}" type="button" onclick="window.location.href = '../buy/buy.html';">Buy</button>
                     <button class="${tradeClass}" type="button" onclick="window.location.href = '../trade/trade.html';">Trade</button>
                     <button class="${userClass}" type="button" onclick="window.location.href = '../user/user.html';">User</button>
                     <!-- Aggiungi qui il campo non cliccabile per mostrare i crediti -->
-                    <span id="user-credits" class="navbar-text ms-3">Crediti: <span id="credit-count">0</span>
+                    <span id="user-credits" class="navbar-text ms-3">Crediti: <span id="credit-count">0</span></span>
                 </div>
             </div>
         </nav>

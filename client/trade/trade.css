@@ -5,7 +5,7 @@ html, body {
   padding: 0;
 }
 .trade-container {
-  min-height: calc(100vh - 80px); /* 100vh meno navbar (80px) */
+  min-height: calc(100vh - 120px);
 }
 
 #overlay-background {
@@ -72,9 +72,8 @@ html, body {
   #card-selection {
     flex: 1;
     overflow-y: auto;
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 5px;
+    padding: 20px;
+    /* RIMUOVI: display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; */
   }
   
   /* Stile per le carte selezionate */
@@ -133,48 +132,102 @@ html, body {
   color: #c82333;
 }
 
-  /* Contenitore delle carte all'interno dell'overlay */
+  /* Contenitore delle carte all'interno dell'overlay - MODIFICATO */
   #card-selection {
     flex: 1;
-    overflow-y: auto; /* Abilita lo scrolling verticale per le carte */
-    padding: 5px;
-    display: grid;
-    grid-template-columns: repeat(7, 1fr); /* Griglia con 7 colonne */
-    gap: 5px; /* Distanza tra le carte ridotta */
+    overflow-y: auto;
+    padding: 20px;
+    /* RIMUOVI: display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; */
   }
   
-  /* Stile per le carte nell'overlay */
+  /* Stile per le carte nell'overlay - MODIFICATO */
   .marvel-card {
-    width: 100%;
-    height: auto;
+    /* RIMUOVI: width: 100%; height: auto; */
     text-align: center;
     transition: transform 0.3s ease;
-    border-radius: 10px; /* Aggiungi per coerenza */
+    border-radius: 10px;
     overflow: hidden;
+    /* AGGIUNGI: */
+    position: relative;
   }
   
   .marvel-card:hover {
     transform: scale(1.05);
   }
   
-  /* Stile per l'immagine della carta */
-  .marvel-card img {
+  /* AGGIUNGI: Stili per replicare l'album */
+  .marvel-card .card {
+    position: relative;
     width: 100%;
-    height: 80px; /* Altezza ulteriormente ridotta */
+    height: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  
+  .marvel-card .custom-aspect-ratio {
+    position: relative;
+    width: 100%;
+    padding-bottom: 133.33%; /* Rapporto 3:4 come nell'album */
+  }
+  
+  .marvel-card .card-body {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    color: white;
+  }
+  
+  .marvel-card .card-img-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 10px 10px 0 0;
     object-fit: cover;
+    z-index: 100;
   }
   
-  /* Stile per il testo della carta */
   .marvel-card .card-title {
-    font-size: 0.9rem; /* Font ridotto */
-    margin-top: 5px;
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    text-align: center;
+    border: 2px solid white;
+    padding: 5px;
+    border-radius: 5px;
+    width: 90%;
+    font-size: 0.9rem;
+    background-color: black;
+    z-index: 200;
   }
   
-  .marvel-card .card-text {
-    font-size: 0.7rem; /* Font ridotto per adattarsi allo spazio */
-    color: #555;
+  .marvel-card .card-id {
+    display: none;
   }
   
+  .marvel-card .card-quantity {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid rgba(139, 0, 0);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(139, 0, 0);
+    color: white;
+    font-weight: bold;
+    font-size: 0.9rem;
+    z-index: 200;
+  }
+
   /* Icona X per chiudere l'overlay */
   .close-icon {
     position: absolute;
@@ -229,61 +282,250 @@ html, body {
   padding: 10px;
   border: 1px solid #ddd;
   background-color: #f9f9f9;
+  max-height: calc(70vh - 120px); /* Permetti scroll se ci sono molte offerte */
 }
 
 /* Stile per ogni offerta */
 .offer-item {
   background-color: #e9ecef;
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 5px;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 8px;
   border: 1px solid #ccc;
 }
 
-/* Icona per chiudere l'overlay */
-.close-icon {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  font-size: 24px;
-  cursor: pointer;
-  color: red;
+/* Container per le carte offerte */
+.offer-cards-container {
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  border: 1px solid #dee2e6;
 }
 
-/* Overlay per visualizzare le carte */
+.offer-cards-container h6 {
+  color: #495057;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* Grid per le carte offerte */
+.offer-cards-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-start;
+}
+
+/* Stile per singola carta offerta */
+.offer-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: white;
+  border-radius: 6px;
+  padding: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  min-width: 80px;
+  max-width: 120px;
+}
+
+/* Container per l'immagine della carta */
+.offer-card-image-container {
+  position: relative;
+  width: 100%;
+  margin-bottom: 5px;
+}
+
+/* Immagine della carta offerta */
+.offer-card-image {
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+}
+
+/* Badge quantità carta offerta */
+.offer-card-quantity {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background-color: rgba(40, 167, 69, 0.9);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: bold;
+  border: 1px solid white;
+}
+
+/* Nome della carta offerta */
+.offer-card-name {
+  font-size: 0.7rem;
+  text-align: center;
+  color: #333;
+  font-weight: 500;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  width: 100%;
+}
+
+/* Responsive per overlay gestione proposte */
+@media (max-width: 768px) {
+  .offer-card {
+    min-width: 60px;
+    max-width: 80px;
+    padding: 6px;
+  }
+  
+  .offer-card-quantity {
+    width: 16px;
+    height: 16px;
+    font-size: 0.6rem;
+  }
+  
+  .offer-card-name {
+    font-size: 0.6rem;
+  }
+  
+  .offer-cards-grid {
+    gap: 6px;
+  }
+}
+
+/* Migliora lo stile del container offer-list per scrolling */
+#offer-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  border: 1px solid #ddd;
+  background-color: #f9f9f9;
+  max-height: calc(70vh - 120px); /* Permetti scroll se ci sono molte offerte */
+}
+
+/* Sfondo semitrasparente per l'overlay di visualizzazione carte */
+#view-cards-overlay-background {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Sfondo scuro e sfocato */
+  z-index: 9998; /* Sotto l'overlay ma sopra tutto il resto */
+}
+
+/* Overlay per visualizzare le carte di una proposta */
 .view-cards-overlay {
   display: none;
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 80vw;
-  height: 70vh;
+  width: 90vw;
+  max-width: 1200px;
+  height: auto;
+  max-height: 90vh;
   background-color: white;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
   z-index: 9999;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-/* Immagini delle carte nell'overlay di visualizzazione */
-.view-card-image {
+.view-cards-overlay .overlay-content {
+  display: flex;
+  flex-direction: column;
   width: 100%;
-  height: 200px;
-  object-fit: cover;
-  border-radius: 8px 8px 0 0;
+  height: 100%;
+  overflow-x: hidden;
 }
 
-/* Responsive per l'overlay di visualizzazione */
-@media (max-width: 768px) {
-  .view-cards-overlay {
-    width: 95vw;
-    height: 80vh;
-    padding: 15px;
-  }
-  
-  .view-card-image {
-    height: 150px;
-  }
+#view-cards-container {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 10px 0;
+}
+
+/* MODIFICA: Uniforma le carte con quelle dell'overlay buy */
+#view-cards-container .marvel-card {
+  margin-bottom: 15px;
+  min-height: 250px;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+#view-cards-container .marvel-card .card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+#view-cards-container .marvel-card .custom-aspect-ratio {
+  position: relative;
+  width: 100%;
+  padding-bottom: 133.33%; /* Rapporto 3:4 */
+  min-height: 200px;
+  height: 100%;
+}
+
+#view-cards-container .marvel-card .card-body {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  color: white;
+  background: none;
+  padding: 0;
+}
+
+#view-cards-container .marvel-card .card-img-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  object-fit: cover;
+  z-index: 100;
+}
+
+#view-cards-container .marvel-card .card-title {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  text-align: center;
+  border: 2px solid white;
+  padding: 5px;
+  border-radius: 5px;
+  width: 90%;
+  font-size: 0.9rem;
+  background-color: black;
+  color: white;
+  z-index: 200;
+}
+
+/* Nascondi ID e quantità nell'overlay view */
+#view-cards-container .marvel-card .card-id,
+#view-cards-container .marvel-card .card-quantity {
+  display: none;
 }
 

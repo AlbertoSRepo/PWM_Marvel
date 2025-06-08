@@ -90,7 +90,9 @@ class AlbumService {
       const response = await fetch(`${baseUrl}/${characterId}?${authParams}`);
       const data = await response.json();
       if (data && data.data && data.data.results && data.data.results.length > 0) {
-        return data.data.results[0];
+        const character = data.data.results[0];
+        console.log(`Character ${characterId} description:`, character.description); // Debug log
+        return character;
       }
       return null;
     });

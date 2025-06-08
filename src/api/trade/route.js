@@ -542,4 +542,32 @@ router.get('/:tradeId/details', authenticateJWTMiddleware, tradeController.getTr
  *         $ref: '#/components/responses/ServerError'
  */
 
+/**
+ * @swagger
+ * /trade/offers/{offerId}/details:
+ *   get:
+ *     summary: Get details of a specific offer
+ *     tags: [Trade]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: offerId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the offer
+ *     responses:
+ *       200:
+ *         description: Offer details retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Offer not found
+ *       500:
+ *         description: Server error
+ */
+// Endpoint per ottenere i dettagli di un'offerta specifica
+router.get('/offers/:offerId/details', tradeController.getOfferDetails);
+
 export default router;

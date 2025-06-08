@@ -9,7 +9,7 @@ html, body {
 
 /* Contenuto principale */
 .buy-container {
-    min-height: calc(100vh - 80px);
+    min-height: calc(100vh - 120px);
 }
 
 /* Unifica z-index con altre pagine */
@@ -180,43 +180,138 @@ html, body {
     margin-bottom: 1rem;
 }
 
-/* Responsive design unificato */
+/* Stili per i bottoni coin SVG */
+.coin-button {
+    width: 300px; /* Aumentato da 120px */
+    height: 300px; /* Aumentato da 120px */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    position: relative;
+    background: none; /* Rimosso il gradient */
+    border: none; /* Rimosso il border */
+    box-shadow: none; /* Rimossa l'ombra */
+}
+
+.coin-button:hover {
+    transform: translateY(-3px) scale(1.05);
+    animation: shake 0.5s ease-in-out infinite; /* Aggiunto effetto tremore */
+}
+
+.coin-button:active {
+    transform: translateY(-1px) scale(1.02);
+    animation: none; /* Rimuovi animazione durante il click */
+}
+
+/* Animazione di tremore */
+@keyframes shake {
+    0%, 100% { transform: translateY(-3px) scale(1.05) rotate(0deg); }
+    25% { transform: translateY(-3px) scale(1.05) rotate(1deg); }
+    75% { transform: translateY(-3px) scale(1.05) rotate(-1deg); }
+}
+
+.coin-image {
+    width: 180px; /* Aumentato da 60px */
+    height: 180px; /* Aumentato da 60px */
+    object-fit: contain;
+    margin-bottom: 8px; /* Aumentato da 5px */
+}
+
+.coin-label {
+    font-size: 1rem; /* Aumentato da 0.8rem */
+    font-weight: bold;
+    color: #8b4513;
+    text-align: center;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+/* Responsive design per i coin */
 @media (max-width: 768px) {
-    .main-content {
-        min-height: calc(100vh - 70px);
+    .coin-button {
+        width: 120px; /* Aumentato da 100px */
+        height: 120px; /* Aumentato da 100px */
     }
     
-    .main-content .row {
-        min-height: 300px;
+    .coin-image {
+        width: 65px; /* Aumentato da 50px */
+        height: 65px; /* Aumentato da 50px */
     }
     
-    .col-md-6 {
-        padding: 30px 15px;
-    }
-    
-    .buy-button {
-        width: 100px; /* Riduci larghezza su mobile */
-        height: 80px; /* Aumenta altezza su mobile per compensare */
-        font-size: 0.9rem;
-    }
-    
-    .button-row {
-        gap: 15px; /* Riduci gap su mobile */
-    }
-    
-    .packet-info {
-        max-width: 250px;
+    .coin-label {
+        font-size: 0.9rem; /* Aumentato da 0.7rem */
     }
 }
 
 @media (max-width: 576px) {
-    .buy-button {
-        width: 90px;
-        height: 70px;
-        font-size: 0.8rem;
+    .coin-button {
+        width: 100px; /* Aumentato da 80px */
+        height: 100px; /* Aumentato da 80px */
     }
     
-    .button-row {
-        gap: 10px;
+    .coin-image {
+        width: 55px; /* Aumentato da 40px */
+        height: 55px; /* Aumentato da 40px */
     }
+    
+    .coin-label {
+        font-size: 0.8rem; /* Aumentato da 0.6rem */
+    }
+}
+
+/* Stili per le carte nell'overlay - replica album */
+#overlay-message .marvel-card .card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+#overlay-message .marvel-card .custom-aspect-ratio {
+  position: relative;
+  width: 100%;
+  padding-bottom: 133.33%; /* Rapporto 3:4 */
+}
+
+#overlay-message .marvel-card .card-body {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  color: white;
+  background: none; /* Rimuovi background predefinito */
+  padding: 0;
+}
+
+#overlay-message .marvel-card .card-img-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  object-fit: cover;
+  z-index: 100;
+}
+
+#overlay-message .marvel-card .card-title {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  text-align: center;
+  border: 2px solid white;
+  padding: 5px;
+  border-radius: 5px;
+  width: 90%;
+  font-size: 0.9rem;
+  background-color: black;
+  color: white;
+  z-index: 200;
 }

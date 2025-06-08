@@ -183,10 +183,18 @@ export function populateCharacterOverlay(characterDetails) {
     document.getElementById('overlay-img').src = `${thumbnail.path}.${thumbnail.extension}`;
   }
 
-  // Descrizione
+  // Descrizione migliorata
   const desc = (characterDetails.description || '').trim();
-  document.getElementById('overlay-description').textContent =
-    desc || 'Nessuna descrizione disponibile.';
+  const descriptionElement = document.getElementById('overlay-description');
+  
+  if (desc && desc.length > 0) {
+    descriptionElement.textContent = desc;
+  } else {
+    // Nascondi completamente la sezione descrizione se non c'è contenuto
+    descriptionElement.style.display = 'none';
+    // Oppure mostra un messaggio più informativo
+    // descriptionElement.textContent = `${characterDetails.name} è un personaggio dell'universo Marvel.`;
+  }
 
   // Comics, Series, Stories, Events
   populateAccordionSection('overlay-comics', characterDetails.comics, 'Comics');
@@ -219,9 +227,22 @@ function populateAccordionSection(sectionId, items, sectionName) {
     const uniqueId = `${sectionId}-${index}`;
 
     let thumbnailSrc = 'placeholder-image.jpeg';
+    let showImage = true;
+    
     if (item.thumbnail && item.thumbnail.path && item.thumbnail.extension) {
       thumbnailSrc = `${item.thumbnail.path}.${item.thumbnail.extension}`;
+    } else if (sectionName === 'Stories') {
+      // Per le stories, nascondi completamente l'immagine
+      showImage = false;
     }
+
+    const imageHtml = showImage ? `
+      <img 
+        src="${thumbnailSrc}"
+        alt="${item.name}"
+        class="img-thumbnail accordion-image"
+      />
+    ` : '';
 
     const listItem = document.createElement('div');
     listItem.innerHTML = `
@@ -245,13 +266,9 @@ function populateAccordionSection(sectionId, items, sectionName) {
           data-bs-parent="#${sectionId}"
         >
           <div class="accordion-body">
-            <div class="accordion-content d-flex align-items-start">
-              <img 
-                src="${thumbnailSrc}"
-                alt="${item.name}"
-                class="img-thumbnail accordion-image"
-              />
-              <div class="accordion-text">
+            <div class="accordion-content ${showImage ? 'd-flex align-items-start' : ''}">
+              ${imageHtml}
+              <div class="accordion-text ${showImage ? '' : 'w-100'}">
                 <p>${item.description || 'Nessuna descrizione disponibile.'}</p>
               </div>
             </div>

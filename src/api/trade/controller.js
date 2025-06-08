@@ -139,32 +139,58 @@ class TradeController {
   }
 
   // Controller: Funzione per ottenere i dettagli di una proposta specifica (accessibile a tutti)
-// Controller: Funzione per ottenere i dettagli di una proposta specifica (accessibile a tutti)
-getTradeDetails = async (req, res, next) => {
-  try {
-    const { tradeId } = req.params;
-    
-    console.log('Richiesta dettagli per trade ID:', tradeId);
-    
-    // Verifica che tradeId sia valido
-    if (!tradeId || tradeId.length !== 24) {
-      return res.status(400).json({ message: 'ID proposta non valido.' });
+  getTradeDetails = async (req, res, next) => {
+    try {
+      const { tradeId } = req.params;
+      
+      console.log('Richiesta dettagli per trade ID:', tradeId);
+      
+      // Verifica che tradeId sia valido
+      if (!tradeId || tradeId.length !== 24) {
+        return res.status(400).json({ message: 'ID proposta non valido.' });
+      }
+
+      // Chiama il service per ottenere la proposta
+      const trade = await tradeService.getTradeDetails(tradeId);
+
+      if (!trade) {
+        return res.status(404).json({ message: 'Proposta non trovata.' });
+      }
+
+      console.log('Trade details trovati:', trade);
+      res.status(200).json(trade);
+    } catch (error) {
+      console.error('Errore in getTradeDetails:', error);
+      next(error);
     }
+  };
 
-    // Chiama il service per ottenere la proposta
-    const trade = await tradeService.getTradeDetails(tradeId);
+  // Controller: Funzione per ottenere i dettagli di un'offerta specifica
+  getOfferDetails = async (req, res, next) => {
+    try {
+      const { offerId } = req.params;
+      
+      console.log('Richiesta dettagli per offerta ID:', offerId);
+      
+      // Verifica che offerId sia valido
+      if (!offerId || offerId.length !== 24) {
+        return res.status(400).json({ message: 'ID offerta non valido.' });
+      }
 
-    if (!trade) {
-      return res.status(404).json({ message: 'Proposta non trovata.' });
+      // Chiama il service per ottenere l'offerta
+      const offer = await tradeService.getOfferDetails(offerId);
+
+      if (!offer) {
+        return res.status(404).json({ message: 'Offerta non trovata.' });
+      }
+
+      console.log('Offer details trovati:', offer);
+      res.status(200).json(offer);
+    } catch (error) {
+      console.error('Errore in getOfferDetails:', error);
+      next(error);
     }
-
-    console.log('Trade details trovati:', trade);
-    res.status(200).json(trade);
-  } catch (error) {
-    console.error('Errore in getTradeDetails:', error);
-    next(error);
-  }
-};
+  };
 };
 
 export default new TradeController();

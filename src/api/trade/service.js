@@ -383,22 +383,6 @@ class TradeService {
     }
   };
 
-  getUserProposal = async (userId, tradeId) => {
-    try {
-      // Cerca la proposta di trade per ID e verifica che appartenga all'utente loggato
-      const trade = await dbService.findTradeById(tradeId);
-
-      if (!trade || trade.proposer_id.toString() !== userId.toString()) {
-        throw new Error('Proposta non trovata o non autorizzato a visualizzarla.');
-      }
-
-      return trade;
-    } catch (error) {
-      console.error('Errore durante il recupero della proposta:', error);
-      throw new Error('Errore durante il recupero della proposta.');
-    }
-  };
-
   // Service: Funzione per ottenere i dettagli delle carte offerte
   getOfferedCardsDetails = async (offers) => {
     try {
@@ -487,6 +471,77 @@ getTradeDetails = async (tradeId) => {
   } catch (error) {
     console.error('Errore nel service getTradeDetails:', error);
     throw error;
+  }
+};
+
+// Aggiungi questo metodo alla classe TradeService
+getOfferDetails = async (offerId) => {
+  try {
+    console.log('Service: getting offer details for ID:', offerId);
+    
+    // Prima trova la trade che contiene l'offerta
+    const trades = await dbService.getCollection('trades').find({ 'offers._id': new ObjectId(offerId) }).toArray();
+    
+    if (trades.length === 0) {
+      throw new Error('Offer not found');
+    }
+    
+    const trade = trades[0];
+    
+    // Trova l'offerta specifica
+    const offer = trade.offers.find(o => o._id.toString() === offerId);
+    
+    if (!offer) {
+      throw new Error('Offer not found');
+    }
+
+    // Assicurati che offered_cards sia sempre un array
+    if (!offer.offered_cards) {
+      offer.offered_cards = [];
+    }
+
+    // Normalizza i card_id
+    offer.offered_cards = offer.offered_cards.map(card => ({
+      ...card,
+      card_id: String(card.card_id)
+    }));
+
+    console.log('Service: offer details prepared:', offer);
+    return offer;
+    
+  } catch (error) {
+    console.error('Errore nel service getOfferDetails:', error);
+    throw error;
+  }
+};
+
+// Nella funzione che recupera le proposte con offerte, aggiungi il populate per il nome utente
+getUserProposal = async (userId, tradeId) => {
+  try {
+    // Cerca la proposta di trade per ID e verifica che appartenga all'utente loggato
+    const trade = await dbService.findTradeById(tradeId);
+
+    if (!trade || trade.proposer_id.toString() !== userId.toString()) {
+      throw new Error('Proposta non trovata o non autorizzato a visualizzarla.');
+    }
+
+    // Se ci sono offerte, popola anche i nomi degli utenti
+    if (trade.offers && trade.offers.length > 0) {
+      for (let offer of trade.offers) {
+        try {
+          const user = await dbService.findUserById(offer.user_id);
+          offer.user_name = user ? user.username : 'Utente sconosciuto';
+        } catch (error) {
+          console.error('Errore nel recupero nome utente:', error);
+          offer.user_name = 'Utente sconosciuto';
+        }
+      }
+    }
+
+    return trade;
+  } catch (error) {
+    console.error('Errore durante il recupero della proposta:', error);
+    throw new Error('Errore durante il recupero della proposta.');
   }
 };
 }

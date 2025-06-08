@@ -76,16 +76,26 @@ export function updateBuyPacketButton(credits) {
 
 // Crea un elemento card dal template (come in album/trade)
 function createCardHTML(card) {
-  // card = { id, name, thumbnail, ... }
   const template = document.getElementById('card-template').content.cloneNode(true);
   template.querySelector('.card-title').textContent = card.name || 'Carta sconosciuta';
 
   const imgTop = template.querySelector('.card-img-top');
   if (card.thumbnail) {
     imgTop.src = `${card.thumbnail.path}.${card.thumbnail.extension}`;
+    imgTop.onerror = function() {
+      this.src = 'image-not-found.jpeg';
+    };
   } else {
-    imgTop.src = 'placeholder-image.jpg';
+    imgTop.src = 'image-not-found.jpeg';
   }
+
+  // RIMUOVI la parte che toglie il background e lascia lo stile dell'album
+  // const cardBody = template.querySelector('.card-body');
+  // if (cardBody) {
+  //   cardBody.style.background = 'none';
+  //   cardBody.style.backgroundColor = 'transparent';
+  //   cardBody.style.padding = '0';
+  // }
 
   return template;
 }

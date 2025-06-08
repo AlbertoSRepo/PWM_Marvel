@@ -11,7 +11,8 @@ import {
   getUserProposalWithOffersAPI,
   getPossessedCardsAPI,
   postOfferAPI,
-  getTradeDetailsAPI
+  getTradeDetailsAPI,
+  getOfferDetailsAPI  // AGGIUNGI QUESTO IMPORT
 } from './tradeRoute.js';
 
 import { getCardsByIds } from '../album/albumRoute.js';
@@ -130,11 +131,14 @@ export async function searchCardsLocallyAndUpdate(name) {
       return;
     }
 
-    const matchedIds = matchedLocalCards.map(fig => fig.id);
+    // LIMITA i risultati per evitare troppi elementi
+    const limitedCards = matchedLocalCards.slice(0, 18); // Massimo 18 carte
+    const matchedIds = limitedCards.map(fig => fig.id);
     const serverData = await getCardsByIds(matchedIds);
 
     // Filtra e unisci
-    const merged = mergeServerAndLocalData(serverData.cards, matchedLocalCards, true);
+    const merged = mergeServerAndLocalData(serverData.cards, limitedCards, true);
+
     if (merged.length === 0) {
       updateCardSelectionUI([]);
       return;
@@ -194,7 +198,7 @@ export async function searchCardsLocallyAndUpdateForOffer(name, tradeId) {
 
 export async function loadUserCards(pageNumber) {
   try {
-    const limit = 28;
+    const limit = 18;
     const offset = (pageNumber - 1) * limit;
 
     // 1. Chiamo l'endpoint
@@ -333,7 +337,7 @@ export function showOfferOverlay(tradeId, selectedCardsRef) {
  */
 export async function loadUserCardsForOffer(pageNumber, tradeId) {
   try {
-    const limit = 28;
+    const limit = 18;
     const offset = (pageNumber - 1) * limit;
 
     // 1. Ottieni i dettagli della proposta usando il nuovo endpoint
@@ -538,6 +542,85 @@ async function populateTradeWithCardDetails(trade) {
   } catch (error) {
     console.error('Errore durante il popolamento dei dettagli delle carte:', error);
     throw error;
+  }
+}
+
+/**
+ * Mostra l'overlay con le carte di una proposta dell'utente
+ */
+export async function showViewProposalCardsOverlay(tradeId) {
+  try {
+    showViewCardsOverlayUI();
+    
+    // Ottieni i dettagli della proposta
+    console.log('Richiesta dettagli per proposta utente ID:', tradeId);
+    const trade = await getTradeDetailsAPI(tradeId);
+    console.log('Dettagli proposta ricevuti:', trade);
+    
+    if (!trade) {
+      throw new Error('Proposta non trovata.');
+    }
+
+    // Verifica che trade.proposed_cards esista
+    if (!trade.proposed_cards || !Array.isArray(trade.proposed_cards)) {
+      throw new Error('Dati delle carte proposte non validi.');
+    }
+
+    // Popola le carte con i dettagli (nome e immagine)
+    const populatedTrade = await populateTradeWithCardDetails(trade);
+    
+    // Modifica il titolo per indicare che sono le carte dell'utente
+    populatedTrade.proposer = 'te'; // Indica che è l'utente stesso
+    
+    // Aggiorna l'overlay con le carte
+    updateViewCardsOverlayUI(populatedTrade);
+    
+  } catch (error) {
+    console.error('Errore durante il caricamento delle carte della proposta:', error);
+    console.error('Stack trace completo:', error.stack);
+    alert(`Errore durante il caricamento delle carte della proposta: ${error.message}`);
+    hideViewCardsOverlayUI();
+  }
+}
+
+/**
+ * Mostra l'overlay with le carte di un'offerta dell'utente
+ */
+export async function showViewOfferCardsOverlay(offerId) {
+  try {
+    showViewCardsOverlayUI();
+    
+    // Ottieni i dettagli dell'offerta
+    console.log('Richiesta dettagli per offerta utente ID:', offerId);
+    const offer = await getOfferDetailsAPI(offerId);
+    console.log('Dettagli offerta ricevuti:', offer);
+    
+    if (!offer) {
+      throw new Error('Offerta non trovata.');
+    }
+
+    // Verifica che offer.offered_cards esista
+    if (!offer.offered_cards || !Array.isArray(offer.offered_cards)) {
+      throw new Error('Dati delle carte offerte non validi.');
+    }
+
+    // Crea un oggetto simile a trade per riutilizzare la stessa logica
+    const fakeTradeForOffer = {
+      proposer: 'te',
+      proposed_cards: offer.offered_cards // Usa offered_cards come proposed_cards
+    };
+
+    // Popola le carte con i dettagli (nome e immagine)
+    const populatedOffer = await populateTradeWithCardDetails(fakeTradeForOffer);
+    
+    // Aggiorna l'overlay con le carte
+    updateViewCardsOverlayUI(populatedOffer);
+    
+  } catch (error) {
+    console.error('Errore durante il caricamento delle carte dell\'offerta:', error);
+    console.error('Stack trace completo:', error.stack);
+    alert(`Errore durante il caricamento delle carte dell'offerta: ${error.message}`);
+    hideViewCardsOverlayUI();
   }
 }
 

@@ -1,138 +1,140 @@
 /* Impostazioni di base per l'HTML e il body */
 html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
+  height: 100%; /* Altezza completa viewport */
+  margin: 0; /* Rimuove margini default */
+  padding: 0; /* Rimuove padding default */
 }
 
 /* Contenitore principale delle carte */
 .card-container {
-  min-height: calc(100vh - 80px); /* 100vh meno navbar (80px) */
-  position: relative; /* Necessario per posizionamento assoluto dei figli */
-  transition: opacity 0.3s ease;
+  min-height: calc(100vh - 120px); /* Altezza minima meno navbar */
+  position: relative; /* Per posizionamento assoluto figli */
+  transition: opacity 0.3s ease; /* Transizione per trasparenza overlay */
 }
 
 .card-container.transparent {
-  opacity: 0.3; /* Semitrasparenza quando l'overlay è attivo */
+  opacity: 0.3; /* Semitrasparenza quando overlay attivo */
 }
 
 /* Stile per i dettagli della carta */
 .card-details {
-  font-size: 0.9rem;
-  color: #555;
-  text-align: center;
+  font-size: 0.9rem; /* Dimensione testo piccola */
+  color: #555; /* Colore grigio */
+  text-align: center; /* Testo centrato */
 }
 
-.card{
-  position: relative;
-  width: 100%;
-  height: 100%;
-  border-radius: 10px; /* Imposta il border-radius sulla carta */
-  overflow: hidden; /* Assicura che l'immagine rispetti il border-radius della carta */
+.card {
+  position: relative; /* Per posizionamento elementi interni */
+  width: 100%; /* Larghezza completa */
+  height: 100%; /* Altezza completa */
+  border-radius: 10px; /* Angoli arrotondati */
+  overflow: hidden; /* Nasconde overflow immagini */
 }
 
 .custom-aspect-ratio {
-  position: relative;
-  width: 100%;
-  padding-bottom: 133.33%; /* Rapporto 3:4 (4 / 3 = 1.333) */
+  position: relative; /* Per posizionamento interno */
+  width: 100%; /* Larghezza completa */
+  padding-bottom: 133.33%; /* Rapporto 3:4 per carte */
 }
 
 .card-body {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  color: white;
+  position: absolute; /* Posizionamento sopra immagine */
+  top: 0; /* Dall'alto */
+  left: 0; /* Da sinistra */
+  width: 100%; /* Larghezza completa */
+  height: 100%; /* Altezza completa */
+  color: white; /* Testo bianco */
+  z-index: 200; /* Sopra immagine */
 }
 
 .card-img-top {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 10px 10px 0 0; /* Applica il border-radius solo agli angoli superiori */
-  object-fit: cover;
+  position: absolute; /* Posizionamento assoluto */
+  top: 0; /* Dall'alto */
+  left: 0; /* Da sinistra */
+  width: 100%; /* Larghezza completa */
+  height: 100%; /* Altezza completa */
+  border-radius: 10px 10px 0 0; /* Angoli superiori arrotondati */
+  object-fit: cover; /* Mantiene proporzioni immagine */
+  z-index: 100; /* Sotto card-body */
 }
 
 .card-title {
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  margin: 0;
-  text-align: center;
-  border: 2px solid white;
-  padding: 5px;
-  border-radius: 5px;
-  width: 90%; /* Imposta la larghezza del titolo al 90% della carta */
-  font-size: 0.9rem; /* Rende il testo più piccolo */
-  background-color: black;
+  position: absolute; /* Posizionamento assoluto */
+  bottom: 10px; /* 10px dal basso */
+  left: 50%; /* Centro orizzontale */
+  transform: translateX(-50%); /* Centra perfettamente */
+  margin: 0; /* Rimuove margini */
+  text-align: center; /* Testo centrato */
+  border: 2px solid white; /* Bordo bianco */
+  padding: 5px; /* Spaziatura interna */
+  border-radius: 5px; /* Angoli arrotondati */
+  width: 90%; /* 90% larghezza carta */
+  font-size: 0.9rem; /* Testo piccolo */
+  background-color: black; /* Sfondo nero */
 }
 
 .card-id {
-  display: none;
+  display: none; /* Nasconde ID carta */
 }
 
 .posseduta .card-quantity {
-  position: absolute;
-  top: 10px; /* Posiziona il cerchio 10px dall'alto */
-  right: 10px; /* Posiziona il cerchio 10px da destra */
-  width: 40px; /* Larghezza del cerchio */
-  height: 40px; /* Altezza del cerchio (uguale alla larghezza per fare un cerchio) */
-  border-radius: 50%; /* Trasforma il contenitore in un cerchio */
-  border: 2px solid rgba(139, 0, 0); /* Bordo bianco attorno al cerchio */
-  display: flex; /* Usa Flexbox per centrare il contenuto */
-  justify-content: center; /* Centra orizzontalmente il contenuto */
-  align-items: center; /* Centra verticalmente il contenuto */
-  background-color: rgba(139, 0, 0); /* Sfondo semitrasparente per contrasto */
-  color: white; /* Colore del testo */
+  position: absolute; /* Posizionamento assoluto */
+  top: 10px; /* 10px dall'alto */
+  right: 10px; /* 10px da destra */
+  width: 40px; /* Larghezza cerchio */
+  height: 40px; /* Altezza cerchio */
+  border-radius: 50%; /* Forma circolare */
+  border: 2px solid rgba(139, 0, 0); /* Bordo rosso scuro */
+  display: flex; /* Flexbox per centratura */
+  justify-content: center; /* Centra orizzontalmente */
+  align-items: center; /* Centra verticalmente */
+  background-color: rgba(139, 0, 0); /* Sfondo rosso scuro */
+  color: white; /* Testo bianco */
 }
 
 .marvel-card:hover {
-  transform: scale(1.1); /* Ingrandimento quando il cursore è sopra la carta */
+  transform: scale(1.1); /* Ingrandimento al hover */
 }
 
-/* Carta posseduta */
 .posseduta:hover {
-  transform: scale(1.1);
+  transform: scale(1.1); /* Ingrandimento carta posseduta */
 }
 
 /* Carta non posseduta */
 .non-posseduta {
-  pointer-events: none;
+  pointer-events: none; /* Disabilita interazioni */
 }
 
 .fixed-bottom-bar {
-  position: absolute; 
-  bottom: 20px; /* Posiziona la barra in basso */
-  left: 50%; /* Posiziona il bordo sinistro al centro */
-  transform: translateX(-50%); /* Sposta la barra indietro del 50% della sua larghezza */
-  justify-content: center; /* Centra i pulsanti */
-  background-color: rgba(136, 0, 0, 0.9);
-  padding: 10px 10px;
-  border-radius: 20px; /* Aggiunge bordi arrotondati */
+  position: absolute; /* Posizionamento assoluto */
+  bottom: 20px; /* 20px dal basso */
+  left: 50%; /* Centro orizzontale */
+  transform: translateX(-50%); /* Centra perfettamente */
+  justify-content: center; /* Centra contenuto */
+  background-color: rgba(136, 0, 0, 0.9); /* Sfondo rosso trasparente */
+  padding: 10px 10px; /* Spaziatura interna */
+  border-radius: 20px; /* Angoli molto arrotondati */
+  z-index: 300; /* Sopra altri elementi */
 }
 
 #albumForm {
-  display: flex;
-  justify-content: space-between; /* Distribuisce gli elementi con spazio tra di loro */
-  align-items: center;
-  width: 100%;
-  max-width: 600px; /* Limita la larghezza totale del form per evitare che gli elementi si allontanino troppo */
-  margin: 0 auto;
+  display: flex; /* Layout flexbox */
+  justify-content: space-between; /* Distribuisce elementi */
+  align-items: center; /* Allinea al centro */
+  width: 100%; /* Larghezza completa */
+  max-width: 600px; /* Larghezza massima */
+  margin: 0 auto; /* Centra form */
 }
 
 #albumPage {
-  width: 100px;
-  text-align: center;
-  margin: 0 auto;
+  width: 100px; /* Larghezza fissa input */
+  text-align: center; /* Testo centrato */
+  margin: 0 auto; /* Centra elemento */
 }
 
 .button-group-left, .button-group-right {
-  display: flex;
-  gap: 20px; /* Spazio tra i pulsanti */
+  display: flex; /* Layout flexbox */
+  gap: 20px; /* Spazio tra pulsanti */
 }
 
 .button-group-right {
@@ -142,161 +144,132 @@ html, body {
 
 /* Style for the loading spinner */
 #loading-spinner {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  display: none;
+  position: fixed; /* Posizionamento fisso */
+  top: 50%; /* Centro verticale */
+  left: 50%; /* Centro orizzontale */
+  display: none; /* Nascosto di default */
+  z-index: 900; /* Sopra elementi normali */
 }
 
 /* Sfondo nero semitrasparente per l'overlay */
 #overlay-background {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
+  display: none; /* Nascosto di default */
+  position: fixed; /* Posizionamento fisso */
+  top: 0; /* Dall'alto */
+  left: 0; /* Da sinistra */
+  width: 100%; /* Larghezza completa */
+  height: 100%; /* Altezza completa */
+  background-color: rgba(0, 0, 0, 0.8); /* Sfondo nero trasparente */
+  z-index: 9998; /* Sotto overlay principale */
 }
 
 /* Overlay principale */
 #overlay {
-  display: none;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-  width: 80vw;
-  height: 80vh;
-  display: flex;
+  position: fixed; /* Posizionamento fisso */
+  top: 50%; /* Centro verticale */
+  left: 50%; /* Centro orizzontale */
+  transform: translate(-50%, -50%); /* Centra perfettamente */
+  background-color: white; /* Sfondo bianco */
+  padding: 20px; /* Spaziatura interna */
+  border-radius: 8px; /* Angoli arrotondati */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Ombra leggera */
+  width: 80vw; /* 80% larghezza viewport */
+  height: 80vh; /* 80% altezza viewport */
+  display: flex; /* Layout flexbox */
+  z-index: 9999; /* Sopra background overlay */
 }
 
 #loading-spinner-overlay {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  z-index: 2000; /* Mantiene lo spinner davanti a tutti gli altri elementi */
+  display: flex; /* Layout flexbox */
+  justify-content: center; /* Centra orizzontalmente */
+  align-items: center; /* Centra verticalmente */
+  position: absolute; /* Posizionamento assoluto */
+  top: 50%; /* Centro verticale */
+  left: 50%; /* Centro orizzontale */
+  z-index: 2000; /* Sopra tutti elementi */
 }
 
 /* Stile per il titolo nell'overlay */
 #overlay h5 {
-  margin-bottom: 20px;
-  font-size: 1.5rem;
+  margin-bottom: 20px; /* Margine inferiore */
+  font-size: 1.5rem; /* Dimensione grande */
 }
 
 /* Impostazioni per dividere l'overlay in due parti */
 .overlay-content {
-  display: flex;
-  width: 100%;
-  height: 100%;
-  justify-content: space-between;
+  display: flex; /* Layout flexbox */
+  width: 100%; /* Larghezza completa */
+  height: 100%; /* Altezza completa */
+  justify-content: space-between; /* Distribuisce spazio */
 }
 
 /* Parte destra con immagine e nome del personaggio */
 .overlay-right {
-  flex: 30%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
+  flex: 30%; /* 30% larghezza overlay */
+  display: flex; /* Layout flexbox */
+  flex-direction: column; /* Colonna verticale */
+  align-items: center; /* Centra orizzontalmente */
+  justify-content: flex-start; /* Allinea dall'alto */
 }
 
 .overlay-right img {
-  max-width: 100%;
-  height: auto;
-  margin-bottom: 20px;
+  max-width: 100%; /* Larghezza massima completa */
+  height: auto; /* Altezza automatica */
+  margin-bottom: 20px; /* Margine inferiore */
 }
 
 /* Parte sinistra con collezioni e barra di scorrimento */
 .overlay-left {
-  flex: 70%;
-  overflow-y: auto;
-  padding-left: 20px;
-  padding-right: 20px;
+  flex: 70%; /* 70% larghezza overlay */
+  overflow-y: auto; /* Scroll verticale automatico */
+  padding-left: 20px; /* Padding sinistro */
+  padding-right: 20px; /* Padding destro */
 }
 
 /* Impostazioni per il contenitore accordion */
 #detailsAccordion {
-  max-height: 100%;
-  overflow-y: auto;
+  max-height: 100%; /* Altezza massima completa */
+  overflow-y: auto; /* Scroll verticale automatico */
 }
 .accordion-body div {
-  margin-bottom: 1rem;
+  margin-bottom: 1rem; /* Margine inferiore elementi */
 }
 /* Mantieni gli stili predefiniti per .accordion-body *
 
 /* Applica display: flex al nuovo wrapper .accordion-content */
 .accordion-content {
-  display: flex;
-  align-items: flex-start;
+  display: flex; /* Layout flexbox */
+  align-items: flex-start; /* Allinea dall'alto */
 }
 
 /* Stili per l'immagine */
 .accordion-image {
-  flex: 0 0 auto;
-  width: 20%;
-  margin-right: 15px;
-  object-fit: cover;
-  min-width: 50px;
+  flex: 0 0 auto; /* Non cresce né si riduce */
+  width: 20%; /* 20% larghezza */
+  margin-right: 15px; /* Margine destro */
+  object-fit: cover; /* Mantiene proporzioni */
+  min-width: 50px; /* Larghezza minima */
 }
 
 /* Stili per il testo */
 .accordion-text {
-  flex: 1;
+  flex: 1; /* Occupa spazio rimanente */
 }
 
 .accordion-text p {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.5rem; /* Margine inferiore paragrafi */
 }
 
 .accordion-text a {
-  display: inline-block;
-  margin-top: 0.5rem;
+  display: inline-block; /* Display inline-block */
+  margin-top: 0.5rem; /* Margine superiore link */
 }
 
-
-/* Icona X per chiudere l'overlay */
 .close-icon {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  cursor: pointer;
-  font-size: 40px;
-  color: red;
-}
-
-/* Z INDEX */
-
-.card-img-top {
-  z-index: 100;
-}
-
-.card-body {
-  z-index: 200;
-}
-
-.fixed-bottom-bar {
-  z-index: 300; /* Imposta un alto valore di z-index per assicurare che sia sempre davanti */
-}
-
-/* Style for the loading spinner */
-#loading-spinner {
-  z-index: 900;
-}
-
-/* Sfondo nero semitrasparente per l'overlay */
-#overlay-background {
-  z-index: 9998; /* Aggiungi se mancante */
-}
-
-/* Overlay principale */
-#overlay {
-  z-index: 9999; /* Aggiungi se mancante */
+  position: absolute; /* Posizionamento assoluto */
+  top: 10px; /* 10px dall'alto */
+  right: 10px; /* 10px da destra */
+  cursor: pointer; /* Cursore pointer */
+  font-size: 40px; /* Dimensione grande */
+  color: red; /* Colore rosso */
 }
