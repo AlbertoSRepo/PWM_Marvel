@@ -529,3 +529,160 @@ html, body {
   display: none;
 }
 
+/* Uniforma le carte nel card-selection con quelle del view overlay */
+#card-selection .marvel-card {
+  min-height: 250px;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  transition: transform 0.3s ease;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+#card-selection .marvel-card .card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  border: none;
+}
+
+/* Aggiungi la classe custom-aspect-ratio anche per card-selection */
+#card-selection .marvel-card .card.custom-aspect-ratio,
+#card-selection .marvel-card .custom-aspect-ratio {
+  position: relative;
+  width: 100%;
+  padding-bottom: 133.33%; /* Rapporto 3:4 come nel view overlay */
+  min-height: 200px;
+  height: auto;
+}
+
+#card-selection .marvel-card .card-body {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  color: white;
+  z-index: 200;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+#card-selection .marvel-card .card-img-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  object-fit: cover;
+  z-index: 100;
+}
+
+#card-selection .marvel-card .card-title {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  border: 2px solid white;
+  padding: 5px 8px;
+  border-radius: 5px;
+  width: 90%;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Nascondi ID e quantità nel card-selection come nel view overlay */
+#card-selection .marvel-card .card-id,
+#card-selection .marvel-card .card-quantity {
+  display: none;
+}
+
+/* Stili per le tre tabelle nella pagina trade */
+.table {
+  background-color: transparent;
+}
+
+/* Stile per le intestazioni delle tabelle (elementi più rilevanti) */
+.table thead th {
+  background-color: #202020 !important;
+  color: white !important;
+  border-color: #495057 !important;
+  font-weight: 600;
+  padding: 12px 8px;
+}
+
+/* Stile per le righe dei record - colore alternato */
+.table tbody tr:nth-child(odd) {
+  background-color: #6c757d !important;
+  color: white !important;
+}
+
+.table tbody tr:nth-child(even) {
+  background-color: #565e64 !important;
+  color: white !important;
+}
+
+/* Stile per le celle del corpo delle tabelle */
+.table tbody td {
+  border-color: #495057 !important;
+  padding: 10px 8px;
+  vertical-align: middle;
+}
+
+/* Hover effect per le righe */
+.table tbody tr:hover {
+  background-color: #495057 !important;
+  transition: background-color 0.2s ease;
+}
+
+/* Stile per i bottoni nelle tabelle per mantenere la leggibilità */
+.table tbody tr .btn {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-weight: 500;
+}
+
+.table tbody tr .btn-primary {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+.table tbody tr .btn-info {
+  background-color: #0dcaf0;
+  border-color: #0dcaf0;
+  color: #000;
+}
+
+.table tbody tr .btn-danger {
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+.table tbody tr .btn-success {
+  background-color: #198754;
+  border-color: #198754;
+}
+
+.table tbody tr .btn-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+/* Assicura che i container delle tabelle abbiano il background appropriato */
+.table-container {
+  background-color: transparent;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+

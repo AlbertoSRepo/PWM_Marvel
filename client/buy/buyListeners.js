@@ -1,18 +1,24 @@
 // buyListeners.js
+
+// Import navbar per caricamento interfaccia superiore
 import { loadNavbar } from '../shared/navbar.js';
+// Import per recupero dati figurine iniziali
 import { fetchFigurineDataIfNeeded } from '../shared/initialData.js';
+// Import funzioni controller per gestione acquisti
 import { buyCredits, buyCardPacket, loadUserCredits } from './buyController.js';
 
+// Event listener principale per inizializzazione pagina
 document.addEventListener('DOMContentLoaded', async () => {
-  // 1) Carica la navbar - Make sure this is the first thing
+  
+  // Carica navbar con sezione buy attiva
   try {
     loadNavbar('buy');
-    console.log('Navbar loaded successfully'); // Add debug log
+    console.log('Navbar loaded successfully'); // Log debug caricamento navbar
   } catch (error) {
     console.error('Error loading navbar:', error);
   }
 
-  // 2) Verifica e carica figurineData in localStorage se non presente
+  // Verifica e carica figurineData se non presente
   try {
     await fetchFigurineDataIfNeeded();  
     console.log('figurineData caricata o già presente.');
@@ -20,26 +26,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error('Errore caricamento figurineData:', error);
   }
 
-  // 3) Carica i crediti dell'utente e aggiorna l'UI del bottone pacchetto
+  // Carica crediti utente e aggiorna UI bottone
   try {
     await loadUserCredits();
   } catch (error) {
     console.error('Errore nel caricamento dei crediti:', error);
   }
 
-  // 4) Attacca listener ai pulsanti "coin-button" per i crediti
+  // Attacca listener ai pulsanti acquisto crediti
   document.querySelectorAll('.coin-button').forEach(button => {
     button.addEventListener('click', () => {
-      const credits = parseInt(button.getAttribute('data-credits'), 10);
-      buyCredits(credits);
+      const credits = parseInt(button.getAttribute('data-credits'), 10); // Ottiene crediti da attributo
+      buyCredits(credits); // Esegue acquisto crediti
     });
   });
 
-  // 5) Attacca listener al pulsante "buyPacketBtn"
+  // Attacca listener al pulsante acquisto pacchetto
   const buyPacketBtn = document.getElementById('buyPacketBtn');
   buyPacketBtn.addEventListener('click', () => {
-    if (!buyPacketBtn.disabled) {
-      buyCardPacket();
+    if (!buyPacketBtn.disabled) { // Controlla se bottone abilitato
+      buyCardPacket(); // Esegue acquisto pacchetto
     }
   });
 });

@@ -1,5 +1,3 @@
-// tradeController.js
-
 import {
   fetchCommunityTradesAPI,
   fetchUserProposalsAPI,
@@ -12,7 +10,7 @@ import {
   getPossessedCardsAPI,
   postOfferAPI,
   getTradeDetailsAPI,
-  getOfferDetailsAPI  // AGGIUNGI QUESTO IMPORT
+  getOfferDetailsAPI 
 } from './tradeRoute.js';
 
 import { getCardsByIds } from '../album/albumRoute.js';
@@ -37,7 +35,7 @@ import {
   updateManageProposalOffersUI,
   showViewCardsOverlayUI,
   hideViewCardsOverlayUI,
-  updateViewCardsOverlayUI  // AGGIUNGI QUESTO IMPORT
+  updateViewCardsOverlayUI  
 } from './tradeUI.js';
 
 /**
@@ -59,10 +57,7 @@ export async function checkUserOwnsCards(cardIds) {
 }
 
 /**
- * Carica inizialmente:
- *  - proposte community
- *  - proposte utente
- *  - offerte utente
+ * Carica dati iniziali di trade, proposte e offerte
  */
 export async function loadInitialData() {
   try {
@@ -80,6 +75,9 @@ export async function loadInitialData() {
   }
 }
 
+/**
+ * Crea nuova proposta di trade con carte selezionate
+ */
 export async function createTradeProposal(proposedCards) {
   if (!proposedCards || proposedCards.length === 0) {
     alert('Devi selezionare almeno una carta per inviare la proposta.');
@@ -93,11 +91,11 @@ export async function createTradeProposal(proposedCards) {
     // 1. Nascondi l'overlay dopo aver creato la proposta
     hideOverlayUI();
 
-    // 2. Aggiorna la lista delle proposte dell’utente
+    // 2. Aggiorna la lista delle proposte dell'utente
     const userProposals = await fetchUserProposalsAPI();
     updateUserProposalsUI(userProposals);
 
-    // 3. Ricarica le carte disponibili, in modo da riflettere lo “scalare” di available_quantity
+    // 3. Ricarica le carte disponibili, in modo da riflettere lo "scalare" di available_quantity
     await loadUserCards(1);
 
   } catch (error) {
@@ -106,11 +104,8 @@ export async function createTradeProposal(proposedCards) {
   }
 }
 
-
 /**
- * Ricerca locale delle carte che iniziano con "name",
- * e mostra SOLO quelle possedute (quantity>0) nella UI trade.
- * Se name è vuoto, mostra tutte le carte disponibili.
+ * Cerca carte localmente per nome e aggiorna UI
  */
 export async function searchCardsLocallyAndUpdate(name) {
   try {
@@ -153,7 +148,7 @@ export async function searchCardsLocallyAndUpdate(name) {
 }
 
 /**
- * Ricerca locale per offerte, escludendo carte già presenti nella proposta
+ * Cerca carte per offerta escludendo carte già proposte
  */
 export async function searchCardsLocallyAndUpdateForOffer(name, tradeId) {
   try {
@@ -196,6 +191,9 @@ export async function searchCardsLocallyAndUpdateForOffer(name, tradeId) {
   }
 }
 
+/**
+ * Carica carte possedute dall'utente con paginazione
+ */
 export async function loadUserCards(pageNumber) {
   try {
     const limit = 18;
@@ -236,7 +234,7 @@ export async function loadUserCards(pageNumber) {
 
     // 4. Aggiorno la UI
     updateCardSelectionUI(merged);
-    // updatePaginationButtonsUI => calcolo quante “pagine” totali in base a `total`
+    // updatePaginationButtonsUI => calcolo quante "pagine" totali in base a `total`
     const totalPages = Math.ceil(total / limit);
     // Se pageNumber < totalPages => next abilitato, etc...
     updatePaginationButtonsUI(pageNumber, merged.length, totalPages);
@@ -247,6 +245,9 @@ export async function loadUserCards(pageNumber) {
   }
 }
 
+/**
+ * Elimina proposta di trade dell'utente
+ */
 export async function deleteTrade(tradeId) {
   try {
     await deleteTradeAPI(tradeId);
@@ -256,7 +257,7 @@ export async function deleteTrade(tradeId) {
     const userProposals = await fetchUserProposalsAPI();
     updateUserProposalsUI(userProposals);
 
-    // 2. Ricarica le carte disponibili (se la proposta conteneva carte “bloccate”, adesso tornano libere)
+    // 2. Ricarica le carte disponibili (se la proposta conteneva carte "bloccate", adesso tornano libere)
     await loadUserCards(1);
 
   } catch (error) {
@@ -265,6 +266,9 @@ export async function deleteTrade(tradeId) {
   }
 }
 
+/**
+ * Elimina offerta dell'utente per un trade
+ */
 export async function deleteOffer(offerId) {
   try {
     await deleteOfferAPI(offerId);
@@ -274,18 +278,17 @@ export async function deleteOffer(offerId) {
     const userOffers = await fetchUserOffersAPI();
     updateUserOffersUI(userOffers);
 
-    // 2. Ricarica le carte disponibili, in modo da “restituire” la available_quantity
+    // 2. Ricarica le carte disponibili, in modo da "restituire" la available_quantity
     await loadUserCards(1);
 
   } catch (error) {
-    console.error('Errore durante la cancellazione dell’offerta:', error);
-    alert('Errore durante la cancellazione dell’offerta.');
+    console.error('Errore durante la cancellazione dell\'offerta:', error);
+    alert('Errore durante la cancellazione dell\'offerta.');
   }
 }
 
-
 /**
- * Mostra overlay per inviare un'offerta (usando carte selezionate)
+ * Mostra overlay per creare offerta su proposta
  */
 export function showOfferOverlay(tradeId, selectedCardsRef) {
   showOverlayUI();
@@ -333,7 +336,7 @@ export function showOfferOverlay(tradeId, selectedCardsRef) {
 }
 
 /**
- * Carica le carte dell'utente escludendo quelle già presenti nella proposta
+ * Carica carte disponibili escludendo quelle già proposte
  */
 export async function loadUserCardsForOffer(pageNumber, tradeId) {
   try {
@@ -387,9 +390,8 @@ export async function loadUserCardsForOffer(pageNumber, tradeId) {
   }
 }
 
-
 /**
- * Gestisci overlay "Gestisci Proposta"
+ * Mostra overlay gestione proposta con offerte ricevute
  */
 export async function showManageProposalOverlay(tradeId) {
   showManageProposalOverlayUI();
@@ -399,7 +401,7 @@ export async function showManageProposalOverlay(tradeId) {
     if (!trade) {
       throw new Error('Nessuna trade trovata.');
     }
-    // Popola l’overlay con le offerte
+    // Popola l'overlay con le offerte
     updateManageProposalOffersUI(trade);
   } catch (error) {
     console.error('Errore durante il caricamento della proposta e delle carte offerte:', error);
@@ -408,6 +410,9 @@ export async function showManageProposalOverlay(tradeId) {
   }
 }
 
+/**
+ * Accetta offerta per una proposta trade
+ */
 export async function acceptOffer(tradeId, offerId) {
   try {
     await putAcceptOfferAPI(tradeId, offerId);
@@ -416,15 +421,15 @@ export async function acceptOffer(tradeId, offerId) {
     // 1) Nascondi overlay "Gestisci Proposta"
     hideManageProposalOverlayUI();
 
-    // 2) Ricarica le proposte dell’utente
+    // 2) Ricarica le proposte dell'utente
     const userProposals = await fetchUserProposalsAPI();
     updateUserProposalsUI(userProposals);
 
-    // 3) Ricarica le offerte dell’utente
+    // 3) Ricarica le offerte dell'utente
     const userOffers = await fetchUserOffersAPI();
     updateUserOffersUI(userOffers);
 
-    // 4) Ricarica le carte possedute (ora l’utente ha scambiato carte)
+    // 4) Ricarica le carte possedute (ora l'utente ha scambiato carte)
     await loadUserCards(1);
 
     // 5) (Opzionale) Ricarica Community Trades, se vuoi mostrare
@@ -438,7 +443,7 @@ export async function acceptOffer(tradeId, offerId) {
 }
 
 /**
- * Mostra l'overlay con le carte di una proposta specifica
+ * Mostra overlay con carte di una proposta
  */
 export async function showViewCardsOverlay(tradeId) {
   try {
@@ -473,7 +478,7 @@ export async function showViewCardsOverlay(tradeId) {
 }
 
 /**
- * Popola una trade con i dettagli delle carte (nome e immagine)
+ * Popola trade con dettagli delle carte dal localStorage
  */
 async function populateTradeWithCardDetails(trade) {
   try {
@@ -546,7 +551,7 @@ async function populateTradeWithCardDetails(trade) {
 }
 
 /**
- * Mostra l'overlay con le carte di una proposta dell'utente
+ * Mostra overlay con carte di proposta utente
  */
 export async function showViewProposalCardsOverlay(tradeId) {
   try {
@@ -584,7 +589,7 @@ export async function showViewProposalCardsOverlay(tradeId) {
 }
 
 /**
- * Mostra l'overlay with le carte di un'offerta dell'utente
+ * Mostra overlay con carte di offerta utente
  */
 export async function showViewOfferCardsOverlay(offerId) {
   try {
@@ -623,4 +628,3 @@ export async function showViewOfferCardsOverlay(offerId) {
     hideViewCardsOverlayUI();
   }
 }
-

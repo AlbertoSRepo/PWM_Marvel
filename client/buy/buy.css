@@ -222,7 +222,7 @@ html, body {
 }
 
 .coin-label {
-    font-size: 1rem; /* Aumentato da 0.8rem */
+    font-size: 1.2rem; /* Aumentato da 1rem */
     font-weight: bold;
     color: #8b4513;
     text-align: center;
@@ -242,7 +242,7 @@ html, body {
     }
     
     .coin-label {
-        font-size: 0.9rem; /* Aumentato da 0.7rem */
+        font-size: 1.1rem; /* Aumentato da 0.9rem */
     }
 }
 
@@ -258,8 +258,43 @@ html, body {
     }
     
     .coin-label {
-        font-size: 0.8rem; /* Aumentato da 0.6rem */
+        font-size: 1rem; /* Aumentato da 0.8rem */
     }
+}
+
+/* Stile per il bottone "Compra Pacchetto" seguendo lo stile della navbar */
+#buyPacketBtn {
+    background-color: #6D6D6D !important;
+    border-color: #6D6D6D !important;
+    color: white !important;
+    transition: all 0.3s ease !important;
+    font-weight: 500;
+    padding: 10px 30px;
+    border-radius: 4px;
+}
+
+#buyPacketBtn:hover:not(:disabled) {
+    background-color: #e62429 !important;
+    border-color: #e62429 !important;
+    color: white !important;
+    transform: translateY(-1px) !important;
+}
+
+#buyPacketBtn:focus,
+#buyPacketBtn:active {
+    background-color: #e62429 !important;
+    border-color: #e62429 !important;
+    color: white !important;
+    box-shadow: 0 0 0 2px rgba(230, 36, 41, 0.25) !important;
+}
+
+/* Stile per il bottone disabilitato */
+#buyPacketBtn:disabled {
+    background-color: #6c757d !important;
+    border-color: #6c757d !important;
+    color: white !important;
+    cursor: not-allowed;
+    transform: none !important;
 }
 
 /* Stili per le carte nell'overlay - replica album */
@@ -314,4 +349,15 @@ html, body {
   background-color: black;
   color: white;
   z-index: 200;
+}
+
+/* Stile per l'immagine del pacchetto */
+.packet-image img {
+    max-width: 300px;
+    height: auto;
+    transition: transform 0.3s ease;
+}
+
+.packet-image img:hover {
+    transform: scale(1.05);
 }

@@ -3,22 +3,6 @@
     background-color: #202020 !important;
 }
 
-.navbar-brand {
-    cursor: pointer !important;
-    transition: all 0.3s ease !important;
-}
-
-.navbar-brand:hover {
-    color: #007bff !important;
-    text-decoration: none !important;
-    transform: scale(1.05) !important;
-}
-
-.navbar-brand:focus {
-    outline: none !important;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25) !important;
-}
-
 .navbar-brand img {
     transition: all 0.3s ease !important;
     height: 80px !important;
@@ -47,6 +31,30 @@
 
 .navbar .btn:focus,
 .navbar .btn:active {
+    background-color: #e62429 !important;
+    border-color: #e62429 !important;
+    color: white !important;
+    box-shadow: 0 0 0 2px rgba(230, 36, 41, 0.25) !important;
+}
+
+/* NUOVO: Stile per il bottone attivo */
+.navbar .btn.active {
+    background-color: #e62429 !important;
+    border-color: #e62429 !important;
+    color: white !important;
+    transform: none !important;
+}
+
+/* NUOVO: Hover per bottone attivo (rimane rosso) */
+.navbar .btn.active:hover {
+    background-color: #e62429 !important;
+    border-color: #e62429 !important;
+    color: white !important;
+    transform: none !important;
+}
+
+/* NUOVO: Focus per bottone attivo */
+.navbar .btn.active:focus {
     background-color: #e62429 !important;
     border-color: #e62429 !important;
     color: white !important;

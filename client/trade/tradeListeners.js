@@ -347,4 +347,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-}); // FINE DEL BLOCCO DOMContentLoaded
+}); 

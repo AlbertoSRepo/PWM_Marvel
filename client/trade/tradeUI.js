@@ -1,8 +1,7 @@
 // tradeUI.js
 
-import { showManageProposalOverlay, acceptOffer, checkUserOwnsCards } from './tradeController.js';
-import { getCardsByIds } from '../album/albumRoute.js'; // AGGIUNGI QUESTO IMPORT
-import { convertThumbnailStringToObj } from '../shared/cardUtils.js';
+import { checkUserOwnsCards } from './tradeController.js';
+//import { createCardHTML } from '../shared/cardBuilder.js';
 
 /* Overlay Principale (Selezione carte) */
 export function showOverlayUI() {
@@ -52,6 +51,8 @@ export function hideViewCardsOverlayUI() {
     document.body.style.overflow = ''; // Ripristina scroll del body
   }
 }
+
+
 
 /* Aggiorna la tabella "Proposte della Community" */
 export function updateCommunityTradesUI(trades) {
@@ -108,6 +109,45 @@ async function checkIfUserOwnsAllCards(trades) {
       console.error('Errore nella verifica delle carte possedute per trade:', trade._id, error);
     }
   }
+}
+
+/* Crea un elemento card dal template */
+function createCardHTML(card) {
+  // SOSTITUISCI la funzione esistente con questa versione che replica l'album
+  const cardDiv = document.createElement('div');
+  cardDiv.classList.add('col-lg-2', 'col-md-4', 'col-sm-6', 'col-12', 'marvel-card', 'mb-4');
+  
+  // Aggiungi classe per stato della carta
+  if (card.state === 'posseduta') {
+    cardDiv.classList.add('posseduta');
+  } else {
+    cardDiv.classList.add('non-posseduta');
+  }
+  
+  // Costruisci l'URL dell'immagine
+  let imageUrl = 'placeholder-image.jpeg';
+  if (card.thumbnail && card.thumbnail.path && card.thumbnail.extension) {
+    imageUrl = `${card.thumbnail.path}.${card.thumbnail.extension}`;
+    imageUrl = imageUrl.replace('http://', 'https://');
+  }
+  
+  cardDiv.innerHTML = `
+    <div class="card custom-aspect-ratio">
+      <img 
+        class="card-img-top" 
+        alt="Superhero Image" 
+        src="${imageUrl}"
+        onerror="this.src='placeholder-image.jpeg'"
+      />
+      <div class="card-body">
+        <h5 class="card-title">${card.name || 'Carta sconosciuta'}</h5>
+        <p class="card-id">ID: ${card.id}</p>
+        <p class="card-quantity">${card.quantity ? card.quantity : ''}</p>
+      </div>
+    </div>
+  `;
+  
+  return cardDiv;
 }
 
 /* Aggiorna la tabella "Le tue Proposte" */
@@ -175,45 +215,6 @@ export function updateUserOffersUI(userOffers) {
   });
 }
 
-/* Crea un elemento card dal template */
-function createCardHTML(card) {
-  // SOSTITUISCI la funzione esistente con questa versione che replica l'album
-  const cardDiv = document.createElement('div');
-  cardDiv.classList.add('col-lg-2', 'col-md-4', 'col-sm-6', 'col-12', 'marvel-card', 'mb-4');
-  
-  // Aggiungi classe per stato della carta
-  if (card.state === 'posseduta') {
-    cardDiv.classList.add('posseduta');
-  } else {
-    cardDiv.classList.add('non-posseduta');
-  }
-  
-  // Costruisci l'URL dell'immagine
-  let imageUrl = 'placeholder-image.jpeg';
-  if (card.thumbnail && card.thumbnail.path && card.thumbnail.extension) {
-    imageUrl = `${card.thumbnail.path}.${card.thumbnail.extension}`;
-    imageUrl = imageUrl.replace('http://', 'https://');
-  }
-  
-  cardDiv.innerHTML = `
-    <div class="card custom-aspect-ratio">
-      <img 
-        class="card-img-top" 
-        alt="Superhero Image" 
-        src="${imageUrl}"
-        onerror="this.src='placeholder-image.jpeg'"
-      />
-      <div class="card-body">
-        <h5 class="card-title">${card.name || 'Carta sconosciuta'}</h5>
-        <p class="card-id">ID: ${card.id}</p>
-        <p class="card-quantity">${card.quantity ? card.quantity : ''}</p>
-      </div>
-    </div>
-  `;
-  
-  return cardDiv;
-}
-
 /* Aggiorna il contenitore delle carte in "card-selection" */
 export function updateCardSelectionUI(cardsData) {
   const container = document.getElementById('card-selection');
@@ -224,7 +225,7 @@ export function updateCardSelectionUI(cardsData) {
     return;
   }
   
-  // AGGIUNGI: Crea righe come nell'album (6 carte per riga)
+  // MODIFICATO: Usa le stesse proporzioni del view-cards-overlay
   const cardsPerRow = 6;
   const numRows = Math.ceil(cardsData.length / cardsPerRow);
   
@@ -237,6 +238,8 @@ export function updateCardSelectionUI(cardsData) {
     
     for (let j = startIndex; j < endIndex; j++) {
       const cardElement = createCardHTML(cardsData[j]);
+      // MODIFICA: Cambia le classi per uniformare alle proporzioni del view overlay
+      cardElement.className = 'col-lg-2 col-md-4 col-sm-6 col-12 marvel-card mb-4 posseduta';
       row.appendChild(cardElement);
     }
     

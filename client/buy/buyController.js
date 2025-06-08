@@ -1,40 +1,28 @@
 // buyController.js
 
-import { buyCreditsAPI, buyCardPacketAPI } from './buyRoute.js';
+// Import funzioni UI per aggiornamento interfaccia
 import { showOverlayMessage, showPacketCardsOverlay, updateBuyPacketButton } from './buyUI.js';
+// Import API routes per chiamate server
+import { buyCreditsAPI, buyCardPacketAPI } from './buyRoute.js';
+// Import helper per aggiornamento crediti navbar
+import { updateNavbarCredits } from '../shared/uiHelpers.js';
+// Import utility per gestione dati carte
 import { getFigurineDataOrThrow, mergeServerAndLocalData } from '../shared/cardUtils.js';
-
-/**
- * Aggiorna i crediti nella navbar
- */
-function updateNavbarCredits(credits) {
-  const creditsElement = document.getElementById('user-credits');
-  if (creditsElement) {
-    creditsElement.textContent = `Crediti: ${credits}`;
-  }
-  
-  // Aggiorna anche il count specifico se esiste
-  const creditCount = document.getElementById('credit-count');
-  if (creditCount) {
-    creditCount.textContent = credits;
-  }
-}
 
 /**
  * Compra un certo numero di crediti
  */
 export async function buyCredits(creditAmount) {
   try {
-    const result = await buyCreditsAPI(creditAmount);
-    // result = { message, credits, ... }
+    const result = await buyCreditsAPI(creditAmount); // Richiesta acquisto crediti al server
     
-    // Aggiorna i crediti nella navbar
+    // Aggiorna crediti nella navbar
     updateNavbarCredits(result.credits);
     
     // Mostra messaggio di successo
     showOverlayMessage(`Hai acquistato ${creditAmount} crediti.`, result.credits);
     
-    // Aggiorna il bottone del pacchetto dopo l'acquisto di crediti
+    // Aggiorna bottone pacchetto dopo acquisto crediti
     updateBuyPacketButton(result.credits);
     
   } catch (error) {
@@ -48,40 +36,24 @@ export async function buyCredits(creditAmount) {
  */
 export async function buyCardPacket() {
   try {
-    const result = await buyCardPacketAPI();
-    // result = { message, success, credits, purchasedCardIds }
-
-    if (!result.success) {
-      // Caso: crediti insufficienti o altro errore
-      showOverlayMessage(result.message, result.credits);
-      updateBuyPacketButton(result.credits);
-      updateNavbarCredits(result.credits);
-      return;
-    }
-
-    // Verifica che ci siano carte acquistate
-    if (!result.purchasedCardIds || result.purchasedCardIds.length === 0) {
-      showOverlayMessage('Nessuna carta ricevuta nel pacchetto.', result.credits);
-      updateBuyPacketButton(result.credits);
-      updateNavbarCredits(result.credits);
-      return;
-    }
-
-    // Ora uniamo "purchasedCardIds" con figurineData locale
+    const result = await buyCardPacketAPI(); // Richiesta acquisto pacchetto al server
+    
+    // Recupera dati figurine da localStorage
     const figurineData = getFigurineDataOrThrow();
+    
+    // Mappa carte acquistate con quantità 1
     const serverCards = result.purchasedCardIds.map(id => ({ id, quantity: 1 }));
 
-    // Li "fondiamo" come fosse "posseduta" => quantity>0
+    // Combina dati server con locali come possedute
     const merged = mergeServerAndLocalData(serverCards, figurineData, false);
 
-    // merged conterrà [{ id, name, thumbnail, state:'posseduta', quantity: 1 }, ...]
-    // Passiamo a una UI function che mostri le carte
+    // Mostra carte acquistate in overlay
     showPacketCardsOverlay(merged, result.credits);
     
-    // Aggiorna il bottone del pacchetto dopo l'acquisto
+    // Aggiorna bottone pacchetto dopo acquisto
     updateBuyPacketButton(result.credits);
     
-    // Aggiorna i crediti nella navbar
+    // Aggiorna crediti nella navbar
     updateNavbarCredits(result.credits);
 
   } catch (error) {
@@ -96,9 +68,9 @@ export async function buyCardPacket() {
 export async function loadUserCredits() {
   try {
     const response = await fetch(`http://localhost:3000/api/users/credits`, {
-      method: 'GET',
+      method: 'GET', // Metodo GET per recupero crediti
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json' // Header tipo contenuto JSON
       }
     });
     
@@ -107,28 +79,28 @@ export async function loadUserCredits() {
       throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
     }
     
-    const data = await response.json();
+    const data = await response.json(); // Parse risposta JSON
     
-    // Verifica che la risposta contenga i crediti
+    // Verifica formato crediti valido
     if (typeof data.credits !== 'number') {
       throw new Error('Formato crediti non valido ricevuto dal server');
     }
     
-    // Aggiorna l'UI del bottone pacchetto
+    // Aggiorna UI bottone pacchetto
     updateBuyPacketButton(data.credits);
     
-    // Aggiorna i crediti nella navbar
+    // Aggiorna crediti nella navbar
     updateNavbarCredits(data.credits);
     
-    return data.credits;
+    return data.credits; // Restituisce crediti utente
     
   } catch (error) {
     console.error('Errore durante il recupero dei crediti:', error);
     
-    // In caso di errore, disabilita il bottone pacchetto per sicurezza
+    // In caso errore, disabilita bottone per sicurezza
     updateBuyPacketButton(0);
     updateNavbarCredits(0);
     
-    return 0;
+    return 0; // Restituisce 0 crediti in caso errore
   }
 }

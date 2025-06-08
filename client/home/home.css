@@ -20,3 +20,37 @@ html, body {
   text-align: center;
 }
 
+/* Stili per le sezioni di testo */
+.home-container .content-row .col-md-6 h2 {
+    color: #000000;
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+
+.home-container .content-row .col-md-6 p {
+    color: #000000;
+    font-size: 1.5rem;
+    font-weight: 500;
+}
+
+/* Stili per le sezioni delle immagini */
+.home-container .content-row .col-md-6:has(img),
+.home-container .content-row .col-md-6:has(.d-flex) {
+    padding: 20px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+}
+
+/* Fallback per browser che non supportano :has() */
+.home-container .image-section {
+    padding: 20px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+}
+

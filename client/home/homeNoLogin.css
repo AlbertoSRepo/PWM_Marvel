@@ -1,0 +1,32 @@
+/* Crea questo file se non esiste già */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.homeNoLogin-container {
+    min-height: calc(100vh - 120px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.content-row {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.content-row h2 {
+    color: #000000;
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
+}
+
+.content-row .mt-4 {
+    display: flex;
+    justify-content: center;
+}

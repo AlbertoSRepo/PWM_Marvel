@@ -111,8 +111,8 @@ html, body {
   left: 50%; /* Centro orizzontale */
   transform: translateX(-50%); /* Centra perfettamente */
   justify-content: center; /* Centra contenuto */
-  background-color: rgba(136, 0, 0, 0.9); /* Sfondo rosso trasparente */
-  padding: 10px 10px; /* Spaziatura interna */
+  background-color: #202020; /* Sfondo rosso trasparente */
+  padding: 20px 20px; /* Spaziatura interna */
   border-radius: 20px; /* Angoli molto arrotondati */
   z-index: 300; /* Sopra altri elementi */
 }
@@ -126,20 +126,48 @@ html, body {
   margin: 0 auto; /* Centra form */
 }
 
+/* Stili personalizzati per la barra di controllo album */
 #albumPage {
   width: 100px; /* Larghezza fissa input */
   text-align: center; /* Testo centrato */
   margin: 0 auto; /* Centra elemento */
+  background-color: #ffffff !important; /* Sfondo grigio scuro */
+  border-color: #202020 !important; /* Bordo grigio scuro */
+  color: rgb(0, 0, 0) !important; /* Testo bianco */
 }
 
-.button-group-left, .button-group-right {
-  display: flex; /* Layout flexbox */
-  gap: 20px; /* Spazio tra pulsanti */
+#albumPage::placeholder {
+  color: #000000 !important; /* Placeholder grigio chiaro */
 }
 
-.button-group-right {
-  display: flex;
-  gap: 20px;
+#albumPage:focus {
+  background-color: #202020 !important; /* Mantiene sfondo al focus */
+  border-color: #e62429 !important; /* Bordo rosso al focus */
+  color: rgb(0, 0, 0) !important; /* Testo bianco al focus */
+  box-shadow: 0 0 0 2px rgba(230, 36, 41, 0.25) !important; /* Ombra rossa */
+}
+
+/* Bottone "Vai alla Pagina" rosso */
+#albumForm .btn-primary {
+  background-color: #e62429 !important; /* Sfondo rosso Marvel */
+  border-color: #e62429 !important; /* Bordo rosso Marvel */
+  color: white !important; /* Testo bianco */
+  transition: all 0.3s ease !important; /* Transizione fluida */
+}
+
+#albumForm .btn-primary:hover {
+  background-color: #c71e22 !important; /* Rosso più scuro al hover */
+  border-color: #c71e22 !important; /* Bordo rosso scuro al hover */
+  color: white !important; /* Testo bianco */
+  transform: translateY(-1px) !important; /* Leggero movimento verso l'alto */
+}
+
+#albumForm .btn-primary:focus,
+#albumForm .btn-primary:active {
+  background-color: #c71e22 !important; /* Rosso scuro al focus/active */
+  border-color: #c71e22 !important; /* Bordo rosso scuro */
+  color: white !important; /* Testo bianco */
+  box-shadow: 0 0 0 2px rgba(230, 36, 41, 0.25) !important; /* Ombra rossa */
 }
 
 /* Style for the loading spinner */
@@ -234,7 +262,7 @@ html, body {
 .accordion-body div {
   margin-bottom: 1rem; /* Margine inferiore elementi */
 }
-/* Mantieni gli stili predefiniti per .accordion-body *
+/* Mantieni gli stili predefiniti per .accordion-body */
 
 /* Applica display: flex al nuovo wrapper .accordion-content */
 .accordion-content {
@@ -272,4 +300,43 @@ html, body {
   cursor: pointer; /* Cursore pointer */
   font-size: 40px; /* Dimensione grande */
   color: red; /* Colore rosso */
+}
+
+/* Stili per la barra di ricerca */
+#search-input {
+  border-color: #e62429 !important; /* Bordo rosso Marvel */
+  transition: all 0.3s ease !important; /* Transizione fluida */
+  border-width: 3px !important; /* Spessore bordo */
+}
+
+#search-input:focus {
+  border-color: #e62429 !important; /* Bordo rosso al focus */
+  box-shadow: 0 0 0 4px rgba(230, 36, 41, 0.5) !important; /* Ombra rossa */
+}
+
+#search-input::placeholder {
+  color: #6c757d !important; /* Placeholder grigio */
+}
+
+/* Stili per il bottone di ricerca */
+#search-button {
+  background-color: #e62429 !important; /* Sfondo rosso Marvel */
+  border-color: #e62429 !important; /* Bordo rosso Marvel */
+  color: white !important; /* Testo bianco */
+  transition: all 0.3s ease !important; /* Transizione fluida */
+}
+
+#search-button:hover {
+  background-color: #c71e22 !important; /* Rosso più scuro al hover */
+  border-color: #c71e22 !important; /* Bordo rosso scuro al hover */
+  color: white !important; /* Testo bianco */
+  transform: translateY(-1px) !important; /* Leggero movimento verso l'alto */
+}
+
+#search-button:focus,
+#search-button:active {
+  background-color: #c71e22 !important; /* Rosso scuro al focus/active */
+  border-color: #c71e22 !important; /* Bordo rosso scuro */
+  color: white !important; /* Testo bianco */
+  box-shadow: 0 0 0 2px rgba(230, 36, 41, 0.25) !important; /* Ombra rossa */
 }

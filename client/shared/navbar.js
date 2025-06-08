@@ -1,12 +1,14 @@
+import { updateNavbarCredits } from "./uiHelpers.js";
+
 // Funzione per inserire la navbar
 export const loadNavbar = (activePage) => {
     console.log('Loading navbar for page:', activePage); // Debug log
 
-    // Definisci le classi dei bottoni (ora tutti uguali, il colore sarà gestito dal CSS)
-    const albumClass = 'btn me-2';
-    const buyClass = 'btn me-2';
-    const tradeClass = 'btn me-2';
-    const userClass = 'btn me-2';
+    // Definisci le classi dei bottoni in base alla pagina attiva
+    const albumClass = activePage === 'album' ? 'btn me-2 active' : 'btn me-2';
+    const buyClass = activePage === 'buy' ? 'btn me-2 active' : 'btn me-2';
+    const tradeClass = activePage === 'trade' ? 'btn me-2 active' : 'btn me-2';
+    const userClass = activePage === 'user' ? 'btn me-2 active' : 'btn me-2';
 
     const navbarHTML = `
         <nav class="navbar navbar-expand-lg">
@@ -34,23 +36,9 @@ export const loadNavbar = (activePage) => {
     }
     
     navbarElement.innerHTML = navbarHTML;
-    console.log('Navbar HTML set successfully'); // Debug log
+    console.log('Navbar HTML set successfully for page:', activePage); // Debug log aggiornato
     
     sendRegisterRequest();
-}
-
-// Funzione per aggiornare il campo HTML che mostra i crediti nella navbar
-const updateCredits = (credits) => {
-    const creditsElement = document.getElementById('user-credits');
-    if (creditsElement) {
-        creditsElement.textContent = `Crediti: ${credits}`; // Aggiorna il testo con i crediti
-    }
-    
-    // Aggiorna anche il count specifico se esiste
-    const creditCount = document.getElementById('credit-count');
-    if (creditCount) {
-        creditCount.textContent = credits;
-    }
 }
 
 // registrazione utente
@@ -63,7 +51,7 @@ const sendRegisterRequest = async() => {
       });
 
       response.json().then(data => {
-        updateCredits(data.credits);
+        updateNavbarCredits(data.credits);
       });
   
     } catch (error) {
@@ -71,6 +59,3 @@ const sendRegisterRequest = async() => {
       throw error;
     }
 }
-
-// Assicurati che questa funzione sia esportata se necessario
-export { updateCredits };
